@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'fims/css/home.css' %}">
+    <!-- <script src="{% static 'fims/js/home.js' %}"></script> -->
+</head>
+<body>
+    <div id="home">
+        <div id="logo">
+            <h2>FIMS</h2>
+        </div>
+        <div id="container">
+            <div id="cnt-name">
+                <p>Welcome! Register Your Family</p>
+            </div>
+            <div id="cnt-button">
+                <a href="{{'regis'}}">Register</a>
+                <a href="{{'login'}}">Login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

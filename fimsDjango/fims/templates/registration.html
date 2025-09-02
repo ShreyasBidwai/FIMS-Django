@@ -1,15 +1,67 @@
-    
+<!-- templates/register.html -->
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Family Registration</title>
     <link rel="stylesheet" href="{% static 'fims/css/registration.css' %}">
-    <script src="{% static 'fims/js/registration.js' %}"></script>
 </head>
 <body>
-    <h1>Fam System</h1>
+    <h1>Register Family</h1>
+
+    <form method="post" enctype="multipart/form-data" id="registrationForm">
+        {% csrf_token %}
+
+        <!-- Family Head Section -->
+        <fieldset>
+            <legend>Family Head</legend>
+            <input type="text" name="head_name" placeholder="Name" required maxlength="50">
+            <input type="text" name="head_surname" placeholder="Surname" required maxlength="50">
+            <input type="date" name="head_birthdate" required>
+            <input type="text" name="head_mobile" placeholder="Mobile No" required maxlength="10">
+            <textarea name="head_address" placeholder="Address" required></textarea>
+            
+            <select name="head_state" required>
+                <option value="">Select State</option>
+                <!-- Dynamically fill options -->
+            </select>
+            <select name="head_city" required>
+                <option value="">Select City</option>
+            </select>
+
+            <input type="text" name="head_pincode" placeholder="Pincode" required maxlength="6">
+
+            <label>
+                <input type="radio" name="head_marital_status" value="Married" required> Married
+            </label>
+            <label>
+                <input type="radio" name="head_marital_status" value="Unmarried"> Unmarried
+            </label>
+
+            <input type="date" name="head_wedding_date" id="wedding_date" style="display:none;">
+
+            <input type="file" name="head_photo" accept="image/png, image/jpeg" required>
+
+            <!-- Hobbies -->
+            <div id="hobbies-section">
+                <label>Hobbies</label>
+                <input type="text" name="head_hobbies[]" required placeholder="Enter a hobby">
+                <button type="button" onclick="addHobby()">Add Hobby</button>
+            </div>
+        </fieldset>
+
+        <!-- Family Members Section -->
+        <div id="members-container">
+            <h3>Family Members</h3>
+        </div>
+
+        <button type="button" onclick="addMember()">Add Member</button>
+
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script src="{% static 'fims/js/registration.js' %}"></script>
 </body>
 </html>
