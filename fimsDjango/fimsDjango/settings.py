@@ -25,6 +25,13 @@ SECRET_KEY = 'django-insecure-pbxixqo8kv6xub4yk+x_(5i7#qk#_)@^6o_$)@22(%g(4(n15s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+STATIC_URL = '/static/'
+
+# Add this to help Django find static files in the app's static directory
+import os
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'fims/static')]
+
+
 ALLOWED_HOSTS = []
 
 
@@ -37,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'fims'
 ]
 
 MIDDLEWARE = [
