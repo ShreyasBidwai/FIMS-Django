@@ -1,0 +1,1 @@
+db structure link: https://docs.google.com/spreadsheets/d/1D92p20teNMDFC7nLbiZV5F4f-o--OOo4Ti_4I_6fUi0/edit?gid=0#gid=0
