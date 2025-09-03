@@ -27,6 +27,13 @@ class FamilyHead(models.Model):
     WeddingDate = models.DateField(null=True, blank=True)
     Photo = models.ImageField(upload_to='photos/', null=True, blank=True)
 
+    EDUCATION_CHOICES = [
+        ('Graduate', 'Graduate'),
+        ('Post Graduate', 'Post Graduate'),
+        ('Diploma', 'Diploma'),
+    ]
+    Education = models.CharField(max_length=20, choices=EDUCATION_CHOICES, default='Graduate')
+
     # Soft delete flag
     is_deleted = models.BooleanField(default=False)
 
@@ -42,7 +49,7 @@ class FamilyHead(models.Model):
     class Meta:
         db_table = 'family_head'
 
-
+# Hobby model
 
 class Hobby(models.Model):
     head = models.ForeignKey(
@@ -59,13 +66,9 @@ class Hobby(models.Model):
         blank=True,
         related_name='member_hobbies'
     )
-    name = models.CharField(max_length=100)
+    Hobby = models.CharField(max_length=100)
     is_deleted = models.BooleanField(default=False)
 
-    # def clean(self):
-    #     # Ensure exactly one of head or member is set
-    #     if (self.head and self.member) or (not self.head and not self.member):
-    #         raise ValidationError("Hobby must be associated with either a head or a member, not both or neither.")
 
     def __str__(self):
         if self.head:
@@ -120,3 +123,28 @@ class FamilyMember(models.Model):
 
     class Meta:
         db_table = 'family_member'
+
+
+
+
+
+class State(models.Model):
+    name = models.CharField(max_length=100)
+    country_id = models.IntegerField()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'state'
+
+
+class City(models.Model):
+    name = models.CharField(max_length=100)
+    state = models.ForeignKey(State, related_name="cities", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'city'

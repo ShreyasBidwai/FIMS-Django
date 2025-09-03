@@ -12,11 +12,12 @@
         <h1>Family Info Management System</h1>
         <h3>Enter your login credentials</h3>
 
-        <form action="" name="login">
+        <form action="" name="login_view" method="post">
+            {% csrf_token %}
             <label for="first">
                 Username:
             </label>
-            <input type="text" id="first" name="first" 
+            <input type="text" id="first" name="username" 
                 placeholder="Enter your Username" required>
 
             <label for="password">

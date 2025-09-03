@@ -1,3 +1,21 @@
+// jQuery for dynamic state/city dropdowns for Family Head
+$(document).ready(function(){
+    $("#head_state").change(function(){
+        var stateId = $(this).val();
+        $("#head_city").empty().append('<option value="">Select City</option>');
+        if(stateId){
+            $.ajax({
+                url: "/city/",
+                data: { "state_id": stateId },
+                success: function(data){
+                    $.each(data, function(index, city){
+                        $("#head_city").append('<option value="'+city.id+'">'+city.name+'</option>');
+                    });
+                }
+            });
+        }
+    });
+});
 // static/js/register.js
 
 // Show/Hide wedding date based on marital status
@@ -48,18 +66,61 @@ function addMember() {
             <input type="text" name="member_${memberIndex}_mobile" placeholder="Mobile No (optional)" maxlength="10">
             <input type="file" name="member_${memberIndex}_photo" accept="image/png, image/jpeg">
 
+            <div class="form-row">
+                <label for="member_${memberIndex}_education">Education:</label>
+                <select name="member_${memberIndex}_education" id="member_${memberIndex}_education" required>
+                    <option value="Graduate">Graduate</option>
+                    <option value="Post Graduate">Post Graduate</option>
+                    <option value="Diploma">Diploma</option>
+                </select>
+            </div>
+
             <label>
                 <input type="checkbox" onchange="toggleAddress(this, ${memberIndex})"> Has different address?
             </label>
 
             <div class="address-fields" id="address_${memberIndex}" style="display:none;">
                 <textarea name="member_${memberIndex}_address" placeholder="Address"></textarea>
-                <input type="text" name="member_${memberIndex}_state" placeholder="State">
-                <input type="text" name="member_${memberIndex}_city" placeholder="City">
+                <select name="member_${memberIndex}_state" id="member_${memberIndex}_state">
+                    <option value="">Select State</option>
+                </select>
+                <select name="member_${memberIndex}_city" id="member_${memberIndex}_city">
+                    <option value="">Select City</option>
+                </select>
                 <input type="text" name="member_${memberIndex}_pincode" placeholder="Pincode" maxlength="6">
             </div>
         </fieldset>
     `;
+
+    // Populate states for the new member
+    var states = window.statesForMembers || [];
+    var $stateSelect = div.querySelector(`#member_${memberIndex}_state`);
+    if ($stateSelect && states.length > 0) {
+        states.forEach(function(state) {
+            var opt = document.createElement('option');
+            opt.value = state.id;
+            opt.textContent = state.name;
+            $stateSelect.appendChild(opt);
+        });
+    }
+
+    // Attach change event for dynamic city loading
+    $(div).on('change', `#member_${memberIndex}_state`, function() {
+        var stateId = $(this).val();
+        var $citySelect = $(div).find(`#member_${memberIndex}_city`);
+        $citySelect.empty().append('<option value="">Select City</option>');
+        if(stateId){
+            $.ajax({
+                url: "/city/",
+                data: { "state_id": stateId },
+                success: function(data){
+                    $.each(data, function(index, city){
+                        $citySelect.append('<option value="'+city.id+'">'+city.name+'</option>');
+                    });
+                }
+            });
+        }
+    });
 
     container.appendChild(div);
 }
