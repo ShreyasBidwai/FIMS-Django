@@ -6,10 +6,10 @@
     <title>Family Registration</title>
     <link rel="stylesheet" href="{% static 'fims/css/registration.css' %}">
     <script src="{% static 'fims/js/registration.js' %}" defer></script>
-</head>
+</head>     
 <body>
     <h1>Register Family</h1>
-
+    <a href="{% url 'login_view' %}">Admin login</a>
     <form method="post" enctype="multipart/form-data" id="registrationForm">
         {% csrf_token %}
 
