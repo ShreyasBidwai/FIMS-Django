@@ -35,9 +35,26 @@ def login_view(request):
 
     return render(request, 'login.html')
 
+def resetPassword(request):
+    return render(request, 'resetPassword.html')
 
 @login_required(login_url='login')
 def dashboard(request):
+    # def product_list(request):
+    # # Retrieve all products
+    # all_products = Product.objects.all()
+
+    # # Retrieve a specific product by its primary key
+    # # product = Product.objects.get(pk=1)
+
+    # # Retrieve products based on specific criteria
+    # # electronics_products = Product.objects.filter(category='electronics')
+
+    # # Order the results
+    # # ordered_products = Product.objects.order_by('name')
+
+    # context = {'products': all_products} # Or other QuerySets
+    
     return render(request, 'dashboard.html', {'username': request.user.username})
 
 
