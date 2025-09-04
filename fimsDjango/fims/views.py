@@ -1,3 +1,4 @@
+
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -20,6 +21,71 @@ def home(request):
 
 def regis(request):
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
+    if request.method == 'POST':
+        # Family Head
+        head = FamilyHead(
+            Name=request.POST.get('head_name'),
+            Surname=request.POST.get('head_surname'),
+            Birthdate=request.POST.get('head_birthdate'),
+            MobileNo=request.POST.get('head_mobile'),
+            Address=request.POST.get('head_address'),
+            State=request.POST.get('head_state'),
+            City=request.POST.get('head_city'),
+            Pincode=request.POST.get('head_pincode'),
+            MaritalStatus=request.POST.get('head_marital_status'),
+            WeddingDate=request.POST.get('head_wedding_date') or None,
+            Education=request.POST.get('head_education'),
+            Photo=request.FILES.get('head_photo')
+        )
+        head.save()
+
+        # Hobbies for Head
+        for hobby in request.POST.getlist('head_hobbies[]'):
+            if hobby.strip():
+                Hobby.objects.create(head=head, Hobby=hobby.strip())
+
+        # Family Members
+        member_index = 1
+        while True:
+            name = request.POST.get(f'member_{member_index}_name')
+            if not name:
+                break
+            address = request.POST.get(f'member_{member_index}_address')
+            address_override = bool(address)
+            if not address_override:
+                # Inherit address from head
+                address = head.Address
+                state = head.State
+                city = head.City
+                pincode = head.Pincode
+            else:
+                state = request.POST.get(f'member_{member_index}_state')
+                city = request.POST.get(f'member_{member_index}_city')
+                pincode = request.POST.get(f'member_{member_index}_pincode')
+            member = FamilyMember(
+                HeadID=head,
+                Name=name,
+                Surname=request.POST.get(f'member_{member_index}_surname'),
+                Relationship=request.POST.get(f'member_{member_index}_relationship'),
+                Birthdate=request.POST.get(f'member_{member_index}_birthdate'),
+                MobileNo=request.POST.get(f'member_{member_index}_mobile'),
+                Photo=request.FILES.get(f'member_{member_index}_photo'),
+                AddressOverride=address_override,
+                Address=address,
+                State=state,
+                City=city,
+                Pincode=pincode,
+            )
+            member.save()
+            # Member hobbies
+            for hobby in request.POST.getlist(f'member_{member_index}_hobbies[]'):
+                if hobby.strip():
+                    Hobby.objects.create(head=head, member=member, Hobby=hobby.strip())
+            member_index += 1
+
+        messages.success(request, 'Family registered successfully!')
+        return redirect('regis')
+
     return render(request, 'registration.html', {'states': states})
 
 

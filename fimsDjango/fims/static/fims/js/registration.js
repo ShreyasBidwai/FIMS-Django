@@ -1,4 +1,5 @@
-// jQuery for dynamic state/city dropdowns for Family Head
+// Family Head - State/City Dropdown
+
 $(document).ready(function(){
     $("#head_state").change(function(){
         var stateId = $(this).val();
@@ -16,24 +17,27 @@ $(document).ready(function(){
         }
     });
 });
-// static/js/register.js
 
-// Show/Hide wedding date based on marital status
+
 document.addEventListener('DOMContentLoaded', () => {
     const marriedRadio = document.querySelector('input[name="head_marital_status"][value="Married"]');
     const unmarriedRadio = document.querySelector('input[name="head_marital_status"][value="Unmarried"]');
+    const weddingDateRow = document.getElementById('wedding_date_row');
     const weddingDate = document.getElementById('wedding_date');
 
-    if (marriedRadio && unmarriedRadio) {
-        marriedRadio.addEventListener('change', () => {
-            weddingDate.style.display = 'inline';
+    function updateHeadWeddingDate() {
+        if (marriedRadio && marriedRadio.checked) {
+            weddingDateRow.style.display = '';
             weddingDate.required = true;
-        });
-
-        unmarriedRadio.addEventListener('change', () => {
-            weddingDate.style.display = 'none';
+        } else {
+            weddingDateRow.style.display = 'none';
             weddingDate.required = false;
-        });
+        }
+    }
+    if (marriedRadio && unmarriedRadio) {
+        marriedRadio.addEventListener('change', updateHeadWeddingDate);
+        unmarriedRadio.addEventListener('change', updateHeadWeddingDate);
+        updateHeadWeddingDate();
     }
 });
 
@@ -47,11 +51,11 @@ function addHobby() {
     section.appendChild(input);
 }
 
+
 let memberIndex = 0;
 
 function addMember() {
     memberIndex++;
-
     const container = document.getElementById("members-container");
     const div = document.createElement("div");
     div.className = "member-form";
@@ -75,6 +79,17 @@ function addMember() {
                 </select>
             </div>
 
+            <div class="form-row">
+                Marital Status:
+                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Married" required> Married</label>
+                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Unmarried"> Unmarried</label>
+            </div>
+
+            <div id="member_${memberIndex}_wedding_date_row" style="display:none;">
+                <label for="member_${memberIndex}_wedding_date">Wedding Date:</label>
+                <input type="date" name="member_${memberIndex}_wedding_date" id="member_${memberIndex}_wedding_date">
+            </div>
+
             <label>
                 <input type="checkbox" onchange="toggleAddress(this, ${memberIndex})"> Has different address?
             </label>
@@ -92,22 +107,45 @@ function addMember() {
         </fieldset>
     `;
 
-    // Populate states for the new member
-    var states = window.statesForMembers || [];
-    var $stateSelect = div.querySelector(`#member_${memberIndex}_state`);
+    container.appendChild(div);
+
+    // Wedding date toggle logic
+    const marriedRadio = div.querySelector(`input[name="member_${memberIndex}_marital_status"][value="Married"]`);
+    const unmarriedRadio = div.querySelector(`input[name="member_${memberIndex}_marital_status"][value="Unmarried"]`);
+    const weddingDateRow = div.querySelector(`#member_${memberIndex}_wedding_date_row`);
+    const weddingDate = div.querySelector(`#member_${memberIndex}_wedding_date`);
+
+    function updateMemberWeddingDate() {
+        if (marriedRadio && marriedRadio.checked) {
+            weddingDateRow.style.display = '';
+            weddingDate.required = true;
+        } else {
+            weddingDateRow.style.display = 'none';
+            weddingDate.required = false;
+        }
+    }
+    if (marriedRadio && unmarriedRadio) {
+        marriedRadio.addEventListener('change', updateMemberWeddingDate);
+        unmarriedRadio.addEventListener('change', updateMemberWeddingDate);
+        updateMemberWeddingDate();
+    }
+
+    // states for new member
+    const states = window.statesForMembers || [];
+    const $stateSelect = div.querySelector(`#member_${memberIndex}_state`);
     if ($stateSelect && states.length > 0) {
         states.forEach(function(state) {
-            var opt = document.createElement('option');
+            const opt = document.createElement('option');
             opt.value = state.id;
             opt.textContent = state.name;
             $stateSelect.appendChild(opt);
         });
     }
 
-    // Attach change event for dynamic city loading
+    // Dynamic city loading
     $(div).on('change', `#member_${memberIndex}_state`, function() {
-        var stateId = $(this).val();
-        var $citySelect = $(div).find(`#member_${memberIndex}_city`);
+        const stateId = $(this).val();
+        const $citySelect = $(div).find(`#member_${memberIndex}_city`);
         $citySelect.empty().append('<option value="">Select City</option>');
         if(stateId){
             $.ajax({
@@ -121,9 +159,8 @@ function addMember() {
             });
         }
     });
-
-    container.appendChild(div);
 }
+
 
 function toggleAddress(checkbox, index) {
     const addressDiv = document.getElementById(`address_${index}`);

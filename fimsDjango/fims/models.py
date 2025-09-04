@@ -35,8 +35,13 @@ class FamilyHead(models.Model):
     ]
     Education = models.CharField(max_length=20, choices=EDUCATION_CHOICES, default='Graduate')
 
-    # Soft delete flag
-    is_deleted = models.BooleanField(default=False)
+
+    STATUS_CHOICES = [
+        (0, 'Inactive'),
+        (1, 'Active'),
+        (9, 'Soft Deleted'),
+    ]
+    status = models.IntegerField(choices=STATUS_CHOICES, default=1)
 
     def clean(self):
         if self.Birthdate and (date.today() - self.Birthdate).days < 21 * 365:
@@ -106,8 +111,13 @@ class FamilyMember(models.Model):
         null=True, blank=True
     )
 
-    # Soft delete flag
-    is_deleted = models.BooleanField(default=False)
+
+    STATUS_CHOICES = [
+        (0, 'Inactive'),
+        (1, 'Active'),
+        (9, 'Soft Deleted'),
+    ]
+    status = models.IntegerField(choices=STATUS_CHOICES, default=1)
 
     def clean(self):
         if self.AddressOverride:
@@ -130,6 +140,13 @@ class FamilyMember(models.Model):
 
 
 class State(models.Model):
+
+    STATUS_CHOICES = [
+        (0, 'Inactive'),
+        (1, 'Active'),
+        (9, 'Soft Deleted'),
+    ]
+    status = models.IntegerField(choices=STATUS_CHOICES, default=1)
     name = models.CharField(max_length=100)
     country_id = models.IntegerField()
 
@@ -141,6 +158,13 @@ class State(models.Model):
 
 
 class City(models.Model):
+
+    STATUS_CHOICES = [
+        (0, 'Inactive'),
+        (1, 'Active'),
+        (9, 'Soft Deleted'),
+    ]
+    status = models.IntegerField(choices=STATUS_CHOICES, default=1)
     name = models.CharField(max_length=100)
     state = models.ForeignKey(State, related_name="cities", on_delete=models.CASCADE)
 
