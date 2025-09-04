@@ -11,7 +11,6 @@ from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.urls import reverse
 from .models import *
-import execjs
 
 
 
