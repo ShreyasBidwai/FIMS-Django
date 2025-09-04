@@ -24,7 +24,11 @@
                 Password:
             </label>
             <input type="password" id="password" name="password" placeholder="Enter your Password">
+
             <div id="passwordError" class="error-message"></div>
+            <div style="margin-bottom: 12px;">
+                <a href="{% url 'forgot-password' %}" style="color: #007bff; text-decoration: underline; font-size: 0.97em;">Forgot password?</a>
+            </div>
 
             <div class="wrap">
                 <button type="submit">
