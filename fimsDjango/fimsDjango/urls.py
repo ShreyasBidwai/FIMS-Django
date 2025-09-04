@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from fims.views import regis, home, login_view, logout_view, dashboard, state, city, resetPassword
+from fims.views import regis, home, login_view, logout_view, dashboard, state, city, ResetPassword, ForgotPassword, PasswordResetSent
 
 urlpatterns = [
     path('', home, name='home'),
@@ -26,6 +26,8 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path("state/", state, name="state"),
     path("city/", city, name="city"),
-    path('resetPassword/', resetPassword, name='resetPassword'),
     path('admin/', admin.site.urls),
+    path('forgot-password/', ForgotPassword, name='forgot-password'),
+    path('password-reset-sent/<str:reset_id>/', PasswordResetSent, name='password-reset-sent'),
+    path('reset-password/<str:reset_id>/', ResetPassword, name='reset-password'),
 ]
