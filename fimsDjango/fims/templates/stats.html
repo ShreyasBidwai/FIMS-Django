@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Quick Stats{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/stats.css' %}">
+{% endblock %}
+
+{% block content %}
+<section id="stats-page">
+
+    <!-- Top Half (Blank) -->
+    <div class="stats-top"></div>
+
+    <!-- Bottom Half (Cards) -->
+    <div class="stats-bottom">
+        <div class="card"><h1>Total Families Registered</h1><p>{{ total_families }}</p></div>
+        <div class="card"><h1>Total Family Members</h1><p>{{ total_members }}</p></div>
+        <div class="card"><h1>Married People</h1><p>{{ married_people }}</p></div>
+        <div class="card"><h1>Unmarried People</h1><p>{{ unmarried_people }}</p></div>
+        <div class="card"><h1>Total Active Members</h1><p>{{ active_members }}</p></div>
+        <div class="card"><h1>Total Cities Registered</h1><p>{{ total_cities }}</p></div>
+    </div>
+
+</section>
+{% block extra_js %}
+<script src="{% static 'fims/js/stats.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- pie_chart.html -->
+    <canvas id="myPieChart"></canvas>
+
+    <script>
+        const ctx = document.getElementById('myPieChart').getContext('2d');
+        const labels = JSON.parse("{{ labels|json_script:'chart_labels' }}");
+        const data = JSON.parse("{{ data|json_script:'chart_data' }}");
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Market Share of Top Companies'
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
+
+{% endblock %}
+

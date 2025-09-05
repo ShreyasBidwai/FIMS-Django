@@ -9,6 +9,12 @@ class FamilyHead(models.Model):
     HeadID = models.AutoField(primary_key=True)
     Name = models.CharField(max_length=50)
     Surname = models.CharField(max_length=50)
+    Gender = models.CharField(
+        max_length=6,
+        choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')],
+        default='Male',
+        null=False
+    )
     Birthdate = models.DateField()
     MobileNo = models.CharField(
         max_length=10,
@@ -93,6 +99,11 @@ class FamilyMember(models.Model):
     HeadID = models.ForeignKey(FamilyHead, on_delete=models.CASCADE)
     Name = models.CharField(max_length=50)
     Surname = models.CharField(max_length=50)
+    
+    Gender = models.CharField(
+        max_length=6,
+        choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')]
+    )
     Relationship = models.CharField(max_length=50)
     Birthdate = models.DateField()
     MobileNo = models.CharField(
@@ -110,7 +121,11 @@ class FamilyMember(models.Model):
         validators=[RegexValidator(regex='^\d{6}$', message='Enter exactly 6 digits.')],
         null=True, blank=True
     )
-
+    MaritalStatus = models.CharField(
+        max_length=10,
+        choices=[('Married', 'Married'), ('Unmarried', 'Unmarried')],
+        default='Unmarried'
+    )
 
     STATUS_CHOICES = [
         (0, 'Inactive'),
@@ -167,11 +182,13 @@ class City(models.Model):
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
     name = models.CharField(max_length=100)
     state = models.ForeignKey(State, related_name="cities", on_delete=models.CASCADE)
+    country_id = models.IntegerField()
 
     def __str__(self):
         return self.name
 
     class Meta:
+        managed = False
         db_table = 'city'
 
 

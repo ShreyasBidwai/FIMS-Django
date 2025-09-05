@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function addHobby() {
+window.addHobby = function() {
     const section = document.getElementById("hobbies-section");
     const input = document.createElement("input");
     input.type = "text";
@@ -53,8 +53,7 @@ function addHobby() {
 
 
 let memberIndex = 0;
-
-function addMember() {
+window.addMember = function() {
     memberIndex++;
     const container = document.getElementById("members-container");
     const div = document.createElement("div");
@@ -65,6 +64,12 @@ function addMember() {
             <legend>Member ${memberIndex}</legend>
             <input type="text" name="member_${memberIndex}_name" placeholder="Name" required maxlength="50">
             <input type="text" name="member_${memberIndex}_surname" placeholder="Surname" required maxlength="50">
+             <div class="form-row">
+                Gender:
+                <label><input type="radio" name="member_${memberIndex}_gender" value="Male" required> Male</label>
+                <label><input type="radio" name="member_${memberIndex}_gender" value="Female"> Female</label>
+            </div>
+
             <input type="text" name="member_${memberIndex}_relationship" placeholder="Relationship to Head" required maxlength="50">
             <input type="date" name="member_${memberIndex}_birthdate" required>
             <input type="text" name="member_${memberIndex}_mobile" placeholder="Mobile No (optional)" maxlength="10">

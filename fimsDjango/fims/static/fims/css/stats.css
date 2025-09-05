@@ -1,0 +1,61 @@
+#stats-page {
+    height: auto; 
+    display: flex;
+    flex-direction: column;
+}
+
+
+.stats-top {
+    flex: 1; 
+    background: transparent; 
+}
+
+.stats-bottom {
+    flex: 1; /* Takes 50% */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 1.5rem;
+    padding: 2rem;
+    background: #f8f9fa; /* light gray bg */
+}
+
+/* Card Styling */
+.card {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.card h1 {
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    color: #2c3e50;
+}
+
+.card p {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #16a085;
+}
+
+/* Hover Effect */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .stats-bottom {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-bottom {
+        grid-template-columns: 1fr;
+    }
+}

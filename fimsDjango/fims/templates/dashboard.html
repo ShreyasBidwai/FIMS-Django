@@ -1,20 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title> 
-</head>
+{% block title %}Dashboard{% endblock %}
 
-<body>
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'fims/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
     <h1>Dashboard</h1>
     <a href="{% url 'logout' %}">Logout</a>
 
-
     {% for obj in objects %}
-    <p>{{ obj.name }}</p>
+        <p>{{ obj.name }}</p>
+    {% empty %}
+        <p>No data available.</p>
     {% endfor %}
-</body>
+{% endblock %}
 
-</html>
+{% block extra_js %}
+    <script src="{% static 'fims/js/dashboard.js' %}"></script>
+{% endblock %}

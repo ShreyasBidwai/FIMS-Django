@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Familylink</title>
+    <link rel="stylesheet" href="{% static 'fims/css/base.css' %}">
+    <link rel="shortcut icon" href="fimsDjango/fims/static/fims/images/family.png" type="image/x-icon">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav id="nav-bar">
+        <div id="logo">Familink</div>
+        <ul>
+            <li><a href="{% url 'home' %}">Home</a></li>
+             <li><a href="{% url 'stats' %}">Quick Stats</a></li>
+            <li><a href="{% url 'regis' %}">Register</a></li>
+            <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
+            <li><a href="{% url 'login_view' %}">Login</a></li>
+        </ul>
+    </nav>
+    {% block content %}{% endblock %}
+</body>
+</html>

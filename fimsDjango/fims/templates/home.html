@@ -1,26 +1,39 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Information Management System</title>
     <link rel="stylesheet" href="{% static 'fims/css/home.css' %}">
 </head>
+
 <body>
-    <div id="home">
-        <div id="logo">
-            <h2>FIMS</h2>
+     <nav id="nav-bar">
+        <div id="logo">Familink</div>
+        <ul>
+            <li><a href="{% url 'stats' %}">Quick Stats</a></li>
+            <li><a href="{% url 'login_view' %}">Login</a></li>
+            <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
+        </ul>
+    </nav>
+    <section id="home">
+        <div id="container-body">
+            <div id="logo">
+            <h2>Family Information Management System</h2>
+            <p>Simple, safe, and secure family connections.</p>
         </div>
         <div id="container">
             <div id="cnt-name">
-                <p>Welcome! Register Your Family</p>
+                <p>Welcome to Familink, your trusted Family Information Management System. Start by registering your family today.</p>
             </div>
             <div id="cnt-button">
-                <a href="{{'regis'}}" class="btn">Register</a>
-                <a href="{{'login'}}" class="btn">Login</a>
+                <a href="{% url 'regis' %}" class="btn">Register</a>
             </div>
         </div>
-    </div>
+        </div>
+    </section>
 </body>
+
 </html>

@@ -1,15 +1,16 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Family Registration</title>
+
+{% block title %}Family Registration{% endblock %}
+
+{% block extra_head %}
     <link rel="stylesheet" href="{% static 'fims/css/registration.css' %}">
-    <script src="{% static 'fims/js/registration.js' %}" defer></script>
-</head>     
-<body>
+{% endblock %}
+
+{% block content %}
     <h1>Register Family</h1>
-    <a href="{% url 'login_view' %}">Admin login</a>
+
+
     <form method="post" enctype="multipart/form-data" id="registrationForm">
         {% csrf_token %}
 
@@ -24,6 +25,13 @@
                 <tr>
                     <td><label for="head_surname">Surname:</label></td>
                     <td><input type="text" name="head_surname" placeholder="Surname" required maxlength="50"></td>
+                </tr>
+                  <tr>
+                    <td>Gender:</td>
+                    <td>
+                        <label><input type="radio" name="head_gender" value="Male" required>Male</label>
+                        <label><input type="radio" name="head_gender" value="Female">Female</label>
+                    </td>
                 </tr>
                 <tr>
                     <td><label for="head_birthdate">Birthdate:</label></td>
@@ -109,11 +117,14 @@
             <button type="submit" class="primary">Submit</button>
         </div>
     </form>
-</body>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-{{ states|json_script:"states-data" }}
-<script>
-    window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
-</script>
-<script src="{% static 'fims/js/registration.js' %}"></script>
-</html>
+{% block extra_js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ states|json_script:"states-data" }}
+    <script>
+        window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
+    </script>
+    <script src="{% static 'fims/js/registration.js' %}"></script>
+{% endblock %}
+
+{% endblock %}
+

@@ -16,11 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from fims.views import regis, home, login_view, logout_view, dashboard, state, city, ResetPassword, ForgotPassword, PasswordResetSent
+from fims.views import *
 
 urlpatterns = [
     path('', home, name='home'),
+    path('base/', base, name='base'),
     path('regis/', regis, name='regis'),
+    path('stats/', stats, name='stats'),
     path('login/', login_view, name='login_view'),
     path('logout/', logout_view, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),

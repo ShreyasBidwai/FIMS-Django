@@ -1,10 +1,7 @@
-
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.conf import settings
@@ -12,8 +9,40 @@ from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.urls import reverse
 from .models import *
+from django.db.models import Count
 
 
+def base(request):
+    return render(request, 'base.html')
+
+
+
+def stats(request):
+    total_families = FamilyHead.objects.count()
+    total_members = FamilyMember.objects.count() + FamilyHead.objects.count()
+    married_people = FamilyMember.objects.filter(MaritalStatus='Married').count() + FamilyHead.objects.filter(MaritalStatus='Married').count()
+    unmarried_people = FamilyMember.objects.filter(MaritalStatus='Unmarried').count() + FamilyHead.objects.filter(MaritalStatus='Unmarried').count()
+    active_members = FamilyMember.objects.filter(status=1).count() + FamilyHead.objects.filter(status=1).count()
+    total_cities = City.objects.filter(country_id=101).count()
+
+
+    labels = ['Male', 'Female', 'Other']
+    male = FamilyMember.objects.filter(Gender='Male').count() + FamilyHead.objects.filter(Gender='Male').count()
+    female = FamilyMember.objects.filter(Gender='Female').count() + FamilyHead.objects.filter(Gender='Female').count()
+    other = FamilyMember.objects.filter(Gender='Other').count() + FamilyHead.objects.filter(Gender='Other').count()
+    data = [male, female, other]
+
+    context = {
+        'total_families': total_families,
+        'total_members': total_members,
+        'married_people': married_people,
+        'unmarried_people': unmarried_people,
+        'active_members': active_members,
+        'total_cities': total_cities,
+        'labels': labels,
+        'data': data,
+    }
+    return render(request, 'stats.html', context)
 
 def home(request):
     return render(request, 'home.html')
@@ -26,6 +55,7 @@ def regis(request):
         head = FamilyHead(
             Name=request.POST.get('head_name'),
             Surname=request.POST.get('head_surname'),
+            Gender =request.POST.get('head_gender') ,
             Birthdate=request.POST.get('head_birthdate'),
             MobileNo=request.POST.get('head_mobile'),
             Address=request.POST.get('head_address'),
@@ -66,10 +96,12 @@ def regis(request):
                 HeadID=head,
                 Name=name,
                 Surname=request.POST.get(f'member_{member_index}_surname'),
+                Gender=request.POST.get(f'member_{member_index}_gender'),
                 Relationship=request.POST.get(f'member_{member_index}_relationship'),
                 Birthdate=request.POST.get(f'member_{member_index}_birthdate'),
                 MobileNo=request.POST.get(f'member_{member_index}_mobile'),
                 Photo=request.FILES.get(f'member_{member_index}_photo'),
+                MaritalStatus=request.POST.get(f'member_{member_index}_marital_status'),
                 AddressOverride=address_override,
                 Address=address,
                 State=state,
@@ -141,6 +173,7 @@ def state(request):
 def city(request):
     state_id = request.GET.get("state_id")
     cities = City.objects.filter(state_id=state_id).values("id", "name")
+    country_id = request.GET.get("country_id")
     return JsonResponse(list(cities), safe=False)
 
 
