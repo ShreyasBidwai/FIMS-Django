@@ -1,130 +1,145 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} {% load static %} {% block title %}Family Registration{% endblock %} {% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/registration.css' %}"> {% endblock %} {% block content %}
+<p class="form-subtitle">Fill the information below to register your family.</p>
 
-{% block title %}Family Registration{% endblock %}
+<ul id="note-head">
+    <li class="note">Note:</li>
+    <li class="note">Head of the Family should be registered</li>
+    <li class="note">Family Head Should be 21 years or older</li>
+    <li class="note">Family Members can be added at the end of the form</li>
+</ul>
 
-{% block extra_head %}
-    <link rel="stylesheet" href="{% static 'fims/css/registration.css' %}">
-{% endblock %}
+<form method="post" enctype="multipart/form-data" id="registrationForm" onsubmit="return validateForm(event)">
+    {% csrf_token %}
 
-{% block content %}
-    <h1>Register Family</h1>
+    <!-- Family Head Section -->
+    <fieldset>
+        <legend class="highlight-title">Family Head</legend>
+        <table class="form-table two-column">
+            <tr>
+                <td>
+                    <label for="head_name">First Name:</label>
+                    <input type="text" id="head_name" name="head_name" placeholder="First Name" maxlength="50">
+                    <span class="error-message" id="error-head_name"></span>
+                </td>
+                <td>
+                    <label for="head_surname">Surname:</label>
+                    <input type="text" id="head_surname" name="head_surname" placeholder="Surname" maxlength="50">
+                    <span class="error-message" id="error-head_surname"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_birthdate">Birthdate:</label>
+                    <input type="date" id="head_birthdate" name="head_birthdate">
+                    <span class="error-message" id="error-head_birthdate"></span>
+                </td>
+                <td>
+                    <label for="head_mobile">Mobile No:</label>
+                    <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10">
+                    <span class="error-message" id="error-head_mobile"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_address">Address:</label>
+                    <textarea id="head_address" name="head_address" placeholder="Address"></textarea>
+                    <span class="error-message" id="error-head_address"></span>
+                </td>
+                <td>
+                    <label for="head_state">State:</label>
+                    <select name="head_state" id="head_state">
+                        <option value="">Select State</option>
+                        {% for state in states %}
+                        <option value="{{ state.id }}">{{ state.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="error-message" id="error-head_state"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_city">City:</label>
+                    <select name="head_city" id="head_city">
+                        <option value="">Select City</option>
+                    </select>
+                    <span class="error-message" id="error-head_city"></span>
+                </td>
+                <td>
+                    <label for="head_pincode">Pincode:</label>
+                    <input type="text" id="head_pincode" name="head_pincode" placeholder="Pincode" maxlength="6">
+                    <span class="error-message" id="error-head_pincode"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>Marital Status:</label>
+                    <label><input type="radio" name="head_marital_status" value="Married"> Married</label>
+                    <label><input type="radio" name="head_marital_status" value="Unmarried"> Unmarried</label>
+                    <span class="error-message" id="error-head_marital_status"></span>
+                </td>
+                <td>
+                    <label>Gender:</label>
+                    <label><input type="radio" name="head_gender" value="Male"> Male</label>
+                    <label><input type="radio" name="head_gender" value="Female"> Female</label>
+                    <span class="error-message" id="error-head_gender"></span>
+                </td>
+            </tr>
+            <tr id="wedding_date_row" style="display:none;">
+                <td colspan="2">
+                    <label for="head_wedding_date">Wedding Date:</label>
+                    <input type="date" name="head_wedding_date" id="wedding_date">
+                    <span class="error-message" id="error-head_wedding_date"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_education">Education:</label>
+                    <select name="head_education" id="head_education">
+                        <option value="">Select</option>
+                        <option value="Graduate">Graduate</option>
+                        <option value="Post Graduate">Post Graduate</option>
+                        <option value="Diploma">Diploma</option>
+                    </select>
+                    <span class="error-message" id="error-head_education"></span>
+                </td>
+                <td>
+                    <label for="head_photo">Upload Photo:</label>
+                    <input type="file" id="head_photo" name="head_photo" accept="image/png, image/jpeg">
+                    <span class="error-message" id="error-head_photo"></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <label>Hobbies:</label>
+                    <div id="hobbies-section">
+                        <button type="button" class="secondary hobby-btn" onclick="addHobby()">+ Add Hobby</button>
+                        <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                    </div>
+                    <span class="error-message" id="error-head_hobbies"></span>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
 
+    <!-- Family Members Section -->
+    <div id="members-container">
+        <h3 class="highlight-title">Family Members</h3>
+        <!-- Members will be appended here -->
+    </div>
 
-    <form method="post" enctype="multipart/form-data" id="registrationForm">
-        {% csrf_token %}
+    <button type="button" class="secondary" onclick="addMember()">+ Add Member</button>
 
-        <!-- Family Head Section -->
-        <fieldset>
-            <legend>Family Head</legend>
-            <table class="form-table">
-                <tr>
-                    <td><label for="head_name">First Name:</label></td>
-                    <td><input type="text" name="head_name" placeholder="First Name" required maxlength="50"></td>
-                </tr>
-                <tr>
-                    <td><label for="head_surname">Surname:</label></td>
-                    <td><input type="text" name="head_surname" placeholder="Surname" required maxlength="50"></td>
-                </tr>
-                  <tr>
-                    <td>Gender:</td>
-                    <td>
-                        <label><input type="radio" name="head_gender" value="Male" required>Male</label>
-                        <label><input type="radio" name="head_gender" value="Female">Female</label>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="head_birthdate">Birthdate:</label></td>
-                    <td><input type="date" name="head_birthdate" required></td>
-                </tr>
-                <tr>
-                    <td><label for="head_mobile">Mobile No:</label></td>
-                    <td><input type="text" name="head_mobile" placeholder="Mobile No" required maxlength="10"></td>
-                </tr>
-                <tr>
-                    <td><label for="head_address">Address:</label></td>
-                    <td><textarea name="head_address" placeholder="Address" required></textarea></td>
-                </tr>
-                <tr>
-                    <td><label for="head_state">State:</label></td>
-                    <td>
-                        <select name="head_state" id="head_state" required>
-                            <option value="">Select State</option>
-                            {% for state in states %}
-                                <option value="{{ state.id }}">{{ state.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="head_city">City:</label></td>
-                    <td>
-                        <select name="head_city" id="head_city" required>
-                            <option value="">Select City</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="head_pincode">Pincode:</label></td>
-                    <td><input type="text" name="head_pincode" placeholder="Pincode" required maxlength="6"></td>
-                </tr>
-                <tr>
-                    <td>Marital Status:</td>
-                    <td>
-                        <label><input type="radio" name="head_marital_status" value="Married" required> Married</label>
-                        <label><input type="radio" name="head_marital_status" value="Unmarried"> Unmarried</label>
-                    </td>
-                </tr>
-                <tr id="wedding_date_row" style="display:none;">
-                    <td><label for="head_wedding_date">Wedding Date:</label></td>
-                    <td><input type="date" name="head_wedding_date" id="wedding_date"></td>
-                </tr>
-                <tr>
-                    <td><label for="head_education">Education:</label></td>
-                    <td>
-                        <select name="head_education" id="head_education" required>
-                            <option value="Graduate">Graduate</option>
-                            <option value="Post Graduate">Post Graduate</option>
-                            <option value="Diploma">Diploma</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="head_photo">Upload Photo:</label></td>
-                    <td><input type="file" name="head_photo" accept="image/png, image/jpeg" required></td>
-                </tr>
-                <tr>
-                    <td>Hobbies:</td>
-                    <td>
-                        <div id="hobbies-section">
-                            <button type="button" class="secondary" onclick="addHobby()">+ Add Hobby</button>
-                            <input type="text" name="head_hobbies[]" required placeholder="Enter a hobby">
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </fieldset>
+    <div class="form-actions">
+        <button type="submit" class="primary">Submit</button>
+    </div>
+</form>
 
-        <!-- Family Members Section -->
-        <div id="members-container">
-            <h3>Family Members</h3>
-            <!-- Members will be appended here -->
-        </div>
-
-        <button type="button" class="secondary" onclick="addMember()">+ Add Member</button>
-
-        <div class="form-actions">
-            <button type="submit" class="primary">Submit</button>
-        </div>
-    </form>
 {% block extra_js %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {{ states|json_script:"states-data" }}
-    <script>
-        window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
-    </script>
-    <script src="{% static 'fims/js/registration.js' %}"></script>
-{% endblock %}
-
-{% endblock %}
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{{ states|json_script:"states-data" }}
+<script>
+    window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
+</script>
+<script src="{% static 'fims/js/registration.js' %}"></script>
+{% endblock %} {% endblock %}
