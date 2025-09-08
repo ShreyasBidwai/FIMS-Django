@@ -1,6 +1,4 @@
-// =============================
-// Family Head - State/City Dropdown
-// =============================
+
 $(document).ready(function() {
     $("#head_state").change(function() {
         var stateId = $(this).val();
@@ -19,9 +17,6 @@ $(document).ready(function() {
     });
 });
 
-// =============================
-// Family Head - Wedding Date Toggle
-// =============================
 document.addEventListener('DOMContentLoaded', () => {
     const marriedRadio = document.querySelector('input[name="head_marital_status"][value="Married"]');
     const unmarriedRadio = document.querySelector('input[name="head_marital_status"][value="Unmarried"]');
@@ -42,9 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// =============================
-// Hobby Add Function
-// =============================
 window.addHobby = function() {
     const section = document.getElementById("hobbies-section");
     const input = document.createElement("input");
@@ -55,9 +47,6 @@ window.addHobby = function() {
     section.appendChild(input);
 };
 
-// =============================
-// Add Member Function (simplified for now)
-// =============================
 let memberIndex = 0;
 window.addMember = function() {
     memberIndex++;
@@ -85,8 +74,9 @@ window.addMember = function() {
                 <span class="error-message"></span>
             </div>
             <div>
-                <label>Relationship to Head:</label>
-                <input type="text" name="member_${memberIndex}_relationship" placeholder="Relationship" maxlength="50">
+                <label>Marital Status:</label>
+                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Married"> Married</label>
+                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Unmarried"> Unmarried</label>
                 <span class="error-message"></span>
             </div>
             <div>
@@ -115,11 +105,11 @@ window.addMember = function() {
                 <span class="error-message"></span>
             </div>
             <div>
-                <label>Marital Status:</label>
-                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Married"> Married</label>
-                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Unmarried"> Unmarried</label>
+                <label>Relationship to Head:</label>
+                <input type="text" name="member_${memberIndex}_relationship" placeholder="Relationship" maxlength="50">
                 <span class="error-message"></span>
             </div>
+            
             <div id="member_${memberIndex}_wedding_date_row" style="display:none;">
                 <label for="member_${memberIndex}_wedding_date">Wedding Date:</label>
                 <input type="date" name="member_${memberIndex}_wedding_date" id="member_${memberIndex}_wedding_date">
@@ -131,9 +121,7 @@ window.addMember = function() {
     container.appendChild(div);
 };
 
-// =============================
-// Validation Logic
-// =============================
+
 function showError(id, message) {
     document.getElementById(id).textContent = `* ${message}`;
 }

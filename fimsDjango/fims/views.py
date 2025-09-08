@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.urls import reverse
 from .models import *
 from django.db.models import Count
+from django.core.paginator import Paginator
 
 
 def base(request):
@@ -142,27 +143,47 @@ def resetPassword(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    # def product_list(request):
-    # # Retrieve all products
-    # all_products = Product.objects.all()
+    tab = request.GET.get('tab', 'head')
+    head_page = request.GET.get('head_page', 1)
+    family_page = request.GET.get('family_page', 1)
+    state_page = request.GET.get('state_page', 1)
+    city_page = request.GET.get('city_page', 1)
+    search = request.GET.get('search', '').strip()
 
-    # # Retrieve a specific product by its primary key
-    # # product = Product.objects.get(pk=1)
+    heads = FamilyHead.objects.all()
+    families = FamilyMember.objects.all()
+    states = State.objects.all()
+    cities = City.objects.all()
 
-    # # Retrieve products based on specific criteria
-    # # electronics_products = Product.objects.filter(category='electronics')
+    show_all_tables = False
+    if search:
+        from django.db.models import Q
+        heads = heads.filter(Q(Name__icontains=search) | Q(Surname__icontains=search) | Q(MobileNo__icontains=search) | Q(State__icontains=search) | Q(City__icontains=search) | Q(Address__icontains=search))
+        families = families.filter(Q(Name__icontains=search) | Q(Surname__icontains=search) | Q(MobileNo__icontains=search) | Q(State__icontains=search) | Q(City__icontains=search) | Q(Address__icontains=search) | Q(Relationship__icontains=search))
+        states = states.filter(Q(name__icontains=search))
+        cities = cities.filter(Q(name__icontains=search))
+        show_all_tables = True
 
-    # # Order the results
-    # # ordered_products = Product.objects.order_by('name')
+    head_paginator = Paginator(heads, 10)
+    family_paginator = Paginator(families, 10)
+    state_paginator = Paginator(states, 10)
+    city_paginator = Paginator(cities, 10)
 
-    # context = {'products': all_products} # Or other QuerySets
-    
-    return render(request, 'dashboard.html', {'username': request.user.username})
+    context = {
+        'active_tab': tab,
+        'search': search,
+        'show_all_tables': show_all_tables,
+        'head_page_obj': head_paginator.get_page(head_page),
+        'family_page_obj': family_paginator.get_page(family_page),
+        'state_page_obj': state_paginator.get_page(state_page),
+        'city_page_obj': city_paginator.get_page(city_page),
+    }
+    return render(request, 'dashboard.html', context)
 
 
 def logout_view(request):
     logout(request)
-    return redirect('login_view')
+    return redirect('home')
 
 
 

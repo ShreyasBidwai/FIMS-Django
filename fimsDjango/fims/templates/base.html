@@ -11,16 +11,25 @@
 
 <body>
     <nav id="nav-bar">
-        <div id="logo">Familink</div>
+        <div id="logo">
+            <img src="{% static 'fims/images/family.png' %}" alt="Familink Logo" style="height: 1.2em; width: auto; vertical-align: middle; margin-right: 0.1em;">
+            Familink
+        </div>
         <ul>
+
             <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="{% url 'stats' %}">Quick Stats</a></li>
             <li><a href="{% url 'regis' %}">Register</a></li>
             <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
-            <li><a href="{% url 'login_view' %}">Login</a></li>
+            {% if request.user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+                <li><a href="{% url 'login_view' %}">Login</a></li>
+            {% endif %}
         </ul>
     </nav>
     {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>

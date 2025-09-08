@@ -8,16 +8,205 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Dashboard</h1>
-    <a href="{% url 'logout' %}">Logout</a>
 
-    {% for obj in objects %}
-        <p>{{ obj.name }}</p>
-    {% empty %}
-        <p>No data available.</p>
-    {% endfor %}
+<h1>Dashboard</h1>
+
+<form method="get" action="" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
+    <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
+    <input type="hidden" name="tab" value="{{ active_tab }}">
+    <button type="submit">Search</button>
+    {% if search %}
+        <a href="?tab={{ active_tab }}" style="margin-left: 1rem;">Clear</a>
+    {% endif %}
+</form>
+<div style="margin: 2rem 0; display: flex; gap: 1rem;">
+    <button onclick="showTable('head')">Head</button>
+    <button onclick="showTable('family')">Family</button>
+    <button onclick="showTable('state')">State</button>
+    <button onclick="showTable('city')">City</button>
+</div>
+
+{% if not show_all_tables or head_page_obj.paginator.count > 0 %}
+<div id="table-head" class="dashboard-table" {% if not show_all_tables and active_tab != 'head' %}style="display:none;"{% endif %}>
+    <h2>Head</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Total Members</th>
+                <th>Mobile Num</th>
+                <th>Status</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for head in head_page_obj %}
+            <tr>
+                <td>{{ forloop.counter0|add:head_page_obj.start_index }}</td>
+                <td>{% if head.Photo %}<img src="{{ head.Photo.url }}" alt="Photo" width="40" height="40">{% else %}-{% endif %}</td>
+                <td>{{ head.Name }} {{ head.Surname }}</td>
+                <td>{{ head.familymember_set.count }}</td>
+                <td>{{ head.MobileNo }}</td>
+                <td>{{ head.get_status_display }}</td>
+                <td><a href="#">Edit</a></td>
+                <td><a href="#">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if head_page_obj.has_previous %}
+            <a href="?tab=head&head_page={{ head_page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ head_page_obj.number }} of {{ head_page_obj.paginator.num_pages }}</span>
+        {% if head_page_obj.has_next %}
+            <a href="?tab=head&head_page={{ head_page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+    {% if show_all_tables and head_page_obj.paginator.count == 0 %}
+        <div style="text-align:center; color: #888;">No matching Head records found.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if not show_all_tables or family_page_obj.paginator.count > 0 %}
+<div id="table-family" class="dashboard-table" {% if not show_all_tables and active_tab != 'family' %}style="display:none;"{% endif %}>
+    <h2>Family Members</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Mobile Num</th>
+                <th>Status</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in family_page_obj %}
+            <tr>
+                <td>{{ forloop.counter0|add:family_page_obj.start_index }}</td>
+                <td>{% if member.Photo %}<img src="{{ member.Photo.url }}" alt="Photo" width="40" height="40">{% else %}-{% endif %}</td>
+                <td>{{ member.Name }} {{ member.Surname }}</td>
+                <td>{{ member.MobileNo }}</td>
+                <td>{{ member.get_status_display }}</td>
+                <td><a href="#">Edit</a></td>
+                <td><a href="#">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if family_page_obj.has_previous %}
+            <a href="?tab=family&family_page={{ family_page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ family_page_obj.number }} of {{ family_page_obj.paginator.num_pages }}</span>
+        {% if family_page_obj.has_next %}
+            <a href="?tab=family&family_page={{ family_page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+    {% if show_all_tables and family_page_obj.paginator.count == 0 %}
+        <div style="text-align:center; color: #888;">No matching Family Member records found.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if not show_all_tables or state_page_obj.paginator.count > 0 %}
+<div id="table-state" class="dashboard-table" {% if not show_all_tables and active_tab != 'state' %}style="display:none;"{% endif %}>
+    <h2>States</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for state in state_page_obj %}
+            <tr>
+                <td>{{ forloop.counter0|add:state_page_obj.start_index }}</td>
+                <td>{{ state.name }}</td>
+                <td>{{ state.get_status_display }}</td>
+                <td><a href="#">Edit</a></td>
+                <td><a href="#">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if state_page_obj.has_previous %}
+            <a href="?tab=state&state_page={{ state_page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ state_page_obj.number }} of {{ state_page_obj.paginator.num_pages }}</span>
+        {% if state_page_obj.has_next %}
+            <a href="?tab=state&state_page={{ state_page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+    {% if show_all_tables and state_page_obj.paginator.count == 0 %}
+        <div style="text-align:center; color: #888;">No matching State records found.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if not show_all_tables or city_page_obj.paginator.count > 0 %}
+<div id="table-city" class="dashboard-table" {% if not show_all_tables and active_tab != 'city' %}style="display:none;"{% endif %}>
+    <h2>Cities</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for city in city_page_obj %}
+            <tr>
+                <td>{{ forloop.counter0|add:city_page_obj.start_index }}</td>
+                <td>{{ city.name }}</td>
+                <td>{{ city.get_status_display }}</td>
+                <td><a href="#">Edit</a></td>
+                <td><a href="#">Delete</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if city_page_obj.has_previous %}
+            <a href="?tab=city&city_page={{ city_page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ city_page_obj.number }} of {{ city_page_obj.paginator.num_pages }}</span>
+        {% if city_page_obj.has_next %}
+            <a href="?tab=city&city_page={{ city_page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+    {% if show_all_tables and city_page_obj.paginator.count == 0 %}
+        <div style="text-align:center; color: #888;">No matching City records found.</div>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'fims/js/dashboard.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    window.showTable = function(table) {
+        document.getElementById('table-head').style.display = 'none';
+        document.getElementById('table-family').style.display = 'none';
+        document.getElementById('table-state').style.display = 'none';
+        document.getElementById('table-city').style.display = 'none';
+        document.getElementById('table-' + table).style.display = '';
+    }
+});
+</script>
 {% endblock %}
