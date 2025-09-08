@@ -1,3 +1,8 @@
+
+# import os
+# # Media files (after BASE_DIR is defined)
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join('fimsDjango/photos', 'media')
 # Email backend for real email sending (Gmail example)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
