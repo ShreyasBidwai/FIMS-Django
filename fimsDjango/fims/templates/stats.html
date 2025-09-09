@@ -9,9 +9,15 @@
 
 {% block content %}
 <section id="stats-page">
-
-    <!-- Top Half (Blank) -->
-    <div class="stats-top"></div>
+    <!-- Top Half (Pie Chart) -->
+    <div class="stats-top" style="display: flex; justify-content: center; align-items: center; min-height: 300px;">
+        <div style="width: 400px;">
+            <h2 style="text-align:center;">Gender Distribution</h2>
+            <canvas id="genderPieChart"></canvas>
+            {{ labels|json_script:"gender-labels" }}
+            {{ data|json_script:"gender-data" }}
+        </div>
+    </div>
 
     <!-- Bottom Half (Cards) -->
     <div class="stats-bottom">
@@ -22,11 +28,29 @@
         <div class="card"><h1>Total Active Members</h1><p>{{ active_members }}</p></div>
         <div class="card"><h1>Total Cities Registered</h1><p>{{ total_cities }}</p></div>
     </div>
-
 </section>
 {% block extra_js %}
-<script src="{% static 'fims/js/stats.js' %}"></script>
-
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('genderPieChart').getContext('2d');
+    var genderPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: JSON.parse(document.getElementById('gender-labels').textContent),
+            datasets: [{
+                data: JSON.parse(document.getElementById('gender-data').textContent),
+                backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
 {% endblock %}

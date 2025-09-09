@@ -12,6 +12,34 @@ from .models import *
 from django.db.models import Count
 from django.core.paginator import Paginator
 
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+# AJAX endpoint for status update
+@csrf_exempt
+def update_status(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        entry_type = data.get('type')
+        entry_id = data.get('id')
+        status = data.get('status')
+        try:
+            if entry_type == 'head':
+                obj = FamilyHead.objects.get(HeadID=entry_id)
+            elif entry_type == 'member':
+                obj = FamilyMember.objects.get(MemberID=entry_id)
+            elif entry_type == 'state':
+                obj = State.objects.get(id=entry_id)
+            elif entry_type == 'city':
+                obj = City.objects.get(id=entry_id)
+            else:
+                return JsonResponse({'success': False, 'error': 'Invalid type'})
+            obj.status = status
+            obj.save()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 def base(request):
     return render(request, 'base.html')
@@ -143,12 +171,25 @@ def resetPassword(request):
 
 @login_required(login_url='login')
 def dashboard(request):
+    total_families = FamilyHead.objects.count()
+    total_members = FamilyMember.objects.count() + FamilyHead.objects.count()
+    active_members = FamilyMember.objects.filter(status=1).count() + FamilyHead.objects.filter(status=1).count()
+    inactive_members = FamilyMember.objects.filter(status=0).count() + FamilyHead.objects.filter(status=0).count()
+    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
+
     tab = request.GET.get('tab', 'head')
     head_page = request.GET.get('head_page', 1)
     family_page = request.GET.get('family_page', 1)
     state_page = request.GET.get('state_page', 1)
     city_page = request.GET.get('city_page', 1)
     search = request.GET.get('search', '').strip()
+
+    tabs = [
+        {'key': 'head', 'label': 'Head'},
+        {'key': 'family', 'label': 'Family'},
+        {'key': 'state', 'label': 'State'},
+        {'key': 'city', 'label': 'City'},
+    ]
 
     heads = FamilyHead.objects.all()
     families = FamilyMember.objects.all()
@@ -171,12 +212,19 @@ def dashboard(request):
 
     context = {
         'active_tab': tab,
+        'tabs': tabs,
         'search': search,
         'show_all_tables': show_all_tables,
         'head_page_obj': head_paginator.get_page(head_page),
         'family_page_obj': family_paginator.get_page(family_page),
         'state_page_obj': state_paginator.get_page(state_page),
         'city_page_obj': city_paginator.get_page(city_page),
+        'total_families': total_families,
+        'total_members': total_members,
+        'active_members': active_members,
+        'inactive_members': inactive_members,
+        'deleted': deleted,
+        'username': request.user.username if request.user.is_authenticated else '',
     }
     return render(request, 'dashboard.html', context)
 
@@ -216,7 +264,7 @@ def ForgotPassword(request):
             email_body = f'Reset FIMS your password using the link below:\n\n\n{full_password_reset_url}'
         
             email_message = EmailMessage(
-                'Reset Your FIMS User Password', # email subject
+                'Reset Your Familylink User Password', # email subject
                 email_body,
                 settings.EMAIL_HOST_USER, # email sender
                 [email] # email  receiver 
@@ -279,3 +327,6 @@ def ResetPassword(request, reset_id):
         return redirect('forgot-password')
 
     return render(request, 'reset_password.html')
+
+
+

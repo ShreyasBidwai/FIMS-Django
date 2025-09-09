@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Familink Dashboard{% endblock %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'fims/css/dashboard.css' %}">
@@ -9,7 +9,7 @@
 
 {% block content %}
 
-<h1>Dashboard</h1>
+<h1>Familylink Dashboard</h1>
 
 <form method="get" action="" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
     <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
@@ -19,12 +19,21 @@
         <a href="?tab={{ active_tab }}" style="margin-left: 1rem;">Clear</a>
     {% endif %}
 </form>
+<div>Hello {{ username }}</div>
+<div id="cards">
+        <div class="card"><h1>Families Registered</h1><p>{{ total_families }}</p></div>
+        <div class="card"><h1>TotalFamily Members</h1><p>{{ total_members }}</p></div>
+        <div class="card"><h1>Active members</h1><p>{{ active_members }}</p></div>
+        <div class="card"><h1>Inactive Members</h1><p>{{ inactive_members }}</p></div>
+        <div class="card"><h1>Deleted Entries</h1><p>{{ deleted }}</p></div>
+</div>
 <div style="margin: 2rem 0; display: flex; gap: 1rem;">
     <button onclick="showTable('head')">Head</button>
     <button onclick="showTable('family')">Family</button>
     <button onclick="showTable('state')">State</button>
     <button onclick="showTable('city')">City</button>
 </div>
+
 
 {% if not show_all_tables or head_page_obj.paginator.count > 0 %}
 <div id="table-head" class="dashboard-table" {% if not show_all_tables and active_tab != 'head' %}style="display:none;"{% endif %}>
@@ -52,7 +61,9 @@
                 <td>{{ head.MobileNo }}</td>
                 <td>{{ head.get_status_display }}</td>
                 <td><a href="#">Edit</a></td>
-                <td><a href="#">Delete</a></td>
+                                <td>
+                                    <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
+                                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -96,7 +107,9 @@
                 <td>{{ member.MobileNo }}</td>
                 <td>{{ member.get_status_display }}</td>
                 <td><a href="#">Edit</a></td>
-                <td><a href="#">Delete</a></td>
+                                <td>
+                                    <button class="status-btn" data-type="member" data-id="{{ member.MemberID }}">Status</button>
+                                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -198,6 +211,40 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+    #status-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    #status-modal .modal-content {
+        background: #fff;
+        padding: 1.2rem 2rem;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 260px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+    }
+</style>
+<div id="status-modal">
+    <div class="modal-content">
+        <h3>Set status for this entry:</h3>
+        <button id="set-active" style="background:#27ae60;color:#fff;">Active</button>
+        <button id="set-inactive">Inactive</button>
+        <button id="set-delete" style="background:#e74c3c;color:#fff;">Delete</button>
+        <br><br>
+        <button id="cancel-status">Cancel</button>
+    </div>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     window.showTable = function(table) {
@@ -206,6 +253,62 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('table-state').style.display = 'none';
         document.getElementById('table-city').style.display = 'none';
         document.getElementById('table-' + table).style.display = '';
+    }
+
+    let modal = document.getElementById('status-modal');
+    let entryType = null, entryId = null;
+    document.querySelectorAll('.status-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            entryType = btn.getAttribute('data-type');
+            entryId = btn.getAttribute('data-id');
+            modal.style.display = 'flex';
+        });
+    });
+    document.getElementById('cancel-status').onclick = function() {
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-active').onclick = function() {
+        updateStatus(entryType, entryId, 1);
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-inactive').onclick = function() {
+        updateStatus(entryType, entryId, 0);
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-delete').onclick = function() {
+        updateStatus(entryType, entryId, 9);
+        modal.style.display = 'none';
+    };
+
+    function updateStatus(type, id, status) {
+        fetch('/update-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({type: type, id: id, status: status})
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                location.reload();
+            } else {
+                alert('Failed to update status');
+            }
+        });
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 });
 </script>
