@@ -33,38 +33,38 @@
                     <label for="head_birthdate">Birthdate:</label>
                     <input type="date" id="head_birthdate" name="head_birthdate">
                     <span class="error-message" id="error-head_birthdate"></span>
-                                <input type="text" id="head_name" name="head_name" placeholder="First Name" maxlength="50" value="{{ head.Name|default_if_none:'' }}">
+                </td>
                 <td>
                     <label for="head_mobile">Mobile No:</label>
                     <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10">
-                                <input type="text" id="head_surname" name="head_surname" placeholder="Surname" maxlength="50" value="{{ head.Surname|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_mobile"></span>
                 </td>
             </tr>
             <tr>
                 <td>
                     <label for="head_address">Address:</label>
-                                <input type="date" id="head_birthdate" name="head_birthdate" value="{{ head.Birthdate|date:'Y-m-d'|default_if_none:'' }}">
+                    <textarea id="head_address" name="head_address" placeholder="Address"></textarea>
                     <span class="error-message" id="error-head_address"></span>
                 </td>
                 <td>
                     <label for="head_state">State:</label>
-                                <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10" value="{{ head.MobileNo|default_if_none:'' }}">
+                    <select name="head_state" id="head_state">
                         <option value="">Select State</option>
                         {% for state in states %}
                         <option value="{{ state.id }}">{{ state.name }}</option>
                         {% endfor %}
                     </select>
                     <span class="error-message" id="error-head_state"></span>
-                                <textarea id="head_address" name="head_address" placeholder="Address">{{ head.Address|default_if_none:'' }}</textarea>
+                </td>
             </tr>
             <tr>
                 <td>
                     <label for="head_city">City:</label>
                     <select name="head_city" id="head_city">
                         <option value="">Select City</option>
-                                    {% for state in states %}
-                                    <option value="{{ state.id }}" {% if head.State == state.name or head.State == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>
-                                    {% endfor %}
+                    </select>
+                    <span class="error-message" id="error-head_city"></span>
+                </td>
                 <td>
                     <label for="head_pincode">Pincode:</label>
                     <input type="text" id="head_pincode" name="head_pincode" placeholder="Pincode" maxlength="6">
@@ -72,33 +72,33 @@
                 </td>
             </tr>
             <tr>
-                                <input type="text" id="head_city" name="head_city" placeholder="City" value="{{ head.City|default_if_none:'' }}">
+                <td>
                     <label>Marital Status:</label>
                     <label><input type="radio" name="head_marital_status" value="Married"> Married</label>
                     <label><input type="radio" name="head_marital_status" value="Unmarried"> Unmarried</label>
                     <span class="error-message" id="error-head_marital_status"></span>
-                                <input type="text" id="head_pincode" name="head_pincode" placeholder="Pincode" maxlength="6" value="{{ head.Pincode|default_if_none:'' }}">
+                </td>
                 <td>
                     <label>Gender:</label>
                     <label><input type="radio" name="head_gender" value="Male"> Male</label>
                     <label><input type="radio" name="head_gender" value="Female"> Female</label>
                     <span class="error-message" id="error-head_gender"></span>
                 </td>
-                                <label><input type="radio" name="head_marital_status" value="Married" {% if head.MaritalStatus == 'Married' %}checked{% endif %}> Married</label>
-                                <label><input type="radio" name="head_marital_status" value="Unmarried" {% if head.MaritalStatus == 'Unmarried' %}checked{% endif %}> Unmarried</label>
+            </tr>
+            <tr id="wedding_date_row" style="display:none;">
                 <td colspan="2">
                     <label for="head_wedding_date">Wedding Date:</label>
                     <input type="date" name="head_wedding_date" id="wedding_date">
                     <span class="error-message" id="error-head_wedding_date"></span>
-                                <label><input type="radio" name="head_gender" value="Male" {% if head.Gender == 'Male' %}checked{% endif %}> Male</label>
-                                <label><input type="radio" name="head_gender" value="Female" {% if head.Gender == 'Female' %}checked{% endif %}> Female</label>
+                </td>
+            </tr>
             <tr>
                 <td>
                     <label for="head_education">Education:</label>
                     <select name="head_education" id="head_education">
                         <option value="">Select</option>
                         <option value="Graduate">Graduate</option>
-                                <input type="date" name="head_wedding_date" id="head_wedding_date" value="{{ head.WeddingDate|date:'Y-m-d'|default_if_none:'' }}">
+                        <option value="Post Graduate">Post Graduate</option>
                         <option value="Diploma">Diploma</option>
                     </select>
                     <span class="error-message" id="error-head_education"></span>
@@ -107,9 +107,9 @@
                     <label for="head_photo">Upload Photo:</label>
                     <input type="file" id="head_photo" name="head_photo" accept="image/png, image/jpeg">
                     <span class="error-message" id="error-head_photo"></span>
-                                    <option value="Graduate" {% if head.Education == 'Graduate' %}selected{% endif %}>Graduate</option>
-                                    <option value="Post Graduate" {% if head.Education == 'Post Graduate' %}selected{% endif %}>Post Graduate</option>
-                                    <option value="Diploma" {% if head.Education == 'Diploma' %}selected{% endif %}>Diploma</option>
+                </td>
+            </tr>
+            <tr>
                 <td colspan="2">
                     <label>Hobbies:</label>
                     <div id="hobbies-section">
