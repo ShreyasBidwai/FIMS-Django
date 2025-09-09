@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth.models import User
@@ -11,10 +11,29 @@ from django.urls import reverse
 from .models import *
 from django.db.models import Count
 from django.core.paginator import Paginator
-
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+
+def update_head(request, id):
+    instance = get_object_or_404(FamilyHead, HeadID=id)
+    if request.method == 'POST':
+        instance.Name = request.POST.get('head_name')
+        instance.Surname = request.POST.get('head_surname')
+        instance.Gender = request.POST.get('head_gender')
+        instance.Birthdate = request.POST.get('head_birthdate')
+        instance.MobileNo = request.POST.get('head_mobile')
+        instance.Address = request.POST.get('head_address')
+        instance.State = request.POST.get('head_state')
+        instance.City = request.POST.get('head_city')
+        instance.Pincode = request.POST.get('head_pincode')
+        instance.MaritalStatus = request.POST.get('head_marital_status')
+        instance.WeddingDate = request.POST.get('head_wedding_date') or None
+        instance.Education = request.POST.get('head_education')
+        if request.FILES.get('head_photo'):
+            instance.Photo = request.FILES.get('head_photo')
+        instance.save()
+    
 # AJAX endpoint for status update
 @csrf_exempt
 def update_status(request):

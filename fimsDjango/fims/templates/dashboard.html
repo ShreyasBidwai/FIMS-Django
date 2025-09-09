@@ -60,7 +60,7 @@
                 <td>{{ head.familymember_set.count }}</td>
                 <td>{{ head.MobileNo }}</td>
                 <td>{{ head.get_status_display }}</td>
-                <td><a href="#">Edit</a></td>
+                <td><a href="{{update_head}}">Edit</a></td>
                                 <td>
                                     <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
                                 </td>
@@ -148,7 +148,7 @@
                 <td>{{ forloop.counter0|add:state_page_obj.start_index }}</td>
                 <td>{{ state.name }}</td>
                 <td>{{ state.get_status_display }}</td>
-                <td><a href="#">Edit</a></td>
+                <td><a href="{{update_head}}">Edit</a></td>
                 <td><a href="#">Delete</a></td>
             </tr>
             {% endfor %}
