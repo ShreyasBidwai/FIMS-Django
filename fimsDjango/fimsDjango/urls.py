@@ -33,4 +33,5 @@ urlpatterns = [
     path('password-reset-sent/<str:reset_id>/', PasswordResetSent, name='password-reset-sent'),
     path('reset-password/<str:reset_id>/', ResetPassword, name='reset-password'),
     path('update-status/', update_status, name='update-status'),
+    path('head/edit/<int:id>/', update_head, name='update_head'),
 ]

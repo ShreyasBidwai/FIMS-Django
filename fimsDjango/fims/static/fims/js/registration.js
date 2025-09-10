@@ -211,15 +211,18 @@ function validateForm(event) {
 
     // Photo
     const photo = document.querySelector("input[name='head_photo']");
-    if (!photo.files[0]) {
+    const photoPreview = document.querySelector('.photo-preview');
+    if (!photo.files[0] && !photoPreview) {
         showError("error-head_photo", "Photo required.");
         valid = false;
-    } else {
+    } else if (photo.files[0]) {
         const file = photo.files[0];
         if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
             showError("error-head_photo", "Only JPG/PNG ≤2MB allowed.");
             valid = false;
         }
+    } else {
+        clearError("error-head_photo");
     }
 
     if (!valid) event.preventDefault();

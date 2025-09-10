@@ -1,8 +1,8 @@
 {% extends 'registration.html' %}
 {% load static %}
-{% endblock %}
+
 {% block content %}
-	{% with head=head %}
-	{{ block.super }}
+	{% with head=head states=states %}
+		{{ block.super }}
 	{% endwith %}
 {% endblock %}

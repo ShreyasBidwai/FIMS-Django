@@ -33,6 +33,30 @@ def update_head(request, id):
         if request.FILES.get('head_photo'):
             instance.Photo = request.FILES.get('head_photo')
         instance.save()
+
+        # Update family members
+        members = FamilyMember.objects.filter(HeadID=instance)
+        for idx, member in enumerate(members, start=1):
+            member.Name = request.POST.get(f'member_{idx}_name')
+            member.Surname = request.POST.get(f'member_{idx}_surname')
+            member.Birthdate = request.POST.get(f'member_{idx}_birthdate')
+            member.MobileNo = request.POST.get(f'member_{idx}_mobile')
+            member.Gender = request.POST.get(f'member_{idx}_gender')
+            member.Relationship = request.POST.get(f'member_{idx}_relationship')
+            member.Address = request.POST.get(f'member_{idx}_address')
+            member.State = request.POST.get(f'member_{idx}_state')
+            member.City = request.POST.get(f'member_{idx}_city')
+            member.Pincode = request.POST.get(f'member_{idx}_pincode')
+            # Optionally update photo and hobbies here
+            if request.FILES.get(f'member_{idx}_photo'):
+                member.Photo = request.FILES.get(f'member_{idx}_photo')
+            member.save()
+
+        messages.success(request, 'Head and family updated successfully!')
+        return redirect('dashboard')
+    states = list(State.objects.filter(country_id=101).values('id', 'name'))
+    members = FamilyMember.objects.filter(HeadID=instance)
+    return render(request, 'edit_head.html', {'head': instance, 'states': states, 'members': members})
     
 # AJAX endpoint for status update
 @csrf_exempt
