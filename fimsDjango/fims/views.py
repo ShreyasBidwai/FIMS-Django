@@ -34,7 +34,7 @@ def update_head(request, id):
             instance.Photo = request.FILES.get('head_photo')
         instance.save()
 
-        # Update family members
+        # family members
         members = FamilyMember.objects.filter(HeadID=instance)
         for idx, member in enumerate(members, start=1):
             member.Name = request.POST.get(f'member_{idx}_name')
@@ -47,10 +47,31 @@ def update_head(request, id):
             member.State = request.POST.get(f'member_{idx}_state')
             member.City = request.POST.get(f'member_{idx}_city')
             member.Pincode = request.POST.get(f'member_{idx}_pincode')
-            # Optionally update photo and hobbies here
             if request.FILES.get(f'member_{idx}_photo'):
                 member.Photo = request.FILES.get(f'member_{idx}_photo')
             member.save()
+
+        # Add new members if present in POST data
+        existing_count = members.count()
+        new_idx = existing_count + 1
+        while request.POST.get(f'member_{new_idx}_name'):
+            new_member = FamilyMember(
+                HeadID=instance,
+                Name=request.POST.get(f'member_{new_idx}_name'),
+                Surname=request.POST.get(f'member_{new_idx}_surname'),
+                Birthdate=request.POST.get(f'member_{new_idx}_birthdate'),
+                MobileNo=request.POST.get(f'member_{new_idx}_mobile'),
+                Gender=request.POST.get(f'member_{new_idx}_gender'),
+                Relationship=request.POST.get(f'member_{new_idx}_relationship'),
+                Address=request.POST.get(f'member_{new_idx}_address'),
+                State=request.POST.get(f'member_{new_idx}_state'),
+                City=request.POST.get(f'member_{new_idx}_city'),
+                Pincode=request.POST.get(f'member_{new_idx}_pincode'),
+            )
+            if request.FILES.get(f'member_{new_idx}_photo'):
+                new_member.Photo = request.FILES.get(f'member_{new_idx}_photo')
+            new_member.save()
+            new_idx += 1
 
         messages.success(request, 'Head and family updated successfully!')
         return redirect('dashboard')
@@ -58,6 +79,44 @@ def update_head(request, id):
     members = FamilyMember.objects.filter(HeadID=instance)
     return render(request, 'edit_head.html', {'head': instance, 'states': states, 'members': members})
     
+def edit_member(request, id):
+    member = get_object_or_404(FamilyMember, MemberID=id)
+    if request.method == 'POST':
+        member.Name = request.POST.get('name')
+        member.Surname = request.POST.get('surname')
+        member.Gender = request.POST.get('gender')
+        member.Relationship = request.POST.get('relationship')
+        member.Birthdate = request.POST.get('birthdate')
+        member.MobileNo = request.POST.get('mobile')
+        member.Address = request.POST.get('address')
+        member.State = request.POST.get('state')
+        member.City = request.POST.get('city')
+        member.Pincode = request.POST.get('pincode')
+        if request.FILES.get('photo'):
+            member.Photo = request.FILES.get('photo')
+        member.save()
+        messages.success(request, 'Member updated successfully!')
+        return redirect('dashboard')
+    return render(request, 'edit_member.html', {'member': member})
+
+def edit_state(request, id):
+    state = get_object_or_404(State, id=id)
+    if request.method == 'POST':
+        state.name = request.POST.get('name')
+        state.save()
+        messages.success(request, 'State updated successfully!')
+        return redirect('dashboard')
+    return render(request, 'edit_state.html', {'state': state})
+
+def edit_city(request, id):
+    city = get_object_or_404(City, id=id)
+    if request.method == 'POST':
+        city.name = request.POST.get('name')
+        city.save()
+        messages.success(request, 'City updated successfully!')
+        return redirect('dashboard')
+    return render(request, 'edit_city.html', {'city': city})
+
 # AJAX endpoint for status update
 @csrf_exempt
 def update_status(request):

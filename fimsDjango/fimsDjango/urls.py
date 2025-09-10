@@ -34,4 +34,7 @@ urlpatterns = [
     path('reset-password/<str:reset_id>/', ResetPassword, name='reset-password'),
     path('update-status/', update_status, name='update-status'),
     path('head/edit/<int:id>/', update_head, name='update_head'),
+    path('member/edit/<int:id>/', edit_member, name='edit_member'),
+    path('state/edit/<int:id>/', edit_state, name='edit_state'),
+    path('city/edit/<int:id>/', edit_city, name='edit_city'),
 ]

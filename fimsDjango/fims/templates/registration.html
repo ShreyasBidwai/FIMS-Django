@@ -14,7 +14,7 @@
 
     <!-- Family Head Section -->
     <fieldset>
-        <legend class="highlight-title">Family Head</legend>
+    <legend class="highlight-title">Family Head ({{ members|length }} Members)</legend>
         <table class="form-table two-column">
             <tr>
                 <td>
@@ -136,9 +136,11 @@
 
     <!-- Family Members Section -->
     <div id="members-container">
-        <h3 class="highlight-title">Family Members</h3>
+    <h3 class="highlight-title">Family Members</h3>
+    <p>Members count: {{ members|length }}</p>
         {% if members %}
             {% for member in members %}
+            <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
             <div class="member-block">
                 <table class="form-table two-column">
                     <tr>
