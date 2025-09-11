@@ -1,3 +1,4 @@
+
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -13,7 +14,53 @@ from django.db.models import Count
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 import json
+from .models import State, City, Country
+from django.views.decorators.http import require_http_methods
 
+@require_http_methods(["GET", "POST"])
+def add_state(request):
+    error = None
+    if request.method == "POST":
+        name = request.POST.get("state_name")
+        country_id = request.POST.get("country_id") or 101
+        if not name:
+            error = "State name is required."
+        else:
+            # Get next unique state id
+            last_state = State.objects.order_by('-id').first()
+            next_id = (last_state.id + 1) if last_state else 1
+            # Create state
+            from .models import Country
+            india = Country.objects.get(id=101)
+            state = State(id=next_id, name=name, status=1, country=india)
+            try:
+                state.save()
+                return redirect('dashboard')
+            except Exception as e:
+                error = str(e)
+    return render(request, 'add_state.html', {'error': error})
+
+from django.views.decorators.http import require_http_methods
+@require_http_methods(["GET", "POST"])
+def add_city(request):
+    error = None
+    states = State.objects.filter(country_id=101)
+    if request.method == "POST":
+        state_id = request.POST.get("state_id")
+        city_name = request.POST.get("city_name")
+        if not state_id or not city_name:
+            error = "State and city name are required."
+        else:
+            try:
+                state = State.objects.get(id=state_id)
+                last_city = City.objects.order_by('-id').first()
+                next_id = (last_city.id + 1) if last_city else 1
+                city = City(id=next_id, name=city_name, state=state, country_id=state.country.id, status=1)
+                city.save()
+                return redirect('dashboard')
+            except Exception as e:
+                error = str(e)
+    return render(request, 'add_city.html', {'states': states, 'error': error})
 
 def update_head(request, id):
     instance = get_object_or_404(FamilyHead, HeadID=id)

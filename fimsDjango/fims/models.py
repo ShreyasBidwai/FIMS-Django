@@ -1,3 +1,5 @@
+# Country model
+
 from django.db import models
 from django.core.validators import RegexValidator, ValidationError
 from datetime import date
@@ -151,7 +153,15 @@ class FamilyMember(models.Model):
         db_table = 'family_member'
 
 
+class Country(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'countries'
 
 
 class State(models.Model):
@@ -163,7 +173,7 @@ class State(models.Model):
     ]
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
     name = models.CharField(max_length=100)
-    country_id = models.IntegerField()
+    country = models.ForeignKey('Country', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

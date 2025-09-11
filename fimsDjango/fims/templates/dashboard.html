@@ -140,6 +140,7 @@
 {% if not show_all_tables or state_page_obj.paginator.count > 0 %}
 <div id="table-state" class="dashboard-table" {% if not show_all_tables and active_tab != 'state' %}style="display:none;"{% endif %}>
     <h2>States</h2>
+    <a href="{% url 'add_state' %}" class="btn">Add State</a>
     <table>
         <thead>
             <tr>
@@ -183,6 +184,7 @@
 {% if not show_all_tables or city_page_obj.paginator.count > 0 %}
 <div id="table-city" class="dashboard-table" {% if not show_all_tables and active_tab != 'city' %}style="display:none;"{% endif %}>
     <h2>Cities</h2>
+    <a href="{% url 'add_city' %}" class="btn">Add City</a>
     <table>
         <thead>
             <tr>
