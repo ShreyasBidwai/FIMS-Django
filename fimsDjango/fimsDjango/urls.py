@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from fims.views import *
 
+
 urlpatterns = [
     path('', home, name='home'),
     path('base/', base, name='base'),
@@ -37,4 +38,5 @@ urlpatterns = [
     path('member/edit/<int:id>/', edit_member, name='edit_member'),
     path('state/edit/<int:id>/', edit_state, name='edit_state'),
     path('city/edit/<int:id>/', edit_city, name='edit_city'),
+
 ]

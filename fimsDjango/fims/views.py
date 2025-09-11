@@ -43,10 +43,17 @@ def update_head(request, id):
             member.MobileNo = request.POST.get(f'member_{idx}_mobile')
             member.Gender = request.POST.get(f'member_{idx}_gender')
             member.Relationship = request.POST.get(f'member_{idx}_relationship')
-            member.Address = request.POST.get(f'member_{idx}_address')
-            member.State = request.POST.get(f'member_{idx}_state')
-            member.City = request.POST.get(f'member_{idx}_city')
-            member.Pincode = request.POST.get(f'member_{idx}_pincode')
+            # Check if 'same address as head' is checked for this member
+            if request.POST.get(f'member_{idx}_same_address'):
+                member.Address = instance.Address
+                member.State = instance.State
+                member.City = instance.City
+                member.Pincode = instance.Pincode
+            else:
+                member.Address = request.POST.get(f'member_{idx}_address')
+                member.State = request.POST.get(f'member_{idx}_state')
+                member.City = request.POST.get(f'member_{idx}_city')
+                member.Pincode = request.POST.get(f'member_{idx}_pincode')
             if request.FILES.get(f'member_{idx}_photo'):
                 member.Photo = request.FILES.get(f'member_{idx}_photo')
             member.save()
@@ -128,16 +135,28 @@ def update_status(request):
         try:
             if entry_type == 'head':
                 obj = FamilyHead.objects.get(HeadID=entry_id)
+                obj.status = status
+                obj.save()
+                if status == 9:
+                    # Soft delete all related members
+                    FamilyMember.objects.filter(HeadID=obj).update(status=9)
             elif entry_type == 'member':
                 obj = FamilyMember.objects.get(MemberID=entry_id)
+                obj.status = status
+                obj.save()
             elif entry_type == 'state':
                 obj = State.objects.get(id=entry_id)
+                obj.status = status
+                obj.save()
+                if status == 9:
+         
+                    City.objects.filter(state=obj).update(status=9)
             elif entry_type == 'city':
                 obj = City.objects.get(id=entry_id)
+                obj.status = status
+                obj.save()
             else:
                 return JsonResponse({'success': False, 'error': 'Invalid type'})
-            obj.status = status
-            obj.save()
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
@@ -149,18 +168,17 @@ def base(request):
 
 
 def stats(request):
-    total_families = FamilyHead.objects.count()
-    total_members = FamilyMember.objects.count() + FamilyHead.objects.count()
-    married_people = FamilyMember.objects.filter(MaritalStatus='Married').count() + FamilyHead.objects.filter(MaritalStatus='Married').count()
-    unmarried_people = FamilyMember.objects.filter(MaritalStatus='Unmarried').count() + FamilyHead.objects.filter(MaritalStatus='Unmarried').count()
-    active_members = FamilyMember.objects.filter(status=1).count() + FamilyHead.objects.filter(status=1).count()
-    total_cities = City.objects.filter(country_id=101).count()
-
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    married_people = FamilyMember.objects.exclude(status=9).filter(MaritalStatus='Married').count() + FamilyHead.objects.exclude(status=9).filter(MaritalStatus='Married').count()
+    unmarried_people = FamilyMember.objects.exclude(status=9).filter(MaritalStatus='Unmarried').count() + FamilyHead.objects.exclude(status=9).filter(MaritalStatus='Unmarried').count()
+    active_members = FamilyMember.objects.exclude(status=9).filter(status=1).count() + FamilyHead.objects.exclude(status=9).filter(status=1).count()
+    total_cities = City.objects.exclude(status=9).filter(country_id=101).count()
 
     labels = ['Male', 'Female', 'Other']
-    male = FamilyMember.objects.filter(Gender='Male').count() + FamilyHead.objects.filter(Gender='Male').count()
-    female = FamilyMember.objects.filter(Gender='Female').count() + FamilyHead.objects.filter(Gender='Female').count()
-    other = FamilyMember.objects.filter(Gender='Other').count() + FamilyHead.objects.filter(Gender='Other').count()
+    male = FamilyMember.objects.exclude(status=9).filter(Gender='Male').count() + FamilyHead.objects.exclude(status=9).filter(Gender='Male').count()
+    female = FamilyMember.objects.exclude(status=9).filter(Gender='Female').count() + FamilyHead.objects.exclude(status=9).filter(Gender='Female').count()
+    other = FamilyMember.objects.exclude(status=9).filter(Gender='Other').count() + FamilyHead.objects.exclude(status=9).filter(Gender='Other').count()
     data = [male, female, other]
 
     context = {
@@ -273,10 +291,10 @@ def resetPassword(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    total_families = FamilyHead.objects.count()
-    total_members = FamilyMember.objects.count() + FamilyHead.objects.count()
-    active_members = FamilyMember.objects.filter(status=1).count() + FamilyHead.objects.filter(status=1).count()
-    inactive_members = FamilyMember.objects.filter(status=0).count() + FamilyHead.objects.filter(status=0).count()
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
+    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
     deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
 
     tab = request.GET.get('tab', 'head')
@@ -293,10 +311,10 @@ def dashboard(request):
         {'key': 'city', 'label': 'City'},
     ]
 
-    heads = FamilyHead.objects.all()
-    families = FamilyMember.objects.all()
-    states = State.objects.all()
-    cities = City.objects.all()
+    heads = FamilyHead.objects.exclude(status=9)
+    families = FamilyMember.objects.exclude(status=9)
+    states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
+    cities = City.objects.exclude(status=9) if hasattr(City, 'status') else City.objects.all()
 
     show_all_tables = False
     if search:
