@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}View State{% endblock %}
+{% block content %}
+<a href="{% url 'dashboard' %}" class="btn" style="margin-bottom:1rem;display:inline-block;">&larr; Back to Dashboard</a>
+<h2>State Details</h2>
+<div style="margin-bottom:1rem;display:flex;gap:1rem;align-items:center;">
+    <a href="{% url 'add_city' %}" class="btn">Add City</a>
+    <form method="get" style="display:inline-block;">
+        <input type="text" name="search" placeholder="Search city name" value="{{ request.GET.search|default:'' }}" style="padding:0.4rem;">
+        <button type="submit">Search</button>
+    </form>
+</div>
+<div class="card">
+    <h3>{{ state.name }}</h3>
+    <p><strong>Status:</strong> {{ state.get_status_display }}</p>
+</div>
+<h2>Cities in {{ state.name }}</h2>
+<div style="display:flex;flex-wrap:wrap;gap:1rem;">
+    {% for city in cities %}
+    <div class="card" style="min-width:250px;">
+        <h3>{{ city.name }}</h3>
+        <p><strong>Status:</strong> {{ city.get_status_display }}</p>
+        <a href="{% url 'edit_city' city.id %}" class="btn">Edit</a>
+        <button class="status-btn" data-type="city" data-id="{{ city.id }}">Status</button>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<div id="status-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:9999;justify-content:center;align-items:center;">
+    <div class="modal-content" style="background:#fff;padding:1.2rem 2rem;border-radius:10px;text-align:center;min-width:260px;box-shadow:0 2px 16px rgba(0,0,0,0.18);position:relative;margin:auto;">
+        <h3>Set status for this entry:</h3>
+        <button id="set-active" style="background:#27ae60;color:#fff;">Active</button>
+        <button id="set-inactive">Inactive</button>
+        <button id="set-delete" style="background:#e74c3c;color:#fff;">Delete</button>
+        <br><br>
+        <button id="cancel-status">Cancel</button>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let modal = document.getElementById('status-modal');
+    let entryType = null, entryId = null;
+    document.querySelectorAll('.status-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            entryType = btn.getAttribute('data-type');
+            entryId = btn.getAttribute('data-id');
+            modal.style.display = 'flex';
+        });
+    });
+    document.getElementById('cancel-status').onclick = function() {
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-active').onclick = function() {
+        updateStatus(entryType, entryId, 1);
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-inactive').onclick = function() {
+        updateStatus(entryType, entryId, 0);
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-delete').onclick = function() {
+        updateStatus(entryType, entryId, 9);
+        modal.style.display = 'none';
+    };
+
+    function updateStatus(type, id, status) {
+        fetch('/update-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({type: type, id: id, status: status})
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                location.reload();
+            } else {
+                alert('Failed to update status');
+            }
+        });
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

@@ -1,4 +1,12 @@
-
+# View for displaying state and its cities
+def view_state(request, id):
+    from .models import State, City
+    state = get_object_or_404(State, id=id)
+    search = request.GET.get('search', '').strip()
+    cities = state.cities.exclude(status=9)
+    if search:
+        cities = cities.filter(name__icontains=search)
+    return render(request, 'view_state.html', {'state': state, 'cities': cities})
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -17,6 +25,11 @@ import json
 from .models import State, City, Country
 from django.views.decorators.http import require_http_methods
 
+def view_family(request, id):
+    head = get_object_or_404(FamilyHead, HeadID=id)
+    members = head.familymember_set.all()
+    return render(request, 'view_family.html', {'head': head, 'members': members})
+
 @require_http_methods(["GET", "POST"])
 def add_state(request):
     error = None
@@ -26,10 +39,10 @@ def add_state(request):
         if not name:
             error = "State name is required."
         else:
-            # Get next unique state id
+            
             last_state = State.objects.order_by('-id').first()
             next_id = (last_state.id + 1) if last_state else 1
-            # Create state
+           
             from .models import Country
             india = Country.objects.get(id=101)
             state = State(id=next_id, name=name, status=1, country=india)
@@ -132,26 +145,7 @@ def update_head(request, id):
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
     members = FamilyMember.objects.filter(HeadID=instance)
     return render(request, 'edit_head.html', {'head': instance, 'states': states, 'members': members})
-    
-def edit_member(request, id):
-    member = get_object_or_404(FamilyMember, MemberID=id)
-    if request.method == 'POST':
-        member.Name = request.POST.get('name')
-        member.Surname = request.POST.get('surname')
-        member.Gender = request.POST.get('gender')
-        member.Relationship = request.POST.get('relationship')
-        member.Birthdate = request.POST.get('birthdate')
-        member.MobileNo = request.POST.get('mobile')
-        member.Address = request.POST.get('address')
-        member.State = request.POST.get('state')
-        member.City = request.POST.get('city')
-        member.Pincode = request.POST.get('pincode')
-        if request.FILES.get('photo'):
-            member.Photo = request.FILES.get('photo')
-        member.save()
-        messages.success(request, 'Member updated successfully!')
-        return redirect('dashboard')
-    return render(request, 'edit_member.html', {'member': member})
+
 
 def edit_state(request, id):
     state = get_object_or_404(State, id=id)

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}View Family{% endblock %}
+{% block content %}
+<a href="{% url 'dashboard' %}" class="btn" style="margin-bottom:1rem;display:inline-block;">&larr; Back to Dashboard</a>
+<h2>Head Details</h2>
+<div class="card">
+    <h3>{{ head.Name }} {{ head.Surname }}</h3>
+    <p><strong>Gender:</strong> {{ head.Gender }}</p>
+    <p><strong>Birthdate:</strong> {{ head.Birthdate }}</p>
+    <p><strong>Mobile:</strong> {{ head.MobileNo }}</p>
+    <p><strong>Address:</strong> {{ head.Address }}</p>
+    <p><strong>State:</strong> {{ head.State }}</p>
+    <p><strong>City:</strong> {{ head.City }}</p>
+    <p><strong>Pincode:</strong> {{ head.Pincode }}</p>
+    <p><strong>Marital Status:</strong> {{ head.MaritalStatus }}</p>
+    <p><strong>Wedding Date:</strong> {{ head.WeddingDate }}</p>
+    <p><strong>Education:</strong> {{ head.Education }}</p>
+    {% if head.Photo %}<img src="{{ head.Photo.url }}" alt="Photo" width="100">{% endif %}
+</div>
+<h2>Family Members</h2>
+<div style="display:flex;flex-wrap:wrap;gap:1rem;">
+    {% for member in members %}
+    <div class="card" style="min-width:250px;">
+        <h3>{{ member.Name }} {{ member.Surname }}</h3>
+        <p><strong>Relationship:</strong> {{ member.Relationship }}</p>
+        <p><strong>Gender:</strong> {{ member.Gender }}</p>
+        <p><strong>Birthdate:</strong> {{ member.Birthdate }}</p>
+        <p><strong>Mobile:</strong> {{ member.MobileNo }}</p>
+        <p><strong>Address:</strong> {{ member.Address }}</p>
+        <p><strong>State:</strong> {{ member.State }}</p>
+        <p><strong>City:</strong> {{ member.City }}</p>
+        <p><strong>Pincode:</strong> {{ member.Pincode }}</p>
+        <p><strong>Marital Status:</strong> {{ member.MaritalStatus }}</p>
+        {% if member.Photo %}<img src="{{ member.Photo.url }}" alt="Photo" width="80">{% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -52,6 +52,7 @@
                 <th>Status</th>
                 <th>Edit</th>
                 <th>Delete</th>
+                <th>View</th>
             </tr>
         </thead>
         <tbody>
@@ -63,16 +64,19 @@
                 <td>{{ head.familymember_set.count }}</td>
                 <td>{{ head.MobileNo }}</td>
                 <td>{{ head.get_status_display }}</td>
-                                <td>
-                                    {% if head.HeadID %}
-                                        <a href="{% url 'update_head' head.HeadID %}">Edit</a>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
-                                </td>
+                <td>
+                    {% if head.HeadID %}
+                        <a href="{% url 'update_head' head.HeadID %}">Edit</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
+                </td>
+                <td>
+                    <a href="{% url 'view_family' head.HeadID %}" class="btn">View</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -148,7 +152,7 @@
                 <th>Name</th>
                 <th>Status</th>
                 <th>Edit</th>
-                
+                <th>View</th>
             </tr>
         </thead>
         <tbody>
@@ -161,7 +165,9 @@
                 <td>
                     <button class="status-btn" data-type="state" data-id="{{ state.id }}">Status</button>
                 </td>
-            
+                <td>
+                    <a href="{% url 'view_state' state.id %}" class="btn">View</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
