@@ -27,6 +27,7 @@ urlpatterns = [
     path('add_city/', add_city, name='add_city'),
     path('view_family/<int:id>/', view_family, name='view_family'),
     path('view_state/<int:id>/', view_state, name='view_state'),
+    path('pdf_view/', pdf_view, name='pdf_view'),
 ]
 
 if settings.DEBUG:

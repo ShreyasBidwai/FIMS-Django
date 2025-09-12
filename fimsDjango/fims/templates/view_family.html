@@ -3,6 +3,7 @@
 {% block content %}
 <a href="{% url 'dashboard' %}" class="btn" style="margin-bottom:1rem;display:inline-block;">&larr; Back to Dashboard</a>
 <h2>Head Details</h2>
+<a href="{% url 'pdf_view' %}?id={{ head.HeadID }}">Generate PDF Report</a>
 <div class="card">
     <h3>{{ head.Name }} {{ head.Surname }}</h3>
     <p><strong>Gender:</strong> {{ head.Gender }}</p>
@@ -36,5 +37,6 @@
     {% if member.Photo %}<img src="/media/{{member.Photo}}" alt="Photo" width="80">{% endif %}
     </div>
     {% endfor %}
+
 </div>
 {% endblock %}

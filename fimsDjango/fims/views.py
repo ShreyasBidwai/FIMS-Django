@@ -16,6 +16,57 @@ import json
 from .models import State, City, Country
 from django.views.decorators.http import require_http_methods
 
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import letter
+
+
+def pdf_view(request):
+    from .models import FamilyHead, FamilyMember
+    head_id = request.GET.get('id')
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
+    width, height = letter
+    y = 60
+    c.setFont("Helvetica-Bold", 16)
+    if not head_id:
+        c.drawString(60, y, "No family selected. Please provide a valid family head ID.")
+        c.save()
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename="Report.pdf")
+    try:
+        head = FamilyHead.objects.get(HeadID=head_id)
+        members = FamilyMember.objects.filter(HeadID=head)
+        c.drawString(60, y, f"Family Report: {head.Name} {head.Surname}")
+        y += 30
+        c.setFont("Helvetica", 12)
+        c.drawString(60, y, f"Head Details:")
+        y += 18
+        c.drawString(70, y, f"Mobile: {head.MobileNo}, Address: {head.Address}, State: {head.State}, City: {head.City}")
+        y += 18
+        c.drawString(70, y, f"Pincode: {head.Pincode}, Marital Status: {head.MaritalStatus}, Education: {head.Education}")
+        y += 24
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(60, y, "Family Members:")
+        y += 18
+        c.setFont("Helvetica", 12)
+        if members:
+            for member in members:
+                c.drawString(70, y, f"{member.Name} {member.Surname} - {member.Relationship}, Mobile: {member.MobileNo}, State: {member.State}, City: {member.City}")
+                y += 16
+                if y > height - 40:
+                    c.showPage()
+                    y = 60
+                    c.setFont("Helvetica", 12)
+        else:
+            c.drawString(70, y, "No family members found.")
+    except FamilyHead.DoesNotExist:
+        c.drawString(60, y, "Family head not found.")
+    c.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"family_report_{headname or 'unknown'}.pdf")
 
 
 def view_state(request, id):

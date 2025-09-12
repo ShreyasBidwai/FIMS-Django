@@ -61,6 +61,7 @@
                     <a href="{% url 'update_head' head.HeadID %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
                     <a href="{% url 'view_family' head.HeadID %}" class="view-btn">View</a>
+                    <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}">pdf</a>
                 </td>
             </tr>
             {% endfor %}
