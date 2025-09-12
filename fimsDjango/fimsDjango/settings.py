@@ -1,13 +1,10 @@
+import os
+from pathlib import Path
 
-# import os
-# # Media files (after BASE_DIR is defined)
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join('fimsDjango/photos', 'media')
-# Email backend for real email sending (Gmail example)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'shreyashbidwai.datagrid@gmail.com'  
 EMAIL_HOST_PASSWORD = 'cwdo loob zsva ciqv' 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
@@ -36,18 +33,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-pbxixqo8kv6xub4yk+x_(5i7#qk#_)@^6o_$)@22(%g(4(n15s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-STATIC_URL = '/static/'
-
-# Add this to help Django find static files in the app's static directory
 import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'fims/static')]
 
+DEBUG = True
 
 ALLOWED_HOSTS = []
-
-
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
@@ -76,7 +71,7 @@ ROOT_URLCONF = 'fimsDjango.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,3 +143,6 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Static root for collectstatic and static file serving
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')

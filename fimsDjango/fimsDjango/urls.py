@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from fims.views import *
@@ -25,5 +27,8 @@ urlpatterns = [
     path('add_city/', add_city, name='add_city'),
     path('view_family/<int:id>/', view_family, name='view_family'),
     path('view_state/<int:id>/', view_state, name='view_state'),
-
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

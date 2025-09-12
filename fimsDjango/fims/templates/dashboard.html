@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 {% load static %}
 
 {% block title %}Familink Dashboard{% endblock %}
@@ -8,51 +8,44 @@
 {% endblock %}
 
 {% block content %}
+<div id="dash-container">
 
-<h1>Familylink Dashboard</h1>
-
-<form method="get" action="" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
-    <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
-    <input type="hidden" name="tab" value="{{ active_tab }}">
-    <button type="submit">Search</button>
-    {% if search %}
-        <a href="?tab={{ active_tab }}" style="margin-left: 1rem;">Clear</a>
-    {% endif %}
-</form>
-<div>Hello {{ username }}</div>
-<div id="cards">
-        <div class="card"><h1>Families Registered</h1><p>{{ total_families }}</p></div>
-        <div class="card"><h1>TotalFamily Members</h1><p>{{ total_members }}</p></div>
-        <div class="card"><h1>Active members</h1><p>{{ active_members }}</p></div>
-        <div class="card"><h1>Inactive Members</h1><p>{{ inactive_members }}</p></div>
-       
-<div style="margin: 2rem 0; display: flex; gap: 1rem;">
-    <button onclick="showTable('head')">Head</button>
-    <button onclick="showTable('family')">Family</button>
-    <button onclick="showTable('state')">State</button>
-    <button onclick="showTable('city')">City</button>
+<div id="dashboard-head">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="margin: 0;">Dashboard</h1>
+        <form method="get" action="" style="display: flex; gap: 1rem; align-items: center; margin: 0;">
+            <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
+            <input type="hidden" name="tab" value="{{ active_tab }}">
+            <button type="submit">Search</button>
+            {% if search %}
+                <a href="?tab={{ active_tab }}" style="margin-left: 1rem;">Clear</a>
+            {% endif %}
+        </form>
+    </div>
 </div>
-
+<div id="cards">
+        <div class="card"><p>Families Registered</p><p>{{ total_families }}</p></div>
+        <div class="card"><p>TotalFamily Members</p><p>{{ total_members }}</p></div>
+        <div class="card"><p>Active members</p><p>{{ active_members }}</p></div>
+        <div class="card"><p>Inactive Members</p><p>{{ inactive_members }}</p></div>  
+</div>
 
 {% if not show_all_tables or head_page_obj.paginator.count > 0 %}
 <div id="table-head" class="dashboard-table" {% if not show_all_tables and active_tab != 'head' %}style="display:none;"{% endif %}>
-    <h2>Head</h2>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <h2 style="margin: 0;">Head</h2>
+        <a href="{% url 'regis' %}" class="add-btn">Add Head</a>
+    </div>
     <table>
         <thead>
-                <td>
-                    {% if head.HeadID %}
-                        <a href="{% url 'update_head' head.HeadID %}">Edit</a>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
+            <tr>
+                <th>Index</th>
+                <th>Photo</th>
                 <th>Name</th>
                 <th>Total Members</th>
                 <th>Mobile Num</th>
                 <th>Status</th>
-                <th>Edit</th>
-                <th>Delete</th>
-                <th>View</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -64,18 +57,10 @@
                 <td>{{ head.familymember_set.count }}</td>
                 <td>{{ head.MobileNo }}</td>
                 <td>{{ head.get_status_display }}</td>
-                <td>
-                    {% if head.HeadID %}
-                        <a href="{% url 'update_head' head.HeadID %}">Edit</a>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
+                <td class="actions">
+                    <a href="{% url 'update_head' head.HeadID %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
-                </td>
-                <td>
-                    <a href="{% url 'view_family' head.HeadID %}" class="btn">View</a>
+                    <a href="{% url 'view_family' head.HeadID %}" class="view-btn">View</a>
                 </td>
             </tr>
             {% endfor %}
@@ -107,7 +92,7 @@
                 <th>Name</th>
                 <th>Mobile Num</th>
                 <th>Status</th>
-                <th>Delete</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -118,10 +103,9 @@
                 <td>{{ member.Name }} {{ member.Surname }}</td>
                 <td>{{ member.MobileNo }}</td>
                 <td>{{ member.get_status_display }}</td>
-
-                                <td>
-                                    <button class="status-btn" data-type="member" data-id="{{ member.MemberID }}">Status</button>
-                                </td>
+                <td class="actions">
+                    <button class="status-btn" data-type="member" data-id="{{ member.MemberID }}">Status</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -143,16 +127,17 @@
 
 {% if not show_all_tables or state_page_obj.paginator.count > 0 %}
 <div id="table-state" class="dashboard-table" {% if not show_all_tables and active_tab != 'state' %}style="display:none;"{% endif %}>
-    <h2>States</h2>
-    <a href="{% url 'add_state' %}" class="btn">Add State</a>
+    <div id="state-table-head">
+        <h2>States</h2>
+        <a href="{% url 'add_state' %}" class="add-btn" id="add-state-button">Add State</a>
+    </div>
     <table>
         <thead>
             <tr>
                 <th>Index</th>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Edit</th>
-                <th>View</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -161,12 +146,10 @@
                 <td>{{ forloop.counter0|add:state_page_obj.start_index }}</td>
                 <td>{{ state.name }}</td>
                 <td>{{ state.get_status_display }}</td>
-                <td><a href="#">Edit</a></td>
-                <td>
+                <td class="actions">
+                    <a href="{% url 'edit_state' state.id %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="state" data-id="{{ state.id }}">Status</button>
-                </td>
-                <td>
-                    <a href="{% url 'view_state' state.id %}" class="btn">View</a>
+                    <a href="{% url 'view_state' state.id %}" class="view-btn">View</a>
                 </td>
             </tr>
             {% endfor %}
@@ -189,16 +172,25 @@
 
 {% if not show_all_tables or city_page_obj.paginator.count > 0 %}
 <div id="table-city" class="dashboard-table" {% if not show_all_tables and active_tab != 'city' %}style="display:none;"{% endif %}>
-    <h2>Cities</h2>
-    <a href="{% url 'add_city' %}" class="btn">Add City</a>
+   <div id="city-table-head">
+     <h2>Cities</h2>
+    <form method="get" style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;">
+        <select name="state_filter" onchange="this.form.submit()" style="padding:0.4rem;">
+            <option value="">All States</option>
+            {% for state in all_states %}
+                <option value="{{ state.id }}" {% if state.id|stringformat:'s' == request.GET.state_filter %}selected{% endif %}>{{ state.name }}</option>
+            {% endfor %}
+        </select>
+        <a href="{% url 'add_city' %}" class="add-btn">Add City</a>
+    </form>
+   </div>
     <table>
         <thead>
             <tr>
-                 <th>Index</th>
+                <th>Index</th>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Edit</th>
-                
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -207,11 +199,10 @@
                 <td>{{ forloop.counter0|add:city_page_obj.start_index }}</td>
                 <td>{{ city.name }}</td>
                 <td>{{ city.get_status_display }}</td>
-                <td><a href="#">Edit</a></td>
-                <td>
+                <td class="actions">
+                    <a href="{% url 'edit_city' city.id %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="city" data-id="{{ city.id }}">Status</button>
                 </td>
-                
             </tr>
             {% endfor %}
         </tbody>
@@ -267,6 +258,7 @@
         <button id="cancel-status">Cancel</button>
     </div>
 </div>
+</div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     window.showTable = function(table) {
@@ -275,6 +267,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('table-state').style.display = 'none';
         document.getElementById('table-city').style.display = 'none';
         document.getElementById('table-' + table).style.display = '';
+        localStorage.setItem('dashboardActiveTab', table);
+    }
+
+    // Restore last active tab
+    var lastTab = localStorage.getItem('dashboardActiveTab');
+    if (lastTab) {
+        showTable(lastTab);
     }
 
     let modal = document.getElementById('status-modal');
@@ -312,7 +311,29 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({type: type, id: id, status: status})
         }).then(res => res.json()).then(data => {
             if(data.success) {
-                location.reload();
+                // Update status cell and button color
+                let row;
+                if(type === 'head') {
+                    row = document.querySelector('button.status-btn[data-type="head"][data-id="' + id + '"]').closest('tr');
+                } else if(type === 'member') {
+                    row = document.querySelector('button.status-btn[data-type="member"][data-id="' + id + '"]').closest('tr');
+                } else if(type === 'state') {
+                    row = document.querySelector('button.status-btn[data-type="state"][data-id="' + id + '"]').closest('tr');
+                } else if(type === 'city') {
+                    row = document.querySelector('button.status-btn[data-type="city"][data-id="' + id + '"]').closest('tr');
+                }
+                if(row) {
+                    let statusCell = row.querySelector('td:nth-child(6)');
+                    if(statusCell) {
+                        let statusText = status === 1 ? 'Active' : (status === 0 ? 'Inactive' : 'Soft Deleted');
+                        statusCell.textContent = statusText;
+                    }
+                    let btn = row.querySelector('button.status-btn');
+                    if(btn) {
+                        btn.style.background = status === 1 ? '#27ae60' : (status === 0 ? '#f1c40f' : '#e74c3c');
+                        btn.style.color = '#fff';
+                    }
+                }
             } else {
                 alert('Failed to update status');
             }

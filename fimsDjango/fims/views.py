@@ -1,12 +1,3 @@
-# View for displaying state and its cities
-def view_state(request, id):
-    from .models import State, City
-    state = get_object_or_404(State, id=id)
-    search = request.GET.get('search', '').strip()
-    cities = state.cities.exclude(status=9)
-    if search:
-        cities = cities.filter(name__icontains=search)
-    return render(request, 'view_state.html', {'state': state, 'cities': cities})
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -24,6 +15,17 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import State, City, Country
 from django.views.decorators.http import require_http_methods
+
+
+
+def view_state(request, id):
+    from .models import State, City
+    state = get_object_or_404(State, id=id)
+    search = request.GET.get('search', '').strip()
+    cities = state.cities.exclude(status=9)
+    if search:
+        cities = cities.filter(name__icontains=search)
+    return render(request, 'view_state.html', {'state': state, 'cities': cities})
 
 def view_family(request, id):
     head = get_object_or_404(FamilyHead, HeadID=id)
@@ -355,7 +357,12 @@ def dashboard(request):
     heads = FamilyHead.objects.exclude(status=9)
     families = FamilyMember.objects.exclude(status=9)
     states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
-    cities = City.objects.exclude(status=9) if hasattr(City, 'status') else City.objects.all()
+    all_states = State.objects.exclude(status=9)
+    state_filter = request.GET.get('state_filter', '')
+    if state_filter:
+        filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter)
+    else:
+        filtered_cities = City.objects.exclude(status=9)
 
     show_all_tables = False
     if search:
@@ -363,13 +370,13 @@ def dashboard(request):
         heads = heads.filter(Q(Name__icontains=search) | Q(Surname__icontains=search) | Q(MobileNo__icontains=search) | Q(State__icontains=search) | Q(City__icontains=search) | Q(Address__icontains=search))
         families = families.filter(Q(Name__icontains=search) | Q(Surname__icontains=search) | Q(MobileNo__icontains=search) | Q(State__icontains=search) | Q(City__icontains=search) | Q(Address__icontains=search) | Q(Relationship__icontains=search))
         states = states.filter(Q(name__icontains=search))
-        cities = cities.filter(Q(name__icontains=search))
+        filtered_cities = filtered_cities.filter(Q(name__icontains=search))
         show_all_tables = True
 
     head_paginator = Paginator(heads, 10)
     family_paginator = Paginator(families, 10)
     state_paginator = Paginator(states, 10)
-    city_paginator = Paginator(cities, 10)
+    city_paginator = Paginator(filtered_cities, 10)
 
     context = {
         'active_tab': tab,
@@ -386,6 +393,7 @@ def dashboard(request):
         'inactive_members': inactive_members,
         'deleted': deleted,
         'username': request.user.username if request.user.is_authenticated else '',
+        'all_states': all_states,
     }
     return render(request, 'dashboard.html', context)
 
@@ -408,6 +416,7 @@ def city(request):
 
 
 def ForgotPassword(request):
+    
 
     if request.method == "POST":
         email = request.POST.get('email')
