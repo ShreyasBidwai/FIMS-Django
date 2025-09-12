@@ -8,10 +8,12 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.urls import reverse
+
 from .models import *
 from django.db.models import Count
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
+
 import json
 from .models import State, City, Country
 from django.views.decorators.http import require_http_methods
@@ -62,11 +64,13 @@ def pdf_view(request):
                     c.setFont("Helvetica", 12)
         else:
             c.drawString(70, y, "No family members found.")
+        pdf_filename = f"family_report_{head.Name}_{head.Surname}_{head_id}.pdf"
     except FamilyHead.DoesNotExist:
         c.drawString(60, y, "Family head not found.")
+        pdf_filename = f"family_report_{head_id or 'unknown'}.pdf"
     c.save()
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"family_report_{headname or 'unknown'}.pdf")
+    return FileResponse(buffer, as_attachment=True, filename=pdf_filename)
 
 
 def view_state(request, id):
