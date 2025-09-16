@@ -211,3 +211,29 @@ class PasswordReset(models.Model):
 
     def __str__(self):
         return f"Password reset for {self.user.username} at {self.created_when}"
+
+class AdminLog(models.Model):
+    ACTION_CHOICES = [
+        ('login', 'Login'),
+        ('logout', 'Logout'),
+        ('create', 'Create'),
+        ('update', 'Update'),
+        ('delete', 'Delete'),
+        ('view', 'View'),
+        ('other', 'Other'),
+    ]
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=150)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    description = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    object_id = models.CharField(max_length=100, blank=True)
+    object_type = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.username} - {self.action} at {self.timestamp}" 
+
+    class Meta:
+        db_table = 'admin_log'
+        ordering = ['-timestamp']
