@@ -28,6 +28,7 @@ urlpatterns = [
     path('view_family/<int:id>/', view_family, name='view_family'),
     path('view_state/<int:id>/', view_state, name='view_state'),
     path('pdf_view/', pdf_view, name='pdf_view'),
+    path('dashboard-stats-api/', dashboard_stats_api, name='dashboard_stats_api'),
 ]
 
 if settings.DEBUG:

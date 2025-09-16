@@ -201,7 +201,7 @@ def update_head(request, id):
         return redirect('dashboard')
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
     members = FamilyMember.objects.filter(HeadID=instance)
-    return render(request, 'edit_head.html', {'head': instance, 'states': states, 'members': members})
+    return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': members})
 
 
 def edit_state(request, id):
@@ -265,12 +265,14 @@ def base(request):
 
 
 
+
 def stats(request):
     total_families = FamilyHead.objects.exclude(status=9).count()
     total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
     married_people = FamilyMember.objects.exclude(status=9).filter(MaritalStatus='Married').count() + FamilyHead.objects.exclude(status=9).filter(MaritalStatus='Married').count()
     unmarried_people = FamilyMember.objects.exclude(status=9).filter(MaritalStatus='Unmarried').count() + FamilyHead.objects.exclude(status=9).filter(MaritalStatus='Unmarried').count()
     active_members = FamilyMember.objects.exclude(status=9).filter(status=1).count() + FamilyHead.objects.exclude(status=9).filter(status=1).count()
+    inactive_members = FamilyMember.objects.exclude(status=9).filter(status=0).count() + FamilyHead.objects.exclude(status=9).filter(status=0).count()
     total_cities = City.objects.exclude(status=9).filter(country_id=101).count()
 
     labels = ['Male', 'Female', 'Other']
@@ -285,11 +287,27 @@ def stats(request):
         'married_people': married_people,
         'unmarried_people': unmarried_people,
         'active_members': active_members,
+        'inactive_members': inactive_members,
         'total_cities': total_cities,
         'labels': labels,
         'data': data,
     }
     return render(request, 'stats.html', context)
+
+# AJAX endpoint for dashboard card stats
+from django.views.decorators.http import require_GET
+@require_GET
+def dashboard_stats_api(request):
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.exclude(status=9).filter(status=1).count() + FamilyHead.objects.exclude(status=9).filter(status=1).count()
+    inactive_members = FamilyMember.objects.exclude(status=9).filter(status=0).count() + FamilyHead.objects.exclude(status=9).filter(status=0).count()
+    return JsonResponse({
+        'total_families': total_families,
+        'total_members': total_members,
+        'active_members': active_members,
+        'inactive_members': inactive_members,
+    })
 
 def home(request):
     return render(request, 'home.html')

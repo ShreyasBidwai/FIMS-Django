@@ -20,7 +20,8 @@ class FamilyHead(models.Model):
     Birthdate = models.DateField()
     MobileNo = models.CharField(
         max_length=10,
-        validators=[RegexValidator(regex='^\d{10}$', message='Enter exactly 10 digits.')]
+        validators=[RegexValidator(regex='^\d{10}$', message='Enter exactly 10 digits.')], 
+        
     )
     Address = models.TextField()
     State = models.CharField(max_length=50)

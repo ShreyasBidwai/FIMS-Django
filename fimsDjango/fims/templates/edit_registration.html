@@ -1,0 +1,237 @@
+{% extends 'dashboard_base.html' %}{% load static %} {% block title %}Family Registration{% endblock %} {% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/edit_registration.css' %}"> {% endblock %} {% block content %}
+<p class="form-subtitle">Fill the information below to register your family.</p>
+
+<ul id="note-head">
+    <li class="note">Note:</li>
+    <li class="note">Head of the Family should be registered</li>
+    <li class="note">Family Head Should be 21 years or older</li>
+    <li class="note">Family Members can be added at the end of the form</li>
+</ul>
+
+<form method="post" enctype="multipart/form-data" id="registrationForm" onsubmit="return validateForm(event)">
+    {% csrf_token %}
+
+    <!-- Family Head Section -->
+     
+    <fieldset>
+    <legend class="highlight-title">Family Head ({{ members|length }} Members)</legend>
+        <table class="form-table two-column">
+            <tr>
+                <td>
+                    <label for="head_name">First Name:</label>
+                    <input type="text" id="head_name" name="head_name" placeholder="First Name" maxlength="50" value="{{ head.Name|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_name"></span>
+                </td>
+                <td>
+                    <label for="head_surname">Surname:</label>
+                    <input type="text" id="head_surname" name="head_surname" placeholder="Surname" maxlength="50" value="{{ head.Surname|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_surname"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_birthdate">Birthdate:</label>
+                    <input type="date" id="head_birthdate" name="head_birthdate" value="{{ head.Birthdate|date:'Y-m-d'|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_birthdate"></span>
+                </td>
+                <td>
+                    <label for="head_mobile">Mobile No:</label>
+                    <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10" value="{{ head.MobileNo|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_mobile"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_address">Address:</label>
+                    <textarea id="head_address" name="head_address" placeholder="Address">{{ head.Address|default_if_none:'' }}</textarea>
+                    <span class="error-message" id="error-head_address"></span>
+                </td>
+                <td>
+                    <label for="head_state">State:</label>
+                    <select name="head_state" id="head_state">
+                        <option value="">Select State</option>
+                        {% for state in states %}
+                        <option value="{{ state.id }}" {% if head.State == state.name or head.State == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="error-message" id="error-head_state"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_city">City:</label>
+                    <select name="head_city" id="head_city">
+                        <option value="">Select City</option>
+                        {% if head.City %}
+                        <option value="{{ head.City }}" selected>{{ head.City }}</option>
+                        {% endif %}
+                    </select>
+                    <span class="error-message" id="error-head_city"></span>
+                </td>
+                <td>
+                    <label for="head_pincode">Pincode:</label>
+                    <input type="text" id="head_pincode" name="head_pincode" placeholder="Pincode" maxlength="6" value="{{ head.Pincode|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_pincode"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>Marital Status:</label>
+                    <label><input type="radio" name="head_marital_status" value="Married" {% if head.MaritalStatus == 'Married' %}checked{% endif %}> Married</label>
+                    <label><input type="radio" name="head_marital_status" value="Unmarried" {% if head.MaritalStatus == 'Unmarried' %}checked{% endif %}> Unmarried</label>
+                    <span class="error-message" id="error-head_marital_status"></span>
+                </td>
+                <td>
+                    <label>Gender:</label>
+                    <label><input type="radio" name="head_gender" value="Male" {% if head.Gender == 'Male' %}checked{% endif %}> Male</label>
+                    <label><input type="radio" name="head_gender" value="Female" {% if head.Gender == 'Female' %}checked{% endif %}> Female</label>
+                    <span class="error-message" id="error-head_gender"></span>
+                </td>
+            </tr>
+            <tr id="wedding_date_row" style="display:none;">
+                <td colspan="2">
+                    <label for="head_wedding_date">Wedding Date:</label>
+                    <input type="date" name="head_wedding_date" id="wedding_date" value="{{ head.WeddingDate|date:'Y-m-d'|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_wedding_date"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_education">Education:</label>
+                    <select name="head_education" id="head_education">
+                        <option value="">Select</option>
+                        <option value="Graduate" {% if head.Education == 'Graduate' %}selected{% endif %}>Graduate</option>
+                        <option value="Post Graduate" {% if head.Education == 'Post Graduate' %}selected{% endif %}>Post Graduate</option>
+                        <option value="Diploma" {% if head.Education == 'Diploma' %}selected{% endif %}>Diploma</option>
+                    </select>
+                    <span class="error-message" id="error-head_education"></span>
+                </td>
+                <td>
+                    <label for="head_photo">Upload Photo:</label>
+                    <input type="file" id="head_photo" name="head_photo" accept="image/png, image/jpeg">
+                    {% if head.Photo %}
+                        <div class="photo-preview">Current file: {{ head.Photo.name }}</div>
+                    {% endif %}
+                    <span class="error-message" id="error-head_photo"></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <label>Hobbies:</label>
+                    <div id="hobbies-section">
+                        <button type="button" class="secondary hobby-btn" onclick="addHobby()">+ Add Hobby</button>
+                        {% if head.head_hobbies.all %}
+                            {% for hobby in head.head_hobbies.all %}
+                                <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                            {% endfor %}
+                        {% else %}
+                            <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                        {% endif %}
+                    </div>
+                    <span class="error-message" id="error-head_hobbies"></span>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+
+    <!-- Family Members Section -->
+    <div id="members-container">
+    <h3 class="highlight-title">Family Members</h3>
+    <p>Members count: {{ members|length }}</p>
+        {% if members %}
+            {% for member in members %}
+            <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
+                        <div class="member-block">
+                                <label>
+                                    <input type="checkbox" name="member_{{ forloop.counter }}_same_address" {% if member.Address == head.Address and member.State == head.State and member.City == head.City and member.Pincode == head.Pincode %}checked{% endif %}>
+                                    Same Address as Head
+                                </label>
+                <table class="form-table two-column">
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_name">First Name:</label>
+                        {% if member.Photo %}
+                            <div class="photo-preview">Current file: {{ member.Photo.name }}</div>
+                        {% endif %}
+                            <input type="text" name="member_{{ forloop.counter }}_name" value="{{ member.Name|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_surname">Surname:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_surname" value="{{ member.Surname|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_birthdate">Birthdate:</label>
+                            <input type="date" name="member_{{ forloop.counter }}_birthdate" value="{{ member.Birthdate|date:'Y-m-d'|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_mobile">Mobile No:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_mobile" value="{{ member.MobileNo|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_gender">Gender:</label>
+                            <select name="member_{{ forloop.counter }}_gender">
+                                <option value="">Select Gender</option>
+                                <option value="Male" {% if member.Gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if member.Gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if member.Gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_relationship">Relationship:</label>
+                        {% if member.member_hobbies.all %}
+                            <div class="hobbies-preview">
+                                <label>Hobbies:</label>
+                                {% for hobby in member.member_hobbies.all %}
+                                    <input type="text" class="hobby-input" name="member_{{ forloop.counter }}_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                            <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_address">Address:</label>
+                            <textarea name="member_{{ forloop.counter }}_address">{{ member.Address|default_if_none:'' }}</textarea>
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_state">State:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_state" value="{{ member.State|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_city">City:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_city" value="{{ member.City|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_pincode">Pincode:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_pincode" value="{{ member.Pincode|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <button type="button" class="secondary" onclick="addMember()">+ Add Member</button>
+
+    <div class="form-actions">
+        <button type="submit" class="primary">Submit</button>
+    </div>
+</form>
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{{ states|json_script:"states-data" }}
+<script>
+    window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
+</script>
+<script src="{% static 'fims/js/edit_registration.js' %}"></script>
+{% endblock %} {% endblock %}

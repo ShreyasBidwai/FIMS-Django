@@ -1,26 +1,290 @@
 body{
-   padding: 0;
-   margin-top: 0;
+    padding-top:0 ;
+}
+#dash-container {
+    padding: 1rem 1.5rem;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9f9fb;
+    color: #333;
 }
 
-#dash-container{
-    height: 100%;
-    display: flex;
-    flex-direction: column;
 
-
+#dashboard-head {
+    margin-bottom: 1rem;
 }
 
-#cards{
+#dashboard-head h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #222;
+}
+
+
+#cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+#cards .card {
+    background: #eef2f9;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#cards .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#cards .card p:first-child {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+#cards .card p:last-child {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+
+.dashboard-table {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+}
+
+/* Table Head (title + buttons in one line) */
+.dashboard-table h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.dashboard-table > div:first-child,
+#city-table-head,
+#state-table-head {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
-table{
+
+table {
     width: 100%;
-    text-align: start;
+    border-collapse: collapse;
+    font-size: 0.9rem;
 }
 
-tr,th,td{
-    text-align: start;
+thead {
+    background: #f4f6fa;
+}
+
+thead th {
+    text-align: left;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 2px solid #e0e4eb;
+}
+
+tbody td {
+    padding: 0.7rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+tbody tr:hover {
+    background: #f9fbff;
+}
+
+.actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.actions a,
+.actions button {
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+/* Default buttons */
+.edit-btn {
+    background: #3498db;
+    color: #fff;
+}
+.edit-btn:hover {
+    background: #2980b9;
+}
+.status-btn {
+    background: #e74c3c; /* strong red */
+    color: #fff;
+}
+.status-btn:hover {
+    background: #c0392b; /* darker red */
+}
+
+
+.view-btn {
+    background: #f1c40f;
+    color: #fff;
+}
+.view-btn:hover {
+    background: #d4ac0d;
+}
+
+.add-btn {
+    background: #27ae60;
+    color: #fff !important;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+.add-btn:hover {
+    background: #1e8449;
+}
+
+
+form input[type="text"],
+form select {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+form button[type="submit"] {
+    padding: 0.45rem 0.9rem;
+    border: none;
+    border-radius: 6px;
+    background: #3498db;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s ease;
+}
+form button[type="submit"]:hover {
+    background: #2980b9;
+}
+
+form a {
+    font-size: 0.85rem;
+    color: #666;
+    text-decoration: none;
+}
+form a:hover {
+    color: #222;
+}
+
+/* =========================
+   PAGINATION
+========================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+}
+
+.pagination a {
+    text-decoration: none;
+    color: #3498db;
+    font-weight: 500;
+}
+.pagination a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   STATUS MODAL
+========================= */
+#status-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(44, 62, 80, 0.18);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s;
+}
+#status-modal .modal-content {
+    background: linear-gradient(135deg, #f7f9fc 60%, #eef2f7 100%);
+    padding: 2rem 2.5rem;
+    border-radius: 18px;
+    text-align: center;
+    min-width: 260px;
+    box-shadow: 0 8px 32px rgba(41,128,185,0.18);
+    position: relative;
+    margin: auto;
+    border: 1px solid #82cfff;
+    animation: popIn 0.2s;
+}
+#status-modal h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2980b9;
+    margin-bottom: 1.2rem;
+}
+#status-modal button {
+    margin: 0.4rem 0.6rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(41,128,185,0.10);
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+#status-modal #set-active {
+    background-color: #27ae60 ;
+    color: #fff;
+}
+#status-modal #set-inactive {
+   background-color:#f1c40f ;
+    color: #fff;
+}
+#status-modal #set-delete {
+   background-color: #e74c3c;
+    color: #fff;
+} 
+#status-modal #cancel-status {
+    background: #fff;
+    color: #2980b9;
+    border: 1px solid #2980b9;
+    margin-top: 0.8rem;
+}
+#status-modal button:hover {
+    transform: scale(1.07);
+    box-shadow: 0 4px 16px rgba(41,128,185,0.18);
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes popIn {
+    from { transform: scale(0.95); }
+    to { transform: scale(1); }
 }

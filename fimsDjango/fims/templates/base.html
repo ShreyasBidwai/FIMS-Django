@@ -21,7 +21,8 @@
             <li><a href="{% url 'stats' %}">Quick Stats</a></li>
             <li><a href="{% url 'regis' %}">Register</a></li>
             <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
-            {% if request.user.is_authenticated %}
+
+            {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}">Logout</a></li>
             {% else %}
                 <li><a href="{% url 'login_view' %}">Login</a></li>

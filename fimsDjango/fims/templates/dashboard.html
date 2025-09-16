@@ -24,10 +24,10 @@
     </div>
 </div>
 <div id="cards">
-        <div class="card"><p>Families Registered</p><p>{{ total_families }}</p></div>
-        <div class="card"><p>TotalFamily Members</p><p>{{ total_members }}</p></div>
-        <div class="card"><p>Active members</p><p>{{ active_members }}</p></div>
-        <div class="card"><p>Inactive Members</p><p>{{ inactive_members }}</p></div>  
+    <div class="card"><p>Families Registered</p><p id="card-families">{{ total_families }}</p></div>
+    <div class="card"><p>TotalFamily Members</p><p id="card-members">{{ total_members }}</p></div>
+    <div class="card"><p>Active members</p><p id="card-active">{{ active_members }}</p></div>
+    <div class="card"><p>Inactive Members</p><p id="card-inactive">{{ inactive_members }}</p></div>  
 </div>
 
 {% if not show_all_tables or head_page_obj.paginator.count > 0 %}
@@ -61,7 +61,7 @@
                     <a href="{% url 'update_head' head.HeadID %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
                     <a href="{% url 'view_family' head.HeadID %}" class="view-btn">View</a>
-                    <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}">pdf</a>
+                    
                 </td>
             </tr>
             {% endfor %}
@@ -128,7 +128,7 @@
 
 {% if not show_all_tables or state_page_obj.paginator.count > 0 %}
 <div id="table-state" class="dashboard-table" {% if not show_all_tables and active_tab != 'state' %}style="display:none;"{% endif %}>
-    <div id="state-table-head">
+    <div class="sub-table-head">
         <h2>States</h2>
         <a href="{% url 'add_state' %}" class="add-btn" id="add-state-button">Add State</a>
     </div>
@@ -173,7 +173,7 @@
 
 {% if not show_all_tables or city_page_obj.paginator.count > 0 %}
 <div id="table-city" class="dashboard-table" {% if not show_all_tables and active_tab != 'city' %}style="display:none;"{% endif %}>
-   <div id="city-table-head">
+   <div class="sub-table-head">
      <h2>Cities</h2>
     <form method="get" style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;">
         <select name="state_filter" onchange="this.form.submit()" style="padding:0.4rem;">
@@ -354,6 +354,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return cookieValue;
     }
+
+    // Periodically update dashboard cards
+    function updateDashboardCards() {
+        fetch('/dashboard-stats-api/')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('card-families').textContent = data.total_families;
+                document.getElementById('card-members').textContent = data.total_members;
+                document.getElementById('card-active').textContent = data.active_members;
+                document.getElementById('card-inactive').textContent = data.inactive_members;
+            });
+    }
+    updateDashboardCards();
+    setInterval(updateDashboardCards, 500); // update every 10 seconds
 });
 </script>
 {% endblock %}

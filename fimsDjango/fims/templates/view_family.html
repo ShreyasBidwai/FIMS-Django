@@ -1,42 +1,107 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
+{% load static %}
 {% block title %}View Family{% endblock %}
-{% block content %}
-<a href="{% url 'dashboard' %}" class="btn" style="margin-bottom:1rem;display:inline-block;">&larr; Back to Dashboard</a>
-<h2>Head Details</h2>
-<a href="{% url 'pdf_view' %}?id={{ head.HeadID }}">Generate PDF Report</a>
-<div class="card">
-    <h3>{{ head.Name }} {{ head.Surname }}</h3>
-    <p><strong>Gender:</strong> {{ head.Gender }}</p>
-    <p><strong>Birthdate:</strong> {{ head.Birthdate }}</p>
-    <p><strong>Mobile:</strong> {{ head.MobileNo }}</p>
-    <p><strong>Address:</strong> {{ head.Address }}</p>
-    <p><strong>State:</strong> {{ head.State }}</p>
-    <p><strong>City:</strong> {{ head.City }}</p>
-    <p><strong>Pincode:</strong> {{ head.Pincode }}</p>
-    <p><strong>Marital Status:</strong> {{ head.MaritalStatus }}</p>
-    <p><strong>Wedding Date:</strong> {{ head.WeddingDate }}</p>
-    <p><strong>Education:</strong> {{ head.Education }}</p>
-    <p><strong>Hobbies:</strong> {% for hobby in head.head_hobbies.all %}{{ hobby.Hobby }}{% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</p>
-    {% if head.Photo %}<img src="{{ head.Photo.url }}" alt="Photo" width="100">{% endif %}
-</div>
-<h2>Family Members</h2>
-<div style="display:flex;flex-wrap:wrap;gap:1rem;">
-    {% for member in members %}
-    <div class="card" style="min-width:250px;">
-    <h3>{{ member.Name }} {{ member.Surname }}</h3>
-    <p><strong>Relationship:</strong> {{ member.Relationship }}</p>
-    <p><strong>Gender:</strong> {{ member.Gender }}</p>
-    <p><strong>Birthdate:</strong> {{ member.Birthdate }}</p>
-    <p><strong>Mobile:</strong> {{ member.MobileNo }}</p>
-    <p><strong>Address:</strong> {{ member.Address }}</p>
-    <p><strong>State:</strong> {{ member.State }}</p>
-    <p><strong>City:</strong> {{ member.City }}</p>
-    <p><strong>Pincode:</strong> {{ member.Pincode }}</p>
-    <p><strong>Marital Status:</strong> {{ member.MaritalStatus }}</p>
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/view_family.css' %}">
+{% endblock %}
 
-    {% if member.Photo %}<img src="/media/{{member.Photo}}" alt="Photo" width="80">{% endif %}
+{% block content %}
+
+
+   <div class="export-back-row">
+    <div class="export-buttons" style="justify-content:flex-start;">
+        <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}" class="btn btn-green">Export PDF</a>
+        <a href="#" class="btn btn-blue">Export Excel</a>
+    </div>
+    <a href="{% url 'dashboard' %}" class="back-btn" style="margin-left:auto;">&larr; Back to Dashboard</a>
+</div>
+
+<!-- Head Table -->
+<div class="head-table">
+    <div class="head-row">
+        <div class="head-info">
+            <p><strong>Name:</strong> {{ head.Name }} {{ head.Surname }}</p>
+            <p><strong>Birthdate:</strong> {{ head.Birthdate }}</p>
+            <p><strong>Gender:</strong> {{ head.Gender }}</p>
+        </div>
+        
+        <div class="head-photo-container">
+            {% if head.Photo %}
+            <img src="{{ head.Photo.url }}" alt="Head Photo" class="head-photo">
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="head-row">
+        <p><strong>Mobile:</strong> {{ head.MobileNo }}</p>
+        <p><strong>Education:</strong> {{ head.Education }}</p>
+    </div>
+
+    <div class="head-row">
+        <p><strong>Address:</strong> {{ head.Address }}</p>
+    </div>
+    <div class="head-row">
+        <p><strong>State:</strong> {{ head.State }}</p>
+        <p><strong>City:</strong>  {{ head.City }}</p>
+        <p><strong>Pincode:</strong> {{ head.Pincode }}</p>
+    </div>
+
+    <div class="head-row">
+        <p><strong>Marital Status:</strong> {{ head.MaritalStatus }}</p>
+        <p><strong>Wedding Date:</strong> {{ head.WeddingDate }}</p>
+    </div>
+
+    <div class="head-row">
+        <p><strong>Hobbies:</strong> 
+            {% for hobby in head.head_hobbies.all %}
+                {{ hobby.Hobby }}{% if not forloop.last %}, {% endif %}
+            {% empty %}None{% endfor %}
+        </p>
+    </div>
+</div>
+
+<!-- Family Members Grid -->
+<h2 class="family-title">Family Members</h2>
+<div class="family-grid">
+    {% for member in members %}
+    <div class="member-table">
+        <div class="member-row">
+            <div class="member-info">
+                <p><strong>Name:</strong> {{ member.Name }} {{ member.Surname }}</p>
+                <p><strong>Birthdate:</strong> {{ member.Birthdate }}</p>
+                <p><strong>Gender:</strong> {{ member.Gender }}</p>
+            </div>
+            <div class="member-photo-container">
+                {% if member.Photo %}
+                <img src="{{ member.Photo.url }}" alt="Member Photo" class="member-photo">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="member-row">
+            <p><strong>Mobile:</strong> {{ member.MobileNo }}</p>
+            <p><strong>Education:</strong> {{ member.Education }}</p>
+        </div>
+
+        <div class="member-row">
+            <p><strong>Address:</strong> {{ member.Address }}</p>
+            <p><strong>State/City/Pincode:</strong> {{ member.State }}, {{ member.City }}, {{ member.Pincode }}</p>
+        </div>
+
+        <div class="member-row">
+            <p><strong>Marital Status:</strong> {{ member.MaritalStatus }}</p>
+            <p><strong>Wedding Date:</strong> {{ member.WeddingDate }}</p>
+        </div>
+
+        <div class="member-row">
+            <p><strong>Hobbies:</strong> 
+                {% for hobby in member.member_hobbies.all %}
+                    {{ hobby.Hobby }}{% if not forloop.last %}, {% endif %}
+                {% empty %}None{% endfor %}
+            </p>
+        </div>
     </div>
     {% endfor %}
-
 </div>
+
 {% endblock %}
