@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+
+
 {% load static %}
 
 {% block title %}Quick Stats{% endblock %}
@@ -8,14 +10,19 @@
 {% endblock %}
 
 {% block content %}
-<section id="stats-page">
-    <!-- Top Half (Pie Chart) -->
-    <div class="stats-top" style="display: flex; justify-content: center; align-items: center; min-height: 300px;">
-        <div style="width: 400px;">
-            <h2 style="text-align:center;">Gender Distribution</h2>
-            <canvas id="genderPieChart"></canvas>
+<section id="stats-page" style="max-width: 100vw; padding: 10px 0 0 0; margin: 0;">
+    <!-- Top Half (Pie Chart + Donut) -->
+    <div class="stats-top" style="display: flex; justify-content: center; align-items: flex-start; min-height: unset; gap: 12px; margin-bottom: 6px;">
+        <div style="width: 340px;">
+            <h2 style="text-align:center; font-size: 1.2rem; margin-bottom: 8px;">Gender Distribution</h2>
+            <canvas id="genderPieChart" width="300" height="300"></canvas>
             {{ labels|json_script:"gender-labels" }}
             {{ data|json_script:"gender-data" }}
+        </div>
+        <div style="width: 340px;">
+            <h2 style="text-align:center; font-size: 1.2rem; margin-bottom: 8px;">Active vs Inactive</h2>
+            <canvas id="activeDonutChart" width="300" height="300"></canvas>
+            <script id="active-inactive-data" type="application/json">[{"label": "Active", "value": {{ active_members|default:0 }} }, {"label": "Inactive", "value": {{ inactive_members|default:0 }} }]</script>
         </div>
     </div>
 
@@ -44,12 +51,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }]
         },
         options: {
-            responsive: true,
+            responsive: false,
             plugins: {
                 legend: { position: 'bottom' }
-            }
+            },
+            width: 300,
+            height: 300
         }
     });
+
+        // Donut chart for active/inactive members
+        var activeData = JSON.parse(document.getElementById('active-inactive-data').textContent);
+        var donutCtx = document.getElementById('activeDonutChart').getContext('2d');
+        var donutChart = new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: activeData.map(function(item) { return item.label; }),
+                datasets: [{
+                    data: activeData.map(function(item) { return item.value; }),
+                    backgroundColor: ['#4CAF50', '#F44336'],
+                }]
+            },
+            options: {
+                responsive: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                width: 300,
+                height: 300
+            }
+        });
 });
 </script>
 {% endblock %}

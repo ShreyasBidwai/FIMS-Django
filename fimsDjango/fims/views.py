@@ -561,6 +561,7 @@ def login_view(request):
                 object_id=str(user.id),
                 object_type='User'
             )
+            messages.success(request, 'Login successful!')
             return redirect('dashboard')
         else:
             # Pass error_message for client-side display
@@ -603,7 +604,7 @@ def dashboard(request):
     else:
         filtered_cities = City.objects.exclude(status=9)
 
-    show_all_tables = False
+    show_all_tables = True
     if search:
         from django.db.models import Q
         heads = heads.filter(
@@ -660,6 +661,7 @@ def logout_view(request):
             object_type='User'
         )
     logout(request)
+    messages.success(request, 'Logout successful!')
     return redirect('home')
 
 def state(request):
@@ -743,7 +745,7 @@ def ResetPassword(request, reset_id):
                 user.set_password(password)
                 user.save()
                 password_reset_id.delete()
-                
+                messages.success(request, 'Password changed successfully!')
                 return redirect('login_view')
             else:
                 for error in errors:

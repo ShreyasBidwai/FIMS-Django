@@ -160,6 +160,7 @@ tbody tr:hover {
     border-radius: 6px;
     font-weight: 500;
     font-size: 0.85rem;
+    text-decoration: none;
 }
 .add-btn:hover {
     background: #1e8449;

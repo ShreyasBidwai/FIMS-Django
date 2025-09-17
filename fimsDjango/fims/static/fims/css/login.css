@@ -81,9 +81,9 @@ input[type="password"]:focus {
     margin-bottom: 6px;
 }
 
-.input-error {
+/* .input-error {
     border: 2px solid red !important;
-}
+} */
 
 /* Forgot password link */
 a {

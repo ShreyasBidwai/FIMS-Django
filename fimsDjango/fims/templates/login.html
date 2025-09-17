@@ -8,7 +8,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="main">
+{% if messages %}
+    <script>
+        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+    </script>
+{% endif %}
+<div class="main"{% if error_message %} data-incorrect="{{ error_message|escapejs }}"{% endif %}>
     <h1>Family Info. Management System</h1>
     <h3>Enter your login credentials</h3>
 
@@ -38,5 +43,6 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'fims/js/login.js' %}"></script>
 {% endblock %}
