@@ -26,49 +26,123 @@ from reportlab.lib.pagesizes import letter
 
 
 def pdf_view(request):
-    from .models import FamilyHead, FamilyMember
+    from .models import FamilyHead, FamilyMember, Hobby
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.pagesizes import letter
+    import os
+
     head_id = request.GET.get('id')
     buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
-    width, height = letter
-    y = 60
-    c.setFont("Helvetica-Bold", 16)
+    pdf_filename = "family_report.pdf"
     if not head_id:
-        c.drawString(60, y, "No family selected. Please provide a valid family head ID.")
+        c = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(60, 60, "No family selected. Please provide a valid family head ID.")
         c.save()
         buffer.seek(0)
-        return FileResponse(buffer, as_attachment=True, filename="Report.pdf")
+        return FileResponse(buffer, as_attachment=True, filename=pdf_filename)
+
     try:
         head = FamilyHead.objects.get(HeadID=head_id)
         members = FamilyMember.objects.filter(HeadID=head)
-        c.drawString(60, y, f"Family Report: {head.Name} {head.Surname}")
-        y += 30
-        c.setFont("Helvetica", 12)
-        c.drawString(60, y, f"Head Details:")
-        y += 18
-        c.drawString(70, y, f"Mobile: {head.MobileNo}, Address: {head.Address}, State: {head.State}, City: {head.City}")
-        y += 18
-        c.drawString(70, y, f"Pincode: {head.Pincode}, Marital Status: {head.MaritalStatus}, Education: {head.Education}")
-        y += 24
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(60, y, "Family Members:")
-        y += 18
-        c.setFont("Helvetica", 12)
-        if members:
-            for member in members:
-                c.drawString(70, y, f"{member.Name} {member.Surname} - {member.Relationship}, Mobile: {member.MobileNo}, State: {member.State}, City: {member.City}")
-                y += 16
-                if y > height - 40:
-                    c.showPage()
-                    y = 60
-                    c.setFont("Helvetica", 12)
-        else:
-            c.drawString(70, y, "No family members found.")
         pdf_filename = f"family_report_{head.Name}_{head.Surname}_{head_id}.pdf"
     except FamilyHead.DoesNotExist:
-        c.drawString(60, y, "Family head not found.")
-        pdf_filename = f"family_report_{head_id or 'unknown'}.pdf"
-    c.save()
+        c = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(60, 60, "Family head not found.")
+        c.save()
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename=pdf_filename)
+
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Head Photo
+    if head.Photo and hasattr(head.Photo, 'path') and os.path.exists(head.Photo.path):
+        try:
+            img = Image(head.Photo.path, width=120, height=150)
+            img.hAlign = 'CENTER'
+            elements.append(img)
+            elements.append(Spacer(1, 12))
+        except Exception:
+            pass
+
+    # Head Table
+    head_data = [
+        [Paragraph('<b>Name</b>', styles['Normal']), f"{head.Name or '-'} {head.Surname or '-'}"],
+        [Paragraph('<b>Birthdate</b>', styles['Normal']), str(head.Birthdate) if head.Birthdate else '-'],
+        [Paragraph('<b>Gender</b>', styles['Normal']), head.Gender or '-'],
+        [Paragraph('<b>Mobile</b>', styles['Normal']), head.MobileNo or '-'],
+        [Paragraph('<b>Education</b>', styles['Normal']), head.Education or '-'],
+        [Paragraph('<b>Marital Status</b>', styles['Normal']), head.MaritalStatus or '-'],
+        [Paragraph('<b>Wedding Date</b>', styles['Normal']), str(head.WeddingDate) if head.WeddingDate else 'Not Married'],
+        [Paragraph('<b>Hobbies</b>', styles['Normal']), ', '.join([h.Hobby for h in head.head_hobbies.all()]) if head.head_hobbies.exists() else 'None'],
+    ]
+    head_table = Table(head_data, colWidths=[120, 300])
+    head_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+        ('BOX', (0, 0), (-1, -1), 1.5, colors.HexColor('#1f2a38')),
+        ('INNERGRID', (0, 0), (-1, -1), 1, colors.HexColor('#1f2a38')),
+    ]))
+    elements.append(head_table)
+    elements.append(Spacer(1, 24))
+
+    # Family Members Table
+    member_data = [
+        [Paragraph('<b>Photo</b>', styles['Normal']), Paragraph('<b>Name</b>', styles['Normal']), Paragraph('<b>Birthdate</b>', styles['Normal']),
+         Paragraph('<b>Gender</b>', styles['Normal']), Paragraph('<b>Mobile</b>', styles['Normal']), Paragraph('<b>Education</b>', styles['Normal']),
+         Paragraph('<b>Marital Status</b>', styles['Normal']), Paragraph('<b>Wedding Status</b>', styles['Normal'])]
+    ]
+    for idx, member in enumerate(members):
+        # Photo: If exists, embed as small image, else '-'
+        photo_cell = '-'
+        if member.Photo and hasattr(member.Photo, 'path') and os.path.exists(member.Photo.path):
+            try:
+                mimg = Image(member.Photo.path, width=40, height=50)
+                photo_cell = mimg
+            except Exception:
+                photo_cell = '-'
+        # Wedding status: 'Married' or 'Not Married' based on MaritalStatus
+        wedding_status = 'Married' if getattr(member, 'MaritalStatus', None) == 'Married' else 'Not Married'
+        member_data.append([
+            photo_cell,
+            f"{member.Name or '-'} {member.Surname or '-'}",
+            str(member.Birthdate) if member.Birthdate else '-',
+            member.Gender or '-',
+            member.MobileNo or '-',
+            '-',  # No Education field for FamilyMember
+            member.MaritalStatus or '-',
+            wedding_status,
+        ])
+
+    member_table = Table(member_data, colWidths=[50, 90, 70, 60, 80, 80, 70, 80])
+    # Alternate row coloring for readability
+    row_colors = [colors.white, colors.HexColor('#f8fafc')]
+    table_style = [
+        ('GRID', (0, 0), (-1, -1), 0.7, colors.HexColor('#1f2a38')),
+        ('BOX', (0, 0), (-1, -1), 0.7, colors.HexColor('#1f2a38')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e9ecef')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]
+    for i in range(1, len(member_data)):
+        table_style.append(('BACKGROUND', (0, i), (-1, i), row_colors[i % 2]))
+    member_table.setStyle(TableStyle(table_style))
+    elements.append(Paragraph('Family Members', styles['Heading2']))
+    elements.append(member_table)
+
+    doc.build(elements)
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=pdf_filename)
 
@@ -91,20 +165,19 @@ def view_family(request, id):
 def add_state(request):
     error = None
     if request.method == "POST":
-        name = request.POST.get("state_name")
+        name = request.POST.get("name")
         country_id = request.POST.get("country_id") or 101
         if not name:
             error = "State name is required."
         else:
-            
             last_state = State.objects.order_by('-id').first()
             next_id = (last_state.id + 1) if last_state else 1
-           
             from .models import Country
             india = Country.objects.get(id=101)
             state = State(id=next_id, name=name, status=1, country=india)
             try:
                 state.save()
+                messages.success(request, 'State added successfully!')
                 return redirect('dashboard')
             except Exception as e:
                 error = str(e)
@@ -117,7 +190,7 @@ def add_city(request):
     states = State.objects.filter(country_id=101)
     if request.method == "POST":
         state_id = request.POST.get("state_id")
-        city_name = request.POST.get("city_name")
+        city_name = request.POST.get("name")
         if not state_id or not city_name:
             error = "State and city name are required."
         else:
@@ -127,6 +200,7 @@ def add_city(request):
                 next_id = (last_city.id + 1) if last_city else 1
                 city = City(id=next_id, name=city_name, state=state, country_id=state.country.id, status=1)
                 city.save()
+                messages.success(request, 'City added successfully!')
                 return redirect('dashboard')
             except Exception as e:
                 error = str(e)
@@ -151,6 +225,17 @@ def update_head(request, id):
             instance.Photo = request.FILES.get('head_photo')
         instance.save()
 
+        # Log update action for FamilyHead
+        if request.user.is_authenticated:
+            AdminLog.objects.create(
+                user=request.user,
+                username=request.user.username,
+                action='update',
+                description=f'Updated FamilyHead: {instance.Name} {instance.Surname}',
+                object_id=str(instance.HeadID),
+                object_type='FamilyHead'
+            )
+
         # family members
         members = FamilyMember.objects.filter(HeadID=instance)
         for idx, member in enumerate(members, start=1):
@@ -160,20 +245,19 @@ def update_head(request, id):
             member.MobileNo = request.POST.get(f'member_{idx}_mobile')
             member.Gender = request.POST.get(f'member_{idx}_gender')
             member.Relationship = request.POST.get(f'member_{idx}_relationship')
-            # Check if 'same address as head' is checked for this member
-            if request.POST.get(f'member_{idx}_same_address'):
-                member.Address = instance.Address
-                member.State = instance.State
-                member.City = instance.City
-                member.Pincode = instance.Pincode
-            else:
-                member.Address = request.POST.get(f'member_{idx}_address')
-                member.State = request.POST.get(f'member_{idx}_state')
-                member.City = request.POST.get(f'member_{idx}_city')
-                member.Pincode = request.POST.get(f'member_{idx}_pincode')
             if request.FILES.get(f'member_{idx}_photo'):
                 member.Photo = request.FILES.get(f'member_{idx}_photo')
             member.save()
+            # Log update action for FamilyMember
+            if request.user.is_authenticated:
+                AdminLog.objects.create(
+                    user=request.user,
+                    username=request.user.username,
+                    action='update',
+                    description=f'Updated FamilyMember: {member.Name} {member.Surname}',
+                    object_id=str(member.MemberID),
+                    object_type='FamilyMember'
+                )
 
         # Add new members if present in POST data
         existing_count = members.count()
@@ -187,18 +271,25 @@ def update_head(request, id):
                 MobileNo=request.POST.get(f'member_{new_idx}_mobile'),
                 Gender=request.POST.get(f'member_{new_idx}_gender'),
                 Relationship=request.POST.get(f'member_{new_idx}_relationship'),
-                Address=request.POST.get(f'member_{new_idx}_address'),
-                State=request.POST.get(f'member_{new_idx}_state'),
-                City=request.POST.get(f'member_{new_idx}_city'),
-                Pincode=request.POST.get(f'member_{new_idx}_pincode'),
             )
             if request.FILES.get(f'member_{new_idx}_photo'):
                 new_member.Photo = request.FILES.get(f'member_{new_idx}_photo')
             new_member.save()
+            # Log create action for new FamilyMember
+            if request.user.is_authenticated:
+                AdminLog.objects.create(
+                    user=request.user,
+                    username=request.user.username,
+                    action='create',
+                    description=f'Created FamilyMember: {new_member.Name} {new_member.Surname}',
+                    object_id=str(new_member.MemberID),
+                    object_type='FamilyMember'
+                )
             new_idx += 1
 
         messages.success(request, 'Head and family updated successfully!')
         return redirect('dashboard')
+    # GET request: show edit form
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
     members = FamilyMember.objects.filter(HeadID=instance)
     return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': members})
@@ -209,6 +300,16 @@ def edit_state(request, id):
     if request.method == 'POST':
         state.name = request.POST.get('name')
         state.save()
+        # Log update action for State
+        if request.user.is_authenticated:
+            AdminLog.objects.create(
+                user=request.user,
+                username=request.user.username,
+                action='update',
+                description=f'Updated State: {state.name}',
+                object_id=str(state.id),
+                object_type='State'
+            )
         messages.success(request, 'State updated successfully!')
         return redirect('dashboard')
     return render(request, 'edit_state.html', {'state': state})
@@ -218,6 +319,16 @@ def edit_city(request, id):
     if request.method == 'POST':
         city.name = request.POST.get('name')
         city.save()
+        # Log update action for City
+        if request.user.is_authenticated:
+            AdminLog.objects.create(
+                user=request.user,
+                username=request.user.username,
+                action='update',
+                description=f'Updated City: {city.name}',
+                object_id=str(city.id),
+                object_type='City'
+            )
         messages.success(request, 'City updated successfully!')
         return redirect('dashboard')
     return render(request, 'edit_city.html', {'city': city})
@@ -315,13 +426,39 @@ def home(request):
 
 def regis(request):
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
+
     if request.method == 'POST':
+        error_messages = []
+        # Validate head gender
+        head_gender = request.POST.get('head_gender')
+        if not head_gender:
+            error_messages.append('Gender is required for Family Head.')
+        # Validate other required head fields (optional: add more as needed)
+        # Validate members gender
+        member_index = 1
+        while True:
+            name = request.POST.get(f'member_{member_index}_name')
+            if not name:
+                break
+            member_gender = request.POST.get(f'member_{member_index}_gender')
+            if not member_gender:
+                error_messages.append(f'Gender is required for member {member_index}.')
+            member_index += 1
+
+        if error_messages:
+            for msg in error_messages:
+                messages.error(request, msg)
+            return render(request, 'registration.html', {'states': states})
+
         # Family Head
+        head_birthdate = request.POST.get('head_birthdate')
+        if head_birthdate == '':
+            head_birthdate = None
         head = FamilyHead(
             Name=request.POST.get('head_name'),
             Surname=request.POST.get('head_surname'),
-            Gender =request.POST.get('head_gender') ,
-            Birthdate=request.POST.get('head_birthdate'),
+            Gender =head_gender,
+            Birthdate=head_birthdate,
             MobileNo=request.POST.get('head_mobile'),
             Address=request.POST.get('head_address'),
             State=request.POST.get('head_state'),
@@ -333,6 +470,17 @@ def regis(request):
             Photo=request.FILES.get('head_photo')
         )
         head.save()
+
+        # Log create action for FamilyHead
+        if request.user.is_authenticated:
+            AdminLog.objects.create(
+                user=request.user,
+                username=request.user.username,
+                action='create',
+                description=f'Created FamilyHead: {head.Name} {head.Surname}',
+                object_id=str(head.HeadID),
+                object_type='FamilyHead'
+            )
 
         # Hobbies for Head
         for hobby in request.POST.getlist('head_hobbies[]'):
@@ -357,23 +505,32 @@ def regis(request):
                 state = request.POST.get(f'member_{member_index}_state')
                 city = request.POST.get(f'member_{member_index}_city')
                 pincode = request.POST.get(f'member_{member_index}_pincode')
+            member_birthdate = request.POST.get(f'member_{member_index}_birthdate')
+            if member_birthdate == '':
+                member_birthdate = None
+            member_gender = request.POST.get(f'member_{member_index}_gender')
             member = FamilyMember(
                 HeadID=head,
                 Name=name,
                 Surname=request.POST.get(f'member_{member_index}_surname'),
-                Gender=request.POST.get(f'member_{member_index}_gender'),
+                Gender=member_gender,
                 Relationship=request.POST.get(f'member_{member_index}_relationship'),
-                Birthdate=request.POST.get(f'member_{member_index}_birthdate'),
+                Birthdate=member_birthdate,
                 MobileNo=request.POST.get(f'member_{member_index}_mobile'),
                 Photo=request.FILES.get(f'member_{member_index}_photo'),
                 MaritalStatus=request.POST.get(f'member_{member_index}_marital_status'),
-                AddressOverride=address_override,
-                Address=address,
-                State=state,
-                City=city,
-                Pincode=pincode,
             )
             member.save()
+            # Log create action for FamilyMember
+            if request.user.is_authenticated:
+                AdminLog.objects.create(
+                    user=request.user,
+                    username=request.user.username,
+                    action='create',
+                    description=f'Created FamilyMember: {member.Name} {member.Surname}',
+                    object_id=str(member.MemberID),
+                    object_type='FamilyMember'
+                )
             # Member hobbies
             for hobby in request.POST.getlist(f'member_{member_index}_hobbies[]'):
                 if hobby.strip():
@@ -395,6 +552,15 @@ def login_view(request):
 
         if user is not None and user.is_superuser:
             login(request, user)
+            # Log login action
+            AdminLog.objects.create(
+                user=user,
+                username=user.username,
+                action='login',
+                description='Admin logged in',
+                object_id=str(user.id),
+                object_type='User'
+            )
             return redirect('dashboard')
         else:
             # Pass error_message for client-side display
@@ -440,8 +606,20 @@ def dashboard(request):
     show_all_tables = False
     if search:
         from django.db.models import Q
-        heads = heads.filter(Q(Name__icontains=search) | Q(Surname__icontains=search) | Q(MobileNo__icontains=search) | Q(State__icontains=search) | Q(City__icontains=search) | Q(Address__icontains=search))
-        families = families.filter(Q(Name__icontains=search) | Q(Surname__icontains=search) | Q(MobileNo__icontains=search) | Q(State__icontains=search) | Q(City__icontains=search) | Q(Address__icontains=search) | Q(Relationship__icontains=search))
+        heads = heads.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(State__icontains=search) |
+            Q(City__icontains=search) |
+            Q(Address__icontains=search)
+        )
+        families = families.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(Relationship__icontains=search)
+        )
         states = states.filter(Q(name__icontains=search))
         filtered_cities = filtered_cities.filter(Q(name__icontains=search))
         show_all_tables = True
@@ -472,10 +650,17 @@ def dashboard(request):
 
 
 def logout_view(request):
+    if request.user.is_authenticated:
+        AdminLog.objects.create(
+            user=request.user,
+            username=request.user.username,
+            action='logout',
+            description='Admin logged out',
+            object_id=str(request.user.id),
+            object_type='User'
+        )
     logout(request)
     return redirect('home')
-
-
 
 def state(request):
     states = State.objects.all()

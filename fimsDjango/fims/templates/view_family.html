@@ -7,101 +7,78 @@
 
 {% block content %}
 
-
-   <div class="export-back-row">
+<div class="export-back-row">
+    <a href="{% url 'dashboard' %}" class="back-btn" style="margin-right:auto;">&larr; Back to Dashboard</a>
     <div class="export-buttons" style="justify-content:flex-start;">
-        <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}" class="btn btn-green">Export PDF</a>
-        <a href="#" class="btn btn-blue">Export Excel</a>
+            <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}" class="btn btn-green">Export PDF</a>
+            <a href="#" class="btn btn-blue">Export Excel</a>
     </div>
-    <a href="{% url 'dashboard' %}" class="back-btn" style="margin-left:auto;">&larr; Back to Dashboard</a>
 </div>
-
+<br><br>
 <!-- Head Table -->
-<div class="head-table">
-    <div class="head-row">
-        <div class="head-info">
-            <p><strong>Name:</strong> {{ head.Name }} {{ head.Surname }}</p>
-            <p><strong>Birthdate:</strong> {{ head.Birthdate }}</p>
-            <p><strong>Gender:</strong> {{ head.Gender }}</p>
-        </div>
-        
-        <div class="head-photo-container">
-            {% if head.Photo %}
-            <img src="{{ head.Photo.url }}" alt="Head Photo" class="head-photo">
-            {% endif %}
-        </div>
-    </div>
+<h2 id="head_details">Head Details:</h2>
+<br>
+<table class="table table-bordered" style="width:100%; max-width:900px; margin:0 auto 2rem auto; background:#fff;">
+    {% if head.Photo %}
+    <tr>
+        <td colspan="3" style="text-align:center; padding:18px 0 10px 0; background:#f8fafc;">
+            <img src="{{ head.Photo.url }}" alt="Head Photo" style="max-width:150px; max-height:180px; border-radius:8px; box-shadow:0 2px 8px #ccc;">
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th>Name</th>
+        <td colspan="2">{{ head.Name }} {{ head.Surname }}</td>
+    </tr>
+    <tr><th>Birthdate</th><td>{{ head.Birthdate }}</td></tr>
+    <tr><th>Gender</th><td>{{ head.Gender }}</td></tr>
+    <tr><th>Mobile</th><td>{{ head.MobileNo }}</td></tr>
+    <tr><th>Education</th><td>{{ head.Education }}</td></tr>
+        <!-- Address, State, City, and Pincode removed -->
+    <tr><th>Marital Status</th><td>{{ head.MaritalStatus }}</td></tr>
+    <tr><th>Wedding Date</th><td>{{ head.WeddingDate }}</td></tr>
+    <tr><th>Hobbies</th><td colspan="2">
+        {% for hobby in head.head_hobbies.all %}
+            {{ hobby.Hobby }}{% if not forloop.last %}, {% endif %}
+        {% empty %}None{% endfor %}
+    </td></tr>
+</table>
 
-    <div class="head-row">
-        <p><strong>Mobile:</strong> {{ head.MobileNo }}</p>
-        <p><strong>Education:</strong> {{ head.Education }}</p>
-    </div>
-
-    <div class="head-row">
-        <p><strong>Address:</strong> {{ head.Address }}</p>
-    </div>
-    <div class="head-row">
-        <p><strong>State:</strong> {{ head.State }}</p>
-        <p><strong>City:</strong>  {{ head.City }}</p>
-        <p><strong>Pincode:</strong> {{ head.Pincode }}</p>
-    </div>
-
-    <div class="head-row">
-        <p><strong>Marital Status:</strong> {{ head.MaritalStatus }}</p>
-        <p><strong>Wedding Date:</strong> {{ head.WeddingDate }}</p>
-    </div>
-
-    <div class="head-row">
-        <p><strong>Hobbies:</strong> 
-            {% for hobby in head.head_hobbies.all %}
-                {{ hobby.Hobby }}{% if not forloop.last %}, {% endif %}
-            {% empty %}None{% endfor %}
-        </p>
-    </div>
-</div>
-
-<!-- Family Members Grid -->
+<!-- Family Members Table -->
 <h2 class="family-title">Family Members</h2>
-<div class="family-grid">
-    {% for member in members %}
-    <div class="member-table">
-        <div class="member-row">
-            <div class="member-info">
-                <p><strong>Name:</strong> {{ member.Name }} {{ member.Surname }}</p>
-                <p><strong>Birthdate:</strong> {{ member.Birthdate }}</p>
-                <p><strong>Gender:</strong> {{ member.Gender }}</p>
-            </div>
-            <div class="member-photo-container">
-                {% if member.Photo %}
-                <img src="{{ member.Photo.url }}" alt="Member Photo" class="member-photo">
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="member-row">
-            <p><strong>Mobile:</strong> {{ member.MobileNo }}</p>
-            <p><strong>Education:</strong> {{ member.Education }}</p>
-        </div>
-
-        <div class="member-row">
-            <p><strong>Address:</strong> {{ member.Address }}</p>
-            <p><strong>State/City/Pincode:</strong> {{ member.State }}, {{ member.City }}, {{ member.Pincode }}</p>
-        </div>
-
-        <div class="member-row">
-            <p><strong>Marital Status:</strong> {{ member.MaritalStatus }}</p>
-            <p><strong>Wedding Date:</strong> {{ member.WeddingDate }}</p>
-        </div>
-
-        <div class="member-row">
-            <p><strong>Hobbies:</strong> 
-                {% for hobby in member.member_hobbies.all %}
-                    {{ hobby.Hobby }}{% if not forloop.last %}, {% endif %}
-                {% empty %}None{% endfor %}
-            </p>
-        </div>
-    </div>
-    {% endfor %}
-</div>
+<table class="table table-bordered" style="width:100%; max-width:900px; margin:0 auto 2rem auto; background:#fff;">
+    <thead>
+        <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Birthdate</th>
+            <th>Gender</th>
+            <th>Mobile</th>
+            <th>Education</th>
+            <!-- Address, State, City, and Pincode removed from member table header -->
+            <th>Marital Status</th>
+            <th>Wedding Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for member in members %}
+                <tr>
+                        <td style="text-align:center;">
+                                {% if member.Photo %}
+                                        <img src="{{ member.Photo.url }}" alt="Member Photo" style="max-width:70px; max-height:90px; border-radius:6px; box-shadow:0 1px 4px #ccc;">
+                                {% endif %}
+                        </td>
+                        <td>{% if member.Name or member.Surname %}{{ member.Name }} {{ member.Surname }}{% else %}-{% endif %}</td>
+                        <td>{% if member.Birthdate %}{{ member.Birthdate }}{% else %}-{% endif %}</td>
+                        <td>{% if member.Gender %}{{ member.Gender }}{% else %}-{% endif %}</td>
+                        <td>{% if member.MobileNo %}{{ member.MobileNo }}{% else %}-{% endif %}</td>
+                        <td>{% if member.Education %}{{ member.Education }}{% else %}-{% endif %}</td>
+                        <td>{% if member.MaritalStatus %}{{ member.MaritalStatus }}{% else %}-{% endif %}</td>
+                        <td>{% if member.WeddingDate %}{{ member.WeddingDate }}{% else %}Not Married{% endif %}</td>
+                       
+                </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}

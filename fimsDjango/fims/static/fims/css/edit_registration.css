@@ -1,6 +1,4 @@
-/* =============================
-   Reset (already in base.css)
-============================= */
+
 
 * {
     margin: 0;
@@ -9,9 +7,7 @@
 }
 
 
-/* =============================
-   Body Override for Registration
-============================= */
+
 
 body {
     font-family: "Poppins", "Segoe UI", sans-serif;
@@ -37,6 +33,7 @@ h1 {
 }
 
 .form-subtitle {
+    display: flex;
     text-align: center;
     font-size: 1.1rem;
     margin-bottom: 15px;
@@ -48,9 +45,9 @@ h1 {
 }
 
 
-/* =============================
-   Error Messages
-============================= */
+
+
+
 
 .error-message {
     font-size: 0.85rem;
@@ -299,3 +296,9 @@ button.secondary:hover {
     text-align: center;
     margin-top: 20px;
 }
+
+#back-btn{
+    color: black;
+    text-decoration: none;
+    
+}   

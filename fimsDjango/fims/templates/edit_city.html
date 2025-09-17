@@ -1,5 +1,7 @@
 {% extends 'dashboard_base.html' %}
+{%load static%}
 {% block content %}
+
 <style>
     /* General page styles */
     body {
@@ -105,15 +107,23 @@
 <a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
 <h2>Edit City</h2>
 
-<form method="post">
+<form method="post" id="editCityForm">
     {% csrf_token %}
     <label for="name">City Name:</label>
-    <input type="text" id="name" name="name" value="{{ city.name }}" placeholder="Enter city name" required>
+    <input type="text" id="name" name="name" value="{{ city.name }}" placeholder="Enter city name">
 
     <button type="submit">Update</button>
 
     {% if error %}
         <div class="error-message">{{ error }}</div>
     {% endif %}
+    <span class="error-message" style="color:red"></span>
 </form>
+{% if messages %}
+    <script>
+        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+    </script>
+{% endif %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'fims/js/form_required_validation.js' %}"></script>
 {% endblock %}

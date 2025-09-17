@@ -122,109 +122,109 @@ window.addMember = function() {
 };
 
 
-function showError(id, message) {
-    document.getElementById(id).textContent = `* ${message}`;
-}
+// function showError(id, message) {
+//     document.getElementById(id).textContent = `* ${message}`;
+// }
 
-function clearErrors() {
-    document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
-}
+// function clearErrors() {
+//     document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
+// }
 
-function validateForm(event) {
-    clearErrors();
-    let valid = true;
+// function validateForm(event) {
+//     clearErrors();
+//     let valid = true;
 
-    const name = document.getElementById("head_name").value.trim();
-    if (name.length === 0 || name.length > 50) {
-        showError("error-head_name", "Name is required (max 50 chars).");
-        valid = false;
-    }
+//     const name = document.getElementById("head_name").value.trim();
+//     if (name.length === 0 || name.length > 50) {
+//         showError("error-head_name", "Name is required (max 50 chars).");
+//         valid = false;
+//     }
 
-    const surname = document.getElementById("head_surname").value.trim();
-    if (surname.length === 0 || surname.length > 50) {
-        showError("error-head_surname", "Surname is required (max 50 chars).");
-        valid = false;
-    }
+//     const surname = document.getElementById("head_surname").value.trim();
+//     if (surname.length === 0 || surname.length > 50) {
+//         showError("error-head_surname", "Surname is required (max 50 chars).");
+//         valid = false;
+//     }
 
-    const birthdate = document.getElementById("head_birthdate").value;
-    if (!birthdate) {
-        showError("error-head_birthdate", "Birthdate is required.");
-        valid = false;
-    } else {
-        const age = Math.floor((Date.now() - new Date(birthdate)) / (365.25 * 24 * 60 * 60 * 1000));
-        if (age < 21) {
-            showError("error-head_birthdate", "Head must be 21+ years.");
-            valid = false;
-        }
-    }
+//     const birthdate = document.getElementById("head_birthdate").value;
+//     if (!birthdate) {
+//         showError("error-head_birthdate", "Birthdate is required.");
+//         valid = false;
+//     } else {
+//         const age = Math.floor((Date.now() - new Date(birthdate)) / (365.25 * 24 * 60 * 60 * 1000));
+//         if (age < 21) {
+//             showError("error-head_birthdate", "Head must be 21+ years.");
+//             valid = false;
+//         }
+//     }
 
-    const mobile = document.getElementById("head_mobile").value.trim();
-    if (!/^\d{10}$/.test(mobile)) {
-        showError("error-head_mobile", "Enter a valid 10-digit mobile number.");
-        valid = false;
-    }
+//     const mobile = document.getElementById("head_mobile").value.trim();
+//     if (!/^\d{10}$/.test(mobile)) {
+//         showError("error-head_mobile", "Enter a valid 10-digit mobile number.");
+//         valid = false;
+//     }
 
-    const pincode = document.getElementById("head_pincode").value.trim();
-    if (!/^\d{6}$/.test(pincode)) {
-        showError("error-head_pincode", "Enter a valid 6-digit pincode.");
-        valid = false;
-    }
+//     const pincode = document.getElementById("head_pincode").value.trim();
+//     if (!/^\d{6}$/.test(pincode)) {
+//         showError("error-head_pincode", "Enter a valid 6-digit pincode.");
+//         valid = false;
+//     }
 
-    // Marital Status
-    const maritalStatus = document.querySelector("input[name='head_marital_status']:checked");
-    if (!maritalStatus) {
-        showError("error-head_marital_status", "Select marital status.");
-        valid = false;
-    }
+//     // Marital Status
+//     const maritalStatus = document.querySelector("input[name='head_marital_status']:checked");
+//     if (!maritalStatus) {
+//         showError("error-head_marital_status", "Select marital status.");
+//         valid = false;
+//     }
 
-    // Gender
-    const gender = document.querySelector("input[name='head_gender']:checked");
-    if (!gender) {
-        showError("error-head_gender", "Select gender.");
-        valid = false;
-    }
+//     // Gender
+//     const gender = document.querySelector("input[name='head_gender']:checked");
+//     if (!gender) {
+//         showError("error-head_gender", "Select gender.");
+//         valid = false;
+//     }
 
-    // Wedding Date if married
-    if (maritalStatus && maritalStatus.value === "Married") {
-        const weddingDate = document.getElementById("wedding_date").value;
-        if (!weddingDate) {
-            showError("error-head_wedding_date", "Wedding date required for married.");
-            valid = false;
-        }
-    }
+//     // Wedding Date if married
+//     if (maritalStatus && maritalStatus.value === "Married") {
+//         const weddingDate = document.getElementById("wedding_date").value;
+//         if (!weddingDate) {
+//             showError("error-head_wedding_date", "Wedding date required for married.");
+//             valid = false;
+//         }
+//     }
 
-    // Education
-    const education = document.getElementById("head_education").value;
-    if (!education) {
-        showError("error-head_education", "Education is required.");
-        valid = false;
-    }
+//     // Education
+//     const education = document.getElementById("head_education").value;
+//     if (!education) {
+//         showError("error-head_education", "Education is required.");
+//         valid = false;
+//     }
 
-    // Hobbies
-    const hobbies = document.querySelectorAll("input[name='head_hobbies[]']");
-    let hasHobby = false;
-    hobbies.forEach(h => { if (h.value.trim()) hasHobby = true; });
-    if (!hasHobby) {
-        showError("error-head_hobbies", "Enter at least one hobby.");
-        valid = false;
-    }
+//     // Hobbies
+//     const hobbies = document.querySelectorAll("input[name='head_hobbies[]']");
+//     let hasHobby = false;
+//     hobbies.forEach(h => { if (h.value.trim()) hasHobby = true; });
+//     if (!hasHobby) {
+//         showError("error-head_hobbies", "Enter at least one hobby.");
+//         valid = false;
+//     }
 
-    // Photo
-    const photo = document.querySelector("input[name='head_photo']");
-    const photoPreview = document.querySelector('.photo-preview');
-    if (!photo.files[0] && !photoPreview) {
-        showError("error-head_photo", "Photo required.");
-        valid = false;
-    } else if (photo.files[0]) {
-        const file = photo.files[0];
-        if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
-            showError("error-head_photo", "Only JPG/PNG ≤2MB allowed.");
-            valid = false;
-        }
-    } else {
-        clearError("error-head_photo");
-    }
+//     // Photo
+//     const photo = document.querySelector("input[name='head_photo']");
+//     const photoPreview = document.querySelector('.photo-preview');
+//     if (!photo.files[0] && !photoPreview) {
+//         showError("error-head_photo", "Photo required.");
+//         valid = false;
+//     } else if (photo.files[0]) {
+//         const file = photo.files[0];
+//         if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
+//             showError("error-head_photo", "Only JPG/PNG ≤2MB allowed.");
+//             valid = false;
+//         }
+//     } else {
+//         clearError("error-head_photo");
+//     }
 
-    if (!valid) event.preventDefault();
-    return valid;
-}
+//     if (!valid) event.preventDefault();
+//     return valid;
+// }

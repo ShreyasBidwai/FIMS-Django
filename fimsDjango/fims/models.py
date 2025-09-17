@@ -115,15 +115,6 @@ class FamilyMember(models.Model):
         null=True, blank=True
     )
     Photo = models.ImageField(upload_to='photos/', null=True, blank=True)
-    AddressOverride = models.BooleanField(default=False)
-    Address = models.TextField(null=True, blank=True)
-    State = models.CharField(max_length=50, null=True, blank=True)
-    City = models.CharField(max_length=50, null=True, blank=True)
-    Pincode = models.CharField(
-        max_length=6,
-        validators=[RegexValidator(regex='^\d{6}$', message='Enter exactly 6 digits.')],
-        null=True, blank=True
-    )
     MaritalStatus = models.CharField(
         max_length=10,
         choices=[('Married', 'Married'), ('Unmarried', 'Unmarried')],

@@ -1,5 +1,10 @@
 {% extends 'base.html' %} {% load static %} {% block title %}Family Registration{% endblock %} {% block extra_head %}
 <link rel="stylesheet" href="{% static 'fims/css/registration.css' %}"> {% endblock %} {% block content %}
+{% if messages %}
+    <script>
+        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+    </script>
+{% endif %}
 <p class="form-subtitle">Fill the information below to register your family.</p>
 
 <ul id="note-head">
@@ -194,26 +199,6 @@
                             <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
                         </td>
                     </tr>
-                    <tr>
-                        <td>
-                            <label for="member_{{ forloop.counter }}_address">Address:</label>
-                            <textarea name="member_{{ forloop.counter }}_address">{{ member.Address|default_if_none:'' }}</textarea>
-                        </td>
-                        <td>
-                            <label for="member_{{ forloop.counter }}_state">State:</label>
-                            <input type="text" name="member_{{ forloop.counter }}_state" value="{{ member.State|default_if_none:'' }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <label for="member_{{ forloop.counter }}_city">City:</label>
-                            <input type="text" name="member_{{ forloop.counter }}_city" value="{{ member.City|default_if_none:'' }}">
-                        </td>
-                        <td>
-                            <label for="member_{{ forloop.counter }}_pincode">Pincode:</label>
-                            <input type="text" name="member_{{ forloop.counter }}_pincode" value="{{ member.Pincode|default_if_none:'' }}">
-                        </td>
-                    </tr>
                 </table>
             </div>
             {% endfor %}
@@ -229,7 +214,184 @@
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-{{ states|json_script:"states-data" }}
+<script>
+$(function() {
+    // Remove error on input/change for head
+    $('#registrationForm input, #registrationForm textarea, #registrationForm select').on('input change', function() {
+        let id = $(this).attr('id');
+        if (id && $('#error-' + id).length) {
+            $('#error-' + id).text('');
+        }
+    });
+    $('input[name="head_marital_status"], input[name="head_gender"]').on('change', function() {
+        let name = $(this).attr('name');
+        $('#error-' + name).text('');
+    });
+    // Remove error for hobbies
+    $(document).on('input', 'input[name="head_hobbies[]"]', function() {
+        $('#error-head_hobbies').text('');
+    });
+    // Remove error for photo
+    $('#head_photo').on('change', function() {
+        $('#error-head_photo').text('');
+    });
+    // Remove error for member fields
+    $(document).on('input change', '[name^="member_"]', function() {
+        let name = $(this).attr('name');
+        if ($('#error-' + name).length) {
+            $('#error-' + name).text('');
+        }
+    });
+    // Remove error for member hobbies
+    $(document).on('input', 'input[name*="_hobbies[]"]', function() {
+        let name = $(this).attr('name');
+        $('#error-' + name).text('');
+    });
+    // Remove error for member photo
+    $(document).on('change', 'input[type="file"][name*="_photo"]', function() {
+        let name = $(this).attr('name');
+        $('#error-' + name).text('');
+    });
+    $('#registrationForm').on('submit', function(e) {
+        let valid = true;
+        $('.error-message').text('');
+        // Head validation (as before)...
+        if (!$('#head_name').val().trim()) {
+            $('#error-head_name').text('First name is required');
+            valid = false;
+        }
+        if (!$('#head_surname').val().trim()) {
+            $('#error-head_surname').text('Surname is required');
+            valid = false;
+        }
+        if (!$('#head_birthdate').val()) {
+            $('#error-head_birthdate').text('Birthdate is required');
+            valid = false;
+        }
+        let mobile = $('#head_mobile').val().trim();
+        if (!/^\d{10}$/.test(mobile)) {
+            $('#error-head_mobile').text('Enter a valid 10-digit mobile number');
+            valid = false;
+        }
+        if (!$('#head_address').val().trim()) {
+            $('#error-head_address').text('Address is required');
+            valid = false;
+        }
+        if (!$('#head_state').val()) {
+            $('#error-head_state').text('State is required');
+            valid = false;
+        }
+        if (!$('#head_city').val()) {
+            $('#error-head_city').text('City is required');
+            valid = false;
+        }
+        let pincode = $('#head_pincode').val().trim();
+        if (!/^\d{6}$/.test(pincode)) {
+            $('#error-head_pincode').text('Enter a valid 6-digit pincode');
+            valid = false;
+        }
+        if (!$('input[name="head_marital_status"]:checked').val()) {
+            $('#error-head_marital_status').text('Select marital status');
+            valid = false;
+        }
+        if (!$('input[name="head_gender"]:checked').val()) {
+            $('#error-head_gender').text('Select gender');
+            valid = false;
+        }
+        if (!$('#head_education').val()) {
+            $('#error-head_education').text('Select education');
+            valid = false;
+        }
+        // At least one hobby required
+        let hobbyFilled = false;
+        $('input[name="head_hobbies[]"]').each(function() {
+            if ($(this).val().trim()) hobbyFilled = true;
+        });
+        if (!hobbyFilled) {
+            $('#error-head_hobbies').text('At least one hobby is required');
+            valid = false;
+        }
+        // Photo required
+        if (!$('#head_photo').val()) {
+            $('#error-head_photo').text('Photo is required');
+            valid = false;
+        }
+        // Member validation
+        $('[name^="member_"][name$="_name"]').each(function() {
+            let idx = $(this).attr('name').match(/member_(\d+)_name/)[1];
+            let prefix = 'member_' + idx + '_';
+            // Name
+            if (!$(this).val().trim()) {
+                $('#error-' + prefix + 'name').text('First name is required');
+                valid = false;
+            }
+            // Surname
+            if (!$('[name="' + prefix + 'surname"]').val().trim()) {
+                $('#error-' + prefix + 'surname').text('Surname is required');
+                valid = false;
+            }
+            // Birthdate
+            if (!$('[name="' + prefix + 'birthdate"]').val()) {
+                $('#error-' + prefix + 'birthdate').text('Birthdate is required');
+                valid = false;
+            }
+            // Mobile
+            let mmobile = $('[name="' + prefix + 'mobile"]').val().trim();
+            if (!/^\d{10}$/.test(mmobile)) {
+                $('#error-' + prefix + 'mobile').text('Enter a valid 10-digit mobile number');
+                valid = false;
+            }
+            // Gender
+            if (!$('[name="' + prefix + 'gender"]').val()) {
+                $('#error-' + prefix + 'gender').text('Select gender');
+                valid = false;
+            }
+            // Relationship
+            if (!$('[name="' + prefix + 'relationship"]').val().trim()) {
+                $('#error-' + prefix + 'relationship').text('Relationship is required');
+                valid = false;
+            }
+            // Address
+            if (!$('[name="' + prefix + 'address"]').val().trim()) {
+                $('#error-' + prefix + 'address').text('Address is required');
+                valid = false;
+            }
+            // State
+            if (!$('[name="' + prefix + 'state"]').val().trim()) {
+                $('#error-' + prefix + 'state').text('State is required');
+                valid = false;
+            }
+            // City
+            if (!$('[name="' + prefix + 'city"]').val().trim()) {
+                $('#error-' + prefix + 'city').text('City is required');
+                valid = false;
+            }
+            // Pincode
+            let mpincode = $('[name="' + prefix + 'pincode"]').val().trim();
+            if (!/^\d{6}$/.test(mpincode)) {
+                $('#error-' + prefix + 'pincode').text('Enter a valid 6-digit pincode');
+                valid = false;
+            }
+            // At least one hobby required for member
+            let mhobbyFilled = false;
+            $('[name="' + prefix + 'hobbies[]"]').each(function() {
+                if ($(this).val().trim()) mhobbyFilled = true;
+            });
+            if (!mhobbyFilled) {
+                $('#error-' + prefix + 'hobbies').text('At least one hobby is required');
+                valid = false;
+            }
+            // Photo required for member
+            if (!$('[name="' + prefix + 'photo"]').val()) {
+                $('#error-' + prefix + 'photo').text('Photo is required');
+                valid = false;
+            }
+        });
+        if (!valid) e.preventDefault();
+        return valid;
+    });
+});
+</script>
 <script>
     window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
 </script>

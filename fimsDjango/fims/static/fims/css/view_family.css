@@ -1,3 +1,10 @@
+/* Increase border size for all tables */
+table, .head-table {
+    border: 1.5px solid #1f2a38 !important;
+}
+table th, table td, .head-table th, .head-table td {
+    border-bottom: 1px solid #1f2a38 !important;
+}
 /* General page styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -29,8 +36,8 @@ a:hover {
 }
 
 .back-btn:hover {
-    background-color: #007bff;
-    color: #fff;
+    background: linear-gradient(180deg, #1f2a38, #2c3e50);
+    color:white;
 }
 
 /* Head Table */
@@ -41,6 +48,9 @@ a:hover {
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     max-width: 900px;
+}
+#head-details{
+    text-align: center;
 }
 
 .head-row {
@@ -168,8 +178,8 @@ strong {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 900px;
-    margin: 1.5rem auto 0.5rem;
+    max-width: auto;
+    margin: 0.5rem auto 0.5rem;
     gap: 1.2rem;
 }
 
