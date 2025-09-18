@@ -452,15 +452,7 @@ $(function() {
                 $('#error-' + prefix + 'pincode').text('Enter a valid 6-digit pincode');
                 valid = false;
             }
-            // At least one hobby required for member
-            let mhobbyFilled = false;
-            $('[name="' + prefix + 'hobbies[]"]').each(function() {
-                if ($(this).val().trim()) mhobbyFilled = true;
-            });
-            if (!mhobbyFilled) {
-                $('#error-' + prefix + 'hobbies').text('At least one hobby is required');
-                valid = false;
-            }
+
             // Photo required for member
             if (!$('[name="' + prefix + 'photo"]').val()) {
                 $('#error-' + prefix + 'photo').text('Photo is required');
@@ -476,5 +468,6 @@ $(function() {
     window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
 </script>
 <script src="{% static 'fims/js/edit_registration.js' %}"></script>
+<script src="{% static 'fims/js/form_required_validation.js' %}"></script>
 
 {% endblock %} {% endblock %}

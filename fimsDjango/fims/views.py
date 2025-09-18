@@ -637,10 +637,10 @@ def dashboard(request):
         filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter)
     else:
         filtered_cities = City.objects.exclude(status=9)
-
-    show_all_tables = True
+# Check if search term exists and filter accordingly
     if search:
         from django.db.models import Q
+    
         heads = heads.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
@@ -649,16 +649,21 @@ def dashboard(request):
             Q(City__icontains=search) |
             Q(Address__icontains=search)
         )
+
         families = families.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
             Q(MobileNo__icontains=search) |
             Q(Relationship__icontains=search)
         )
+
         states = states.filter(Q(name__icontains=search))
         filtered_cities = filtered_cities.filter(Q(name__icontains=search))
-        show_all_tables = True
 
+        # Flag to show all tables when search is used
+        show_all_tables = True
+    else:
+        show_all_tables = False  # or some other default value if necessary
     head_paginator = Paginator(heads, 10)
     family_paginator = Paginator(families, 10)
     state_paginator = Paginator(states, 10)

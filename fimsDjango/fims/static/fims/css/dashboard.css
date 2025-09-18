@@ -167,6 +167,10 @@ tbody tr:hover {
 }
 
 
+.icon{
+   font-size: 2rem;
+}
+
 form input[type="text"],
 form select {
     padding: 0.45rem 0.6rem;
