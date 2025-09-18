@@ -20,7 +20,7 @@
     <!-- Family Head Section -->
      
     <fieldset>
-    <legend class="highlight-title">Family Head ({{ members|length }} Members)</legend>
+    <legend class="highlight-title">Family Head</legend>
         <table class="form-table two-column">
             <tr>
                 <td>
@@ -143,7 +143,6 @@
     <!-- Family Members Section -->
     <div id="members-container">
     <h3 class="highlight-title">Family Members</h3>
-    <p>Members count: {{ members|length }}</p>
         {% if members %}
             {% for member in members %}
             <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
@@ -186,18 +185,7 @@
                                 <option value="Other" {% if member.Gender == 'Other' %}selected{% endif %}>Other</option>
                             </select>
                         </td>
-                        <td>
-                            <label for="member_{{ forloop.counter }}_relationship">Relationship:</label>
-                        {% if member.member_hobbies.all %}
-                            <div class="hobbies-preview">
-                                <label>Hobbies:</label>
-                                {% for hobby in member.member_hobbies.all %}
-                                    <input type="text" class="hobby-input" name="member_{{ forloop.counter }}_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                            <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
-                        </td>
+                       
                     </tr>
                 </table>
             </div>

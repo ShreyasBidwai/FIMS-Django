@@ -47,7 +47,8 @@ window.addHobby = function() {
     section.appendChild(input);
 };
 
-let memberIndex = 0;
+// Set memberIndex to the number of existing members from Django context
+let memberIndex = window.initialMemberCount || 0;
 window.addMember = function() {
     memberIndex++;
     const container = document.getElementById("members-container");
@@ -55,8 +56,9 @@ window.addMember = function() {
     div.className = "member-form";
 
     div.innerHTML = `
+        <div class="member-heading">Member ${memberIndex}</div>
         <fieldset>
-            <legend>Member ${memberIndex}</legend>
+            <legend style="display:none;">Member ${memberIndex}</legend>
             <div>
                 <label>Name:</label>
                 <input type="text" name="member_${memberIndex}_name" placeholder="Name" maxlength="50">
@@ -67,18 +69,25 @@ window.addMember = function() {
                 <input type="text" name="member_${memberIndex}_surname" placeholder="Surname" maxlength="50">
                 <span class="error-message"></span>
             </div>
+             <div>
+                <label>Marital Status:</label>
+                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Married"> Married</label>
+                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Unmarried"> Unmarried</label>
+                <span class="error-message"></span>
+            </div>
+            
             <div>
                 <label>Gender:</label>
                 <label><input type="radio" name="member_${memberIndex}_gender" value="Male"> Male</label>
                 <label><input type="radio" name="member_${memberIndex}_gender" value="Female"> Female</label>
                 <span class="error-message"></span>
             </div>
-            <div>
-                <label>Marital Status:</label>
-                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Married"> Married</label>
-                <label><input type="radio" name="member_${memberIndex}_marital_status" value="Unmarried"> Unmarried</label>
+             <div id="member_${memberIndex}_wedding_date_row" style="display:none;">
+                <label for="member_${memberIndex}_wedding_date">Wedding Date:</label>
+                <input type="date" name="member_${memberIndex}_wedding_date" id="member_${memberIndex}_wedding_date">
                 <span class="error-message"></span>
             </div>
+           
             <div>
                 <label>Birthdate:</label>
                 <input type="date" name="member_${memberIndex}_birthdate">
@@ -110,15 +119,28 @@ window.addMember = function() {
                 <span class="error-message"></span>
             </div>
             
-            <div id="member_${memberIndex}_wedding_date_row" style="display:none;">
-                <label for="member_${memberIndex}_wedding_date">Wedding Date:</label>
-                <input type="date" name="member_${memberIndex}_wedding_date" id="member_${memberIndex}_wedding_date">
-                <span class="error-message"></span>
-            </div>
+           
         </fieldset>
     `;
 
     container.appendChild(div);
+
+    // Show wedding date field only if married is selected for this member
+    const marriedRadio = div.querySelector(`input[name="member_${memberIndex}_marital_status"][value="Married"]`);
+    const unmarriedRadio = div.querySelector(`input[name="member_${memberIndex}_marital_status"][value="Unmarried"]`);
+    const weddingDateRow = div.querySelector(`#member_${memberIndex}_wedding_date_row`);
+    function updateMemberWeddingDate() {
+        if (marriedRadio && marriedRadio.checked) {
+            weddingDateRow.style.display = '';
+        } else {
+            weddingDateRow.style.display = 'none';
+        }
+    }
+    if (marriedRadio && unmarriedRadio) {
+        marriedRadio.addEventListener('change', updateMemberWeddingDate);
+        unmarriedRadio.addEventListener('change', updateMemberWeddingDate);
+        updateMemberWeddingDate();
+    }
 };
 
 

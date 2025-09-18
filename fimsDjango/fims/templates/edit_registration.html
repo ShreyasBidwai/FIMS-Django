@@ -35,7 +35,10 @@
                     <input type="text" id="head_surname" name="head_surname" placeholder="Surname" maxlength="50" value="{{ head.Surname|default_if_none:'' }}">
                     <span class="error-message" id="error-head_surname"></span>
                 </td>
-            </tr>
+             </tr>
+             <tr>
+               
+           </tr>
             <tr>
                 <td>
                     <label for="head_birthdate">Birthdate:</label>
@@ -114,13 +117,22 @@
                     </select>
                     <span class="error-message" id="error-head_education"></span>
                 </td>
-                <td>
-                    <label for="head_photo">Upload Photo:</label>
-                    <input type="file" id="head_photo" name="head_photo" accept="image/png, image/jpeg">
-                    {% if head.Photo %}
-                        <div class="photo-preview">Current file: {{ head.Photo.name }}</div>
-                    {% endif %}
-                    <span class="error-message" id="error-head_photo"></span>
+                 <td colspan="2">
+                    <div style="display: flex; gap: 16px; align-items: flex-end;">
+                        <div style="flex:1; display: flex; flex-direction: column; align-items: flex-start;">
+                            <label for="head_photo">Change Photo:</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="file" id="head_photo" name="head_photo" accept="image/png, image/jpeg">
+                                {% if head.Photo %}
+                                    <img src="{{ head.Photo.url }}" alt="Head Photo" style="max-width:60px; max-height:80px; border-radius:6px; box-shadow:0 1px 4px #ccc; border: 1px solid black;">
+                                {% endif %}
+                            </div>
+                            {% if head.Photo %}
+                                <div class="photo-preview">Current file: {{ head.Photo.name }}</div>
+                            {% endif %}
+                            <span class="error-message" id="error-head_photo"></span>
+                        </div>
+                    </div>
                 </td>
             </tr>
             <tr>
@@ -149,15 +161,12 @@
         {% if members %}
             {% for member in members %}
             <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
-                        <div class="member-block">
-                               
+            <div class="member-heading">Member {{ forloop.counter }}</div>
+            <div class="member-block">
                 <table class="form-table two-column">
                     <tr>
                         <td>
                             <label for="member_{{ forloop.counter }}_name">First Name:</label>
-                        {% if member.Photo %}
-                            <div class="photo-preview">Current file: {{ member.Photo.name }}</div>
-                        {% endif %}
                             <input type="text" name="member_{{ forloop.counter }}_name" value="{{ member.Name|default_if_none:'' }}">
                         </td>
                         <td>
@@ -165,6 +174,7 @@
                             <input type="text" name="member_{{ forloop.counter }}_surname" value="{{ member.Surname|default_if_none:'' }}">
                         </td>
                     </tr>
+                   
                     <tr>
                         <td>
                             <label for="member_{{ forloop.counter }}_birthdate">Birthdate:</label>
@@ -198,6 +208,23 @@
                             <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
                         </td>
                     </tr>
+                     <tr>
+                        <td colspan="2">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div>
+                                    <label for="member_{{ forloop.counter }}_photo">Change Photo:</label>
+                                    <input type="file" name="member_{{ forloop.counter }}_photo" accept="image/png, image/jpeg">
+                                     <div class="photo-preview">Current file: {{ member.Photo.name }}</div>
+                                </div>
+                                {% if member.Photo %}
+                                <div>
+                                    <img src="{{ member.Photo.url }}" alt="Member Photo" style="max-width:60px; max-height:80px; border-radius:6px; box-shadow:0 1px 4px #ccc; border: 1px solid black;">
+                                   
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
                 </table>
             </div>
             {% endfor %}
@@ -213,6 +240,10 @@
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Pass the initial member count from Django to JS
+window.initialMemberCount = {{ members|length }};
+</script>
 <script>
 $(function() {
     // Remove error on input/change for head
