@@ -70,12 +70,31 @@ def pdf_view(request):
         except Exception:
             pass
 
-    # Head Table
+    # Get state and city names if possible
+    state_name = head.State
+    city_name = head.City
+    try:
+        state_obj = State.objects.filter(name=head.State).first() or State.objects.filter(id=head.State).first()
+        if state_obj:
+            state_name = state_obj.name
+    except Exception:
+        pass
+    try:
+        city_obj = City.objects.filter(name=head.City).first() or City.objects.filter(id=head.City).first()
+        if city_obj:
+            city_name = city_obj.name
+    except Exception:
+        pass
+
     head_data = [
         [Paragraph('<b>Name</b>', styles['Normal']), f"{head.Name or '-'} {head.Surname or '-'}"],
         [Paragraph('<b>Birthdate</b>', styles['Normal']), str(head.Birthdate) if head.Birthdate else '-'],
         [Paragraph('<b>Gender</b>', styles['Normal']), head.Gender or '-'],
         [Paragraph('<b>Mobile</b>', styles['Normal']), head.MobileNo or '-'],
+        [Paragraph('<b>Address</b>', styles['Normal']), head.Address or '-'],
+        [Paragraph('<b>State</b>', styles['Normal']), state_name or '-'],
+        [Paragraph('<b>City</b>', styles['Normal']), city_name or '-'],
+        [Paragraph('<b>Pincode</b>', styles['Normal']), head.Pincode or '-'],
         [Paragraph('<b>Education</b>', styles['Normal']), head.Education or '-'],
         [Paragraph('<b>Marital Status</b>', styles['Normal']), head.MaritalStatus or '-'],
         [Paragraph('<b>Wedding Date</b>', styles['Normal']), str(head.WeddingDate) if head.WeddingDate else 'Not Married'],
@@ -159,7 +178,22 @@ def view_state(request, id):
 def view_family(request, id):
     head = get_object_or_404(FamilyHead, HeadID=id)
     members = head.familymember_set.all()
-    return render(request, 'view_family.html', {'head': head, 'members': members})
+    # Get state and city names for display
+    state_name = head.State
+    city_name = head.City
+    try:
+        state_obj = State.objects.filter(name=head.State).first() or State.objects.filter(id=head.State).first()
+        if state_obj:
+            state_name = state_obj.name
+    except Exception:
+        pass
+    try:
+        city_obj = City.objects.filter(name=head.City).first() or City.objects.filter(id=head.City).first()
+        if city_obj:
+            city_name = city_obj.name
+    except Exception:
+        pass
+    return render(request, 'view_family.html', {'head': head, 'members': members, 'state_name': state_name, 'city_name': city_name})
 
 @require_http_methods(["GET", "POST"])
 def add_state(request):

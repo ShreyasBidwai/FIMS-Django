@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from fims.views import *
+from fims.excel_export import excel_view
 
 
 urlpatterns = [
@@ -28,6 +29,7 @@ urlpatterns = [
     path('view_family/<int:id>/', view_family, name='view_family'),
     path('view_state/<int:id>/', view_state, name='view_state'),
     path('pdf_view/', pdf_view, name='pdf_view'),
+    path('excel_view/', excel_view, name='excel_view'),
     path('dashboard-stats-api/', dashboard_stats_api, name='dashboard_stats_api'),
 ]
 

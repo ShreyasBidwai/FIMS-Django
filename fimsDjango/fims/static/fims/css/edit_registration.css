@@ -16,8 +16,7 @@ body {
     color: #2c3e50;
     line-height: 1.6;
     min-height: 100vh;
-    padding: 90px 20px 20px;
-    /* extra top padding so content clears navbar */
+    
 }
 
 
