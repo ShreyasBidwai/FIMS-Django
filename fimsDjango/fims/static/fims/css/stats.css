@@ -11,15 +11,14 @@
 }
 
 .stats-bottom {
-    flex: 1; /* Takes 50% */
+    flex: 1; 
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-gap: 1.5rem;
     padding: 2rem;
-    background: #f8f9fa; /* light gray bg */
+    background: #f8f9fa; 
 }
 
-/* Card Styling */
 .card {
     background: #fff;
     padding: 1rem;

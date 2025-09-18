@@ -16,7 +16,7 @@
     <li class="note">Family Members can be added at the end of the form</li>
 </ul>
 
-<form method="post" enctype="multipart/form-data" id="registrationForm" onsubmit="return validateForm(event)">
+<form method="post" enctype="multipart/form-data" id="registrationForm">
     {% csrf_token %}
 
     <!-- Family Head Section -->
@@ -240,13 +240,63 @@
 
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
 <script>
 // Pass the initial member count from Django to JS
 window.initialMemberCount = {{ members|length }};
 </script>
 <script>
 $(function() {
-    // Remove error on input/change for head
+    // jQuery Validation for registration form
+    $('#registrationForm').validate({
+        errorClass: 'error-message',
+        errorElement: 'span',
+        rules: {
+            head_name: { required: true, maxlength: 50 },
+            head_surname: { required: true, maxlength: 50 },
+            head_birthdate: { required: true },
+            head_mobile: { required: true, digits: true, minlength: 10, maxlength: 10 },
+            head_address: { required: true },
+            head_state: { required: true },
+            head_city: { required: true },
+            head_pincode: { required: true, digits: true, minlength: 6, maxlength: 6 },
+            head_marital_status: { required: true },
+            head_gender: { required: true },
+            head_education: { required: true },
+            'head_hobbies[]': { required: true },
+            head_photo: { required: function() { return $('.photo-preview').length === 0; }, extension: "jpg|jpeg|png" }
+        },
+        messages: {
+            head_name: { required: "First name is required", maxlength: "Max 50 chars" },
+            head_surname: { required: "Surname is required", maxlength: "Max 50 chars" },
+            head_birthdate: { required: "Birthdate is required" },
+            head_mobile: { required: "Mobile is required", digits: "Digits only", minlength: "10 digits", maxlength: "10 digits" },
+            head_address: { required: "Address is required" },
+            head_state: { required: "State is required" },
+            head_city: { required: "City is required" },
+            head_pincode: { required: "Pincode is required", digits: "Digits only", minlength: "6 digits", maxlength: "6 digits" },
+            head_marital_status: { required: "Select marital status" },
+            head_gender: { required: "Select gender" },
+            head_education: { required: "Select education" },
+            'head_hobbies[]': { required: "At least one hobby is required" },
+            head_photo: { required: "Photo is required", extension: "Only JPG/PNG allowed" }
+        },
+        errorPlacement: function(error, element) {
+            var id = element.attr('id') || element.attr('name');
+            if (id && $("#error-" + id).length) {
+                $("#error-" + id).text(error.text());
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        highlight: function(element) {
+            $(element).addClass('input-error');
+        },
+        unhighlight: function(element) {
+            $(element).removeClass('input-error');
+        }
+    });
     $('#registrationForm input, #registrationForm textarea, #registrationForm select').on('input change', function() {
         let id = $(this).attr('id');
         if (id && $('#error-' + id).length) {
