@@ -11,7 +11,7 @@
     <a href="{% url 'dashboard' %}" class="back-btn" style="margin-right:auto;">&larr; Back to Dashboard</a>
     <div class="export-buttons" style="justify-content:flex-start;">
             <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}" class="btn btn-green">Export PDF</a>
-            <a href="#" class="btn btn-blue">Export Excel</a>
+            <a href="{% url 'excel_view' %}?id={{ head.HeadID }}" class="btn btn-blue">Export Excel</a>
     </div>
 </div>
 <br><br>
@@ -34,7 +34,10 @@
     <tr><th>Gender</th><td>{{ head.Gender }}</td></tr>
     <tr><th>Mobile</th><td>{{ head.MobileNo }}</td></tr>
     <tr><th>Education</th><td>{{ head.Education }}</td></tr>
-        <!-- Address, State, City, and Pincode removed -->
+    <tr><th>Address</th><td>{{ head.Address }}</td></tr>
+    <tr><th>State</th><td>{{ state_name }}</td></tr>
+    <tr><th>City</th><td>{{ city_name }}</td></tr>
+    <tr><th>Pincode</th><td>{{ head.Pincode }}</td></tr>
     <tr><th>Marital Status</th><td>{{ head.MaritalStatus }}</td></tr>
     <tr><th>Wedding Date</th><td>{{ head.WeddingDate }}</td></tr>
     <tr><th>Hobbies</th><td colspan="2">
