@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{% static 'fims/css/base.css' %}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="	https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
+
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #f7f9fc, #eef2f7);
+      color: #2c3e50;
+      padding-top: 0;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 240px;
+      height: 100vh;
+      background: linear-gradient(180deg, #1f2a38, #2c3e50);
+      color: #ecf0f1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem 0.8rem;
+      box-shadow: 2px 0 18px rgba(0, 0, 0, 0.18);
+      border-top-right-radius: 14px;
+      border-bottom-right-radius: 14px;
+    }
+
+    #sidebar #logo {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    #sidebar #logo img {
+      height: 1.5em;
+      margin-right: 0.5em;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    #sidebar .greeting {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #bdc3c7;
+      font-weight: 400;
+      /* text-align: center; */
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      margin: 0.6rem 0;
+    }
+
+    /* Nav sections */
+    #sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
+
+    #sidebar ul li {
+      margin-bottom: 0.25rem;
+      width: 100%;
+      position: relative;
+      padding-left: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6em;
+    }
+
+    #sidebar ul li i {
+      font-size: 1.2em;
+      margin-right: 0.2em;
+      vertical-align: middle;
+      color: #82cfff;
+      min-width: 1.2em;
+      text-align: center;
+    }
+
+    #sidebar ul li a,
+    #sidebar ul li button {
+      flex: 1;
+      color: #ecf0f1;
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 6px;
+      display: block;
+      padding: 0.4rem 0.6rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.25s ease;
+      text-align: left;
+    }
+
+    #sidebar ul li a:hover,
+    #sidebar ul li a.active,
+    #sidebar ul li button:hover {
+      background: #2980b9;
+      box-shadow: 0 3px 10px rgba(41, 128, 185, 0.3);
+      transform: translateX(3px);
+    }
+
+    /* Logout button special */
+    #logout-btn {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: #fff !important;
+      border: none;
+      border-radius: 30px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: auto;
+      display: block;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 4px 12px rgba(41, 128, 185, 0.25);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    #logout-btn:hover {
+      background: #fff;
+      color: #2980b9 !important;
+      border: 2px solid #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(41, 128, 185, 0.3);
+    }
+
+    /* Stick dashboard options at bottom */
+    #Main-functionality {
+      margin-top: auto;
+      padding-top: 0.6rem;
+    }
+
+    /* Main content */
+    #main-content {
+      flex: 1;
+      margin-left: 240px;
+      padding: 1rem 1.5rem;
+      background: #fff;
+      border-radius: 20px 0 0 20px;
+      box-shadow: -6px 0 20px rgba(0, 0, 0, 0.06);
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      #sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        border-radius: 0;
+        padding: 0.6rem;
+      }
+
+      #main-content {
+        margin-left: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+  <div id="sidebar">
+    <div id="logo">
+      <img src="{% static 'fims/images/family.png' %}" alt="Logo">
+      Familylink
+    </div>
+    <div class="greeting">Hello {{ username }}</div>
+
+    <hr class="divider">
+
+    <ul id="view-content">
+      <li class="list-head">Tables</li>
+      <li><i class="bi bi-person-fill"></i><button onclick="showTable('head')">Head</button></li>
+      <li><i class="bi bi-people-fill"></i><button onclick="showTable('family')">Family</button></li>
+      <li><i class="bi bi-geo-alt-fill"></i><button onclick="showTable('state')">State</button></li>
+      <li><i class="bi bi-building"></i><button onclick="showTable('city')">City</button></li>
+    </ul>
+
+    <hr class="divider">
+
+    <ul id="Main-functionality">
+      <li class="list-head">Dashboard</li>
+      <li><i class="bi bi-house-door-fill"></i></i><a href="{% url 'dashboard' %}">Dashboard Home</a></li>
+      <li><i class="bi bi-calculator-fill"></i><a href="{% url 'stats' %}">Quick Stats</a></li>
+      <li><i class="bi bi-pencil-square"></i><a href="{% url 'regis' %}">Register</a></li>
+      <li><i class="bi bi-person-lines-fill"></i></i><a href="{% url 'admin:index' %}">Django Admin</a></li>
+    </ul>
+
+    <hr class="divider">
+
+    {% if request.user.is_authenticated %}
+      <a href="{% url 'logout' %}" id="logout-btn">Logout</a>
+    {% else %}
+      <a href="{% url 'login_view' %}" id="logout-btn">Login</a>
+    {% endif %}
+  </div>
+
+  <div id="main-content">
+    {% block back_button %}{% endblock %}
+    {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+</html>

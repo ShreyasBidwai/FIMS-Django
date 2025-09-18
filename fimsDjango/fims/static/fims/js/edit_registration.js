@@ -122,87 +122,109 @@ window.addMember = function() {
 };
 
 
+// function showError(id, message) {
+//     document.getElementById(id).textContent = `* ${message}`;
+// }
 
-function showMemberError(input, message) {
-    // Find the closest .error-message after the input (or its parent for radios)
-    let errorSpan = null;
-    if ($(input).attr('type') === 'radio') {
-        // For radio, find the parent div and its .error-message
-        errorSpan = $(input).closest('div').find('.error-message').first();
-    } else {
-        errorSpan = $(input).siblings('.error-message').first();
-    }
-    if (errorSpan && errorSpan.length) {
-        errorSpan.text(message);
-    }
-}
+// function clearErrors() {
+//     document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
+// }
 
-function clearMemberErrors() {
-    $(".member-form .error-message").text("");
-}
+// function validateForm(event) {
+//     clearErrors();
+//     let valid = true;
 
-function validateForm(event) {
-    clearMemberErrors();
-    let valid = true;
+//     const name = document.getElementById("head_name").value.trim();
+//     if (name.length === 0 || name.length > 50) {
+//         showError("error-head_name", "Name is required (max 50 chars).");
+//         valid = false;
+//     }
 
-    // Validate head gender
-    const headGenderInputs = $("input[name='head_gender']");
-    if (!headGenderInputs.is(':checked')) {
-        // Find the error-message span after the last gender radio
-        const lastGenderInput = headGenderInputs.last();
-        let errorSpan = lastGenderInput.closest('td,div').find('.error-message');
-        if (!errorSpan.length) {
-            // fallback: find next span
-            errorSpan = lastGenderInput.parent().next('.error-message');
-        }
-        errorSpan.text("Gender is required.");
-        valid = false;
-    } else {
-        // Clear error if selected
-        const lastGenderInput = headGenderInputs.last();
-        let errorSpan = lastGenderInput.closest('td,div').find('.error-message');
-        if (!errorSpan.length) {
-            errorSpan = lastGenderInput.parent().next('.error-message');
-        }
-        errorSpan.text("");
-    }
+//     const surname = document.getElementById("head_surname").value.trim();
+//     if (surname.length === 0 || surname.length > 50) {
+//         showError("error-head_surname", "Surname is required (max 50 chars).");
+//         valid = false;
+//     }
 
-    // Validate each member
-    $('.member-form').each(function() {
-        // Name
-        const nameInput = $(this).find('input[name^="member_"][name$="_name"]');
-        if (nameInput.length) {
-            const nameVal = nameInput.val();
-            if (typeof nameVal === 'undefined' || nameVal.trim() === "") {
-                showMemberError(nameInput, "Name is required.");
-                valid = false;
-            }
-        }
-        // Gender
-        const genderInputs = $(this).find('input[type="radio"][name^="member_"][name$="_gender"]');
-        if (genderInputs.length && !genderInputs.is(':checked')) {
-            // Show error on the first radio in the group
-            showMemberError(genderInputs.first(), "Gender is required.");
-            valid = false;
-        }
-        // Relationship
-        const relInput = $(this).find('input[name^="member_"][name$="_relationship"]');
-        if (relInput.length) {
-            const relVal = relInput.val();
-            if (typeof relVal === 'undefined' || relVal.trim() === "") {
-                showMemberError(relInput, "Relationship is required.");
-                valid = false;
-            }
-        }
-    });
+//     const birthdate = document.getElementById("head_birthdate").value;
+//     if (!birthdate) {
+//         showError("error-head_birthdate", "Birthdate is required.");
+//         valid = false;
+//     } else {
+//         const age = Math.floor((Date.now() - new Date(birthdate)) / (365.25 * 24 * 60 * 60 * 1000));
+//         if (age < 21) {
+//             showError("error-head_birthdate", "Head must be 21+ years.");
+//             valid = false;
+//         }
+//     }
 
-    if (!valid) {
-        event.preventDefault();
-    }
-    return valid;
-}
+//     const mobile = document.getElementById("head_mobile").value.trim();
+//     if (!/^\d{10}$/.test(mobile)) {
+//         showError("error-head_mobile", "Enter a valid 10-digit mobile number.");
+//         valid = false;
+//     }
 
-// Attach validation to form submit
-$(document).ready(function() {
-    $('#registrationForm').off('submit').on('submit', validateForm);
-});
+//     const pincode = document.getElementById("head_pincode").value.trim();
+//     if (!/^\d{6}$/.test(pincode)) {
+//         showError("error-head_pincode", "Enter a valid 6-digit pincode.");
+//         valid = false;
+//     }
+
+//     // Marital Status
+//     const maritalStatus = document.querySelector("input[name='head_marital_status']:checked");
+//     if (!maritalStatus) {
+//         showError("error-head_marital_status", "Select marital status.");
+//         valid = false;
+//     }
+
+//     // Gender
+//     const gender = document.querySelector("input[name='head_gender']:checked");
+//     if (!gender) {
+//         showError("error-head_gender", "Select gender.");
+//         valid = false;
+//     }
+
+//     // Wedding Date if married
+//     if (maritalStatus && maritalStatus.value === "Married") {
+//         const weddingDate = document.getElementById("wedding_date").value;
+//         if (!weddingDate) {
+//             showError("error-head_wedding_date", "Wedding date required for married.");
+//             valid = false;
+//         }
+//     }
+
+//     // Education
+//     const education = document.getElementById("head_education").value;
+//     if (!education) {
+//         showError("error-head_education", "Education is required.");
+//         valid = false;
+//     }
+
+//     // Hobbies
+//     const hobbies = document.querySelectorAll("input[name='head_hobbies[]']");
+//     let hasHobby = false;
+//     hobbies.forEach(h => { if (h.value.trim()) hasHobby = true; });
+//     if (!hasHobby) {
+//         showError("error-head_hobbies", "Enter at least one hobby.");
+//         valid = false;
+//     }
+
+//     // Photo
+//     const photo = document.querySelector("input[name='head_photo']");
+//     const photoPreview = document.querySelector('.photo-preview');
+//     if (!photo.files[0] && !photoPreview) {
+//         showError("error-head_photo", "Photo required.");
+//         valid = false;
+//     } else if (photo.files[0]) {
+//         const file = photo.files[0];
+//         if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
+//             showError("error-head_photo", "Only JPG/PNG ≤2MB allowed.");
+//             valid = false;
+//         }
+//     } else {
+//         clearError("error-head_photo");
+//     }
+
+//     if (!valid) event.preventDefault();
+//     return valid;
+// }

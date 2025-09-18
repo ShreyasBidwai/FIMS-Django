@@ -1,3 +1,5 @@
+# Country model
+
 from django.db import models
 from django.core.validators import RegexValidator, ValidationError
 from datetime import date
@@ -18,7 +20,8 @@ class FamilyHead(models.Model):
     Birthdate = models.DateField()
     MobileNo = models.CharField(
         max_length=10,
-        validators=[RegexValidator(regex='^\d{10}$', message='Enter exactly 10 digits.')]
+        validators=[RegexValidator(regex='^\d{10}$', message='Enter exactly 10 digits.')], 
+        
     )
     Address = models.TextField()
     State = models.CharField(max_length=50)
@@ -112,15 +115,6 @@ class FamilyMember(models.Model):
         null=True, blank=True
     )
     Photo = models.ImageField(upload_to='photos/', null=True, blank=True)
-    AddressOverride = models.BooleanField(default=False)
-    Address = models.TextField(null=True, blank=True)
-    State = models.CharField(max_length=50, null=True, blank=True)
-    City = models.CharField(max_length=50, null=True, blank=True)
-    Pincode = models.CharField(
-        max_length=6,
-        validators=[RegexValidator(regex='^\d{6}$', message='Enter exactly 6 digits.')],
-        null=True, blank=True
-    )
     MaritalStatus = models.CharField(
         max_length=10,
         choices=[('Married', 'Married'), ('Unmarried', 'Unmarried')],
@@ -151,7 +145,15 @@ class FamilyMember(models.Model):
         db_table = 'family_member'
 
 
+class Country(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'countries'
 
 
 class State(models.Model):
@@ -163,7 +165,7 @@ class State(models.Model):
     ]
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
     name = models.CharField(max_length=100)
-    country_id = models.IntegerField()
+    country = models.ForeignKey('Country', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -200,3 +202,29 @@ class PasswordReset(models.Model):
 
     def __str__(self):
         return f"Password reset for {self.user.username} at {self.created_when}"
+
+class AdminLog(models.Model):
+    ACTION_CHOICES = [
+        ('login', 'Login'),
+        ('logout', 'Logout'),
+        ('create', 'Create'),
+        ('update', 'Update'),
+        ('delete', 'Delete'),
+        ('view', 'View'),
+        ('other', 'Other'),
+    ]
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=150)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    description = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    object_id = models.CharField(max_length=100, blank=True)
+    object_type = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.username} - {self.action} at {self.timestamp}" 
+
+    class Meta:
+        db_table = 'admin_log'
+        ordering = ['-timestamp']

@@ -10,12 +10,18 @@
 </head>
 
 <body>
+    {% if messages %}
+    <script>
+        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+    </script>
+    {% endif %}
      <nav id="nav-bar">
         <div id="logo">Familink</div>
         <ul>
             <li><a href="{% url 'stats' %}">Quick Stats</a></li>
-            <li><a href="{% url 'login_view' %}">Login</a></li>
+           
             <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
+             <li><a href="{% url 'login_view' %}">Login</a></li>
         </ul>
     </nav>
     <section id="home">

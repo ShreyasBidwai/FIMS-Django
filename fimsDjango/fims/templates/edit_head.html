@@ -1,0 +1,6 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block content %}
+    {% include 'edit_registration.html' with head=head states=states members=members include_mode=True only %}
+{% endblock %}

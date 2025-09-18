@@ -1,0 +1,304 @@
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+
+
+body {
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    background: #f4f6f9;
+    /* lighter than base background */
+    color: #2c3e50;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 90px 20px 20px;
+    /* extra top padding so content clears navbar */
+}
+
+
+/* =============================
+   Heading & Subtitle
+============================= */
+
+h1 {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 1.9rem;
+    color: #2c3e50;
+}
+
+.form-subtitle {
+    display: flex;
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-weight: 600;
+    background: #ecf5ff;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+
+
+
+
+
+.error-message {
+    font-size: 0.85rem;
+    color: red;
+    /* 🔴 ensures messages appear red */
+    margin-top: 4px;
+    display: block;
+    font-weight: 500;
+}
+
+
+/* =============================
+   Notes Section
+============================= */
+
+#note-head {
+    list-style: none;
+    margin: 0 auto 20px auto;
+    padding: 12px 16px;
+    max-width: 100%;
+    background: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid #3498db;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+#note-head .note:first-child {
+    font-weight: 700;
+    color: red;
+    margin-bottom: 6px;
+}
+
+#note-head .note {
+    font-size: 0.9rem;
+    color: red;
+    margin: 4px 0;
+    position: relative;
+    padding-left: 18px;
+}
+
+#note-head .note::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #3498db;
+    font-weight: bold;
+}
+
+
+/* =============================
+   Fieldsets
+============================= */
+
+fieldset {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+legend {
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 0 8px;
+    color: #2c3e50;
+}
+
+.highlight-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    background: #3498db;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+
+/* =============================
+   Form Tables (if any used)
+============================= */
+
+.form-table {
+    width: 100%;
+    border-spacing: 10px;
+}
+
+.form-table.two-column td {
+    width: 50%;
+    vertical-align: top;
+    padding: 10px;
+}
+
+
+/* =============================
+   Labels & Inputs
+============================= */
+
+label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #3498db;
+    background: #fff;
+    box-shadow: 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
+
+/* =============================
+   Hobby Section
+============================= */
+
+#hobbies-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hobby-input {
+    width: 250px;
+}
+
+.hobby-btn {
+    flex-shrink: 0;
+}
+
+
+/* =============================
+   Radio Buttons
+============================= */
+
+input[type="radio"] {
+    margin-right: 5px;
+}
+
+
+/* =============================
+   Members Section
+============================= */
+
+#members-container {
+    background: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px dashed #3498db;
+    margin-bottom: 20px;
+}
+
+#members-container h3 {
+    margin-bottom: 12px;
+}
+
+
+/* Two-column grid inside members */
+
+.member-form fieldset {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 20px;
+    align-items: start;
+}
+
+.member-form legend {
+    grid-column: span 2;
+    margin-bottom: 10px;
+}
+
+.member-form .address-fields,
+.member-form [id$="_wedding_date_row"],
+.member-form .full-row {
+    grid-column: span 2;
+}
+
+
+/* Spacing for address inputs */
+
+.member-form .address-fields textarea,
+.member-form .address-fields select,
+.member-form .address-fields input {
+    margin-bottom: 10px;
+    display: block;
+    width: 100%;
+}
+
+
+/* =============================
+   Buttons
+============================= */
+
+button {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+button.primary {
+    background: #2c3e50;
+    color: #fff;
+}
+
+button.primary:hover {
+    background: #1a252f;
+}
+
+button.secondary {
+    background: #3498db;
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+button.secondary:hover {
+    background: #217dbb;
+}
+
+
+/* =============================
+   Form Actions
+============================= */
+
+.form-actions {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#back-btn{
+    color: black;
+    text-decoration: none;
+    
+}   

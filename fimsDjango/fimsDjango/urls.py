@@ -1,22 +1,9 @@
-"""
-URL configuration for fimsDjango project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from fims.views import *
+
 
 urlpatterns = [
     path('', home, name='home'),
@@ -32,4 +19,18 @@ urlpatterns = [
     path('forgot-password/', ForgotPassword, name='forgot-password'),
     path('password-reset-sent/<str:reset_id>/', PasswordResetSent, name='password-reset-sent'),
     path('reset-password/<str:reset_id>/', ResetPassword, name='reset-password'),
+    path('update-status/', update_status, name='update-status'),
+    path('head/edit/<int:id>/', update_head, name='update_head'),
+    path('state/edit/<int:id>/', edit_state, name='edit_state'),
+    path('city/edit/<int:id>/', edit_city, name='edit_city'),
+    path('add_state/', add_state, name='add_state'),
+    path('add_city/', add_city, name='add_city'),
+    path('view_family/<int:id>/', view_family, name='view_family'),
+    path('view_state/<int:id>/', view_state, name='view_state'),
+    path('pdf_view/', pdf_view, name='pdf_view'),
+    path('dashboard-stats-api/', dashboard_stats_api, name='dashboard_stats_api'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

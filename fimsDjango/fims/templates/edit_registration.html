@@ -1,11 +1,13 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Family Registration{% endblock %} {% block extra_head %}
-<link rel="stylesheet" href="{% static 'fims/css/registration.css' %}"> {% endblock %} {% block content %}
+{% extends 'dashboard_base.html' %} {% load static %} {% block title %}Family Registration{% endblock %} {% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/registration.css' %}"> {% endblock %} 
+{% block content %}
 {% if messages %}
     <script>
         alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
     </script>
 {% endif %}
-<p class="form-subtitle">Fill the information below to register your family.</p>
+
+<p class="form-subtitle"><a href="{% url 'dashboard' %}" id="back-btn">&larr; Back to Dashboard</a>Update Family Information.</p>
 
 <ul id="note-head">
     <li class="note">Note:</li>
@@ -148,10 +150,7 @@
             {% for member in members %}
             <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
                         <div class="member-block">
-                                <label>
-                                    <input type="checkbox" name="member_{{ forloop.counter }}_same_address" {% if member.Address == head.Address and member.State == head.State and member.City == head.City and member.Pincode == head.Pincode %}checked{% endif %}>
-                                    Same Address as Head
-                                </label>
+                               
                 <table class="form-table two-column">
                     <tr>
                         <td>
@@ -395,5 +394,6 @@ $(function() {
 <script>
     window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
 </script>
-<script src="{% static 'fims/js/registration.js' %}"></script>
+<script src="{% static 'fims/js/edit_registration.js' %}"></script>
+
 {% endblock %} {% endblock %}
