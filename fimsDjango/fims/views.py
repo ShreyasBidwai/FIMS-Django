@@ -1,3 +1,5 @@
+
+
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -23,6 +25,43 @@ from django.http import FileResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
+
+from django.views.decorators.http import require_GET
+
+
+@require_GET
+def check_city_name_unique(request):
+    name = request.GET.get('name')
+    state_id = request.GET.get('state_id')
+    city_id = request.GET.get('city_id')
+    qs = City.objects.filter(name__iexact=name, state_id=state_id)
+    if city_id:
+        qs = qs.exclude(id=city_id)
+    exists = qs.exists()
+    return JsonResponse({'exists': exists})
+
+
+@require_GET
+def check_state_name_unique(request):
+    name = request.GET.get('name')
+    country_id = request.GET.get('country_id', 101)
+    state_id = request.GET.get('state_id')
+    qs = State.objects.filter(name__iexact=name, country_id=country_id)
+    if state_id:
+        qs = qs.exclude(id=state_id)
+    exists = qs.exists()
+    return JsonResponse({'exists': exists})
+
+# AJAX endpoint to check if FamilyHead mobile number is unique
+@require_GET
+def check_head_mobile_unique(request):
+    mobile = request.GET.get('mobile')
+    head_id = request.GET.get('head_id')  # For edit, to exclude self
+    qs = FamilyHead.objects.filter(MobileNo=mobile)
+    if head_id:
+        qs = qs.exclude(HeadID=head_id)
+    exists = qs.exists()
+    return JsonResponse({'exists': exists})
 
 
 def pdf_view(request):
@@ -203,6 +242,8 @@ def add_state(request):
         country_id = request.POST.get("country_id") or 101
         if not name:
             error = "State name is required."
+        elif State.objects.filter(name__iexact=name, country_id=country_id).exists():
+            error = "State with this name already exists."
         else:
             last_state = State.objects.order_by('-id').first()
             next_id = (last_state.id + 1) if last_state else 1
@@ -227,6 +268,8 @@ def add_city(request):
         city_name = request.POST.get("name")
         if not state_id or not city_name:
             error = "State and city name are required."
+        elif City.objects.filter(name__iexact=city_name, state_id=state_id).exists():
+            error = "City with this name already exists in the selected state."
         else:
             try:
                 state = State.objects.get(id=state_id)
@@ -279,6 +322,9 @@ def update_head(request, id):
             member.MobileNo = request.POST.get(f'member_{idx}_mobile')
             member.Gender = request.POST.get(f'member_{idx}_gender')
             member.Relationship = request.POST.get(f'member_{idx}_relationship')
+            member.Education = request.POST.get(f'member_{idx}_education')
+            member.MaritalStatus = request.POST.get(f'member_{idx}_marital_status')
+            member.WeddingDate = request.POST.get(f'member_{idx}_wedding_date') or None
             if request.FILES.get(f'member_{idx}_photo'):
                 member.Photo = request.FILES.get(f'member_{idx}_photo')
             member.save()
@@ -305,6 +351,9 @@ def update_head(request, id):
                 MobileNo=request.POST.get(f'member_{new_idx}_mobile'),
                 Gender=request.POST.get(f'member_{new_idx}_gender'),
                 Relationship=request.POST.get(f'member_{new_idx}_relationship'),
+                Education=request.POST.get(f'member_{new_idx}_education'),
+                MaritalStatus=request.POST.get(f'member_{new_idx}_marital_status'),
+                WeddingDate=request.POST.get(f'member_{new_idx}_wedding_date') or None,
             )
             if request.FILES.get(f'member_{new_idx}_photo'):
                 new_member.Photo = request.FILES.get(f'member_{new_idx}_photo')
@@ -332,7 +381,11 @@ def update_head(request, id):
 def edit_state(request, id):
     state = get_object_or_404(State, id=id)
     if request.method == 'POST':
-        state.name = request.POST.get('name')
+        new_name = request.POST.get('name')
+        if State.objects.filter(name__iexact=new_name, country=state.country).exclude(id=state.id).exists():
+            messages.error(request, 'State with this name already exists.')
+            return render(request, 'edit_state.html', {'state': state})
+        state.name = new_name
         state.save()
         # Log update action for State
         if request.user.is_authenticated:
@@ -455,7 +508,7 @@ def dashboard_stats_api(request):
     })
 
 def home(request):
-    return render(request, 'home.html')
+    return render(request, 'home_copy.html')
 
 
 def regis(request):
@@ -484,7 +537,11 @@ def regis(request):
                 messages.error(request, msg)
             return render(request, 'registration.html', {'states': states})
 
-        # Family Head
+        # Family Head - check unique mobile
+        head_mobile = request.POST.get('head_mobile')
+        if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
+            messages.error(request, 'This mobile number is already registered. Please use a different number.')
+            return render(request, 'registration.html', {'states': states})
         head_birthdate = request.POST.get('head_birthdate')
         if head_birthdate == '':
             head_birthdate = None
@@ -493,7 +550,7 @@ def regis(request):
             Surname=request.POST.get('head_surname'),
             Gender =head_gender,
             Birthdate=head_birthdate,
-            MobileNo=request.POST.get('head_mobile'),
+            MobileNo=head_mobile,
             Address=request.POST.get('head_address'),
             State=request.POST.get('head_state'),
             City=request.POST.get('head_city'),
@@ -700,7 +757,7 @@ def logout_view(request):
             object_type='User'
         )
     logout(request)
-    messages.success(request, 'Logout successful!')
+    # messages.success(request, 'Logout successful!')
     return redirect('home')
 
 def state(request):

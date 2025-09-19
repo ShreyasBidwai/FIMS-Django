@@ -5,8 +5,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Information Management System</title>
+    <title>Familink</title>
     <link rel="stylesheet" href="{% static 'fims/css/home.css' %}">
+    <link rel="icon" href="{% static 'fims/images/family.png' %}" type="image/png">
 </head>
 
 <body>
@@ -16,7 +17,9 @@
     </script>
     {% endif %}
      <nav id="nav-bar">
-        <div id="logo">Familink</div>
+        
+        <div id="logo">
+            <img src="{% static 'fims/images/family.png' %}" alt="Familink Logo" style="height: 1.2em; width: auto; vertical-align: middle; margin-right: 0.5em;">Familink</div>
         <ul>
             <li><a href="{% url 'stats' %}">Quick Stats</a></li>
            

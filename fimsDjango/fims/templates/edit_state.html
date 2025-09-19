@@ -115,14 +115,37 @@
     {% csrf_token %}
     <label for="name">State Name:</label>
     <input type="text" id="name" name="name" value="{{ state.name }}" placeholder="Enter state name">
-
+    <span class="error-message" id="error-state-name" style="color:red"></span>
     <button type="submit">Update</button>
-
     {% if error %}
         <div class="error-message">{{ error }}</div>
     {% endif %}
-    <span class="error-message" style="color:red"></span>
 </form>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$('#name').on('input', function() {
+    var name = $(this).val().trim();
+    var state_id = '{{ state.id }}';
+    var country_id = '{{ state.country.id }}';
+    if (name) {
+        $.get('/fims/check_state_name_unique/', {name: name, country_id: country_id, state_id: state_id}, function(data) {
+            if (data.exists) {
+                $('#error-state-name').text('This state name already exists.');
+            } else {
+                $('#error-state-name').text('');
+            }
+        });
+    } else {
+        $('#error-state-name').text('');
+    }
+});
+$('#editStateForm').on('submit', function(e) {
+    if ($('#error-state-name').text()) {
+        e.preventDefault();
+        $('#name').focus();
+        return false;
+    }
+});
+</script>
 <script src="{% static 'fims/js/form_required_validation.js' %}"></script>
 {% endblock %}

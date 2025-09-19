@@ -184,7 +184,9 @@
         <select name="state_filter" onchange="this.form.submit()" style="padding:0.4rem;">
             <option value="">All States</option>
             {% for state in all_states %}
-                <option value="{{ state.id }}" {% if state.id|stringformat:'s' == request.GET.state_filter %}selected{% endif %}>{{ state.name }}</option>
+                {% if state.country_id == 101 or state.country.id == 101 %}
+                    <option value="{{ state.id }}" {% if state.id|stringformat:'s' == request.GET.state_filter %}selected{% endif %}>{{ state.name }}</option>
+                {% endif %}
             {% endfor %}
         </select>
         <a href="{% url 'add_city' %}" class="add-btn">Add City</a>

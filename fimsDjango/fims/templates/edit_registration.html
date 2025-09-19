@@ -174,7 +174,6 @@
                             <input type="text" name="member_{{ forloop.counter }}_surname" value="{{ member.Surname|default_if_none:'' }}">
                         </td>
                     </tr>
-                   
                     <tr>
                         <td>
                             <label for="member_{{ forloop.counter }}_birthdate">Birthdate:</label>
@@ -196,19 +195,45 @@
                             </select>
                         </td>
                         <td>
+                            <label for="member_{{ forloop.counter }}_education">Education:</label>
+                            <select name="member_{{ forloop.counter }}_education">
+                                <option value="">Select</option>
+                                <option value="Graduate" {% if member.Education == 'Graduate' %}selected{% endif %}>Graduate</option>
+                                <option value="Post Graduate" {% if member.Education == 'Post Graduate' %}selected{% endif %}>Post Graduate</option>
+                                <option value="Diploma" {% if member.Education == 'Diploma' %}selected{% endif %}>Diploma</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Marital Status:</label>
+                            <label><input type="radio" name="member_{{ forloop.counter }}_marital_status" value="Married" {% if member.MaritalStatus == 'Married' %}checked{% endif %}> Married</label>
+                            <label><input type="radio" name="member_{{ forloop.counter }}_marital_status" value="Unmarried" {% if member.MaritalStatus == 'Unmarried' %}checked{% endif %}> Unmarried</label>
+                        </td>
+                        <td>
+                            <div id="member_{{ forloop.counter }}_wedding_date_row" style="display: {% if member.MaritalStatus == 'Married' %}table-row{% else %}none{% endif %};">
+                                <label for="member_{{ forloop.counter }}_wedding_date">Wedding Date:</label>
+                                <input type="date" name="member_{{ forloop.counter }}_wedding_date" value="{{ member.WeddingDate|date:'Y-m-d'|default_if_none:'' }}">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <label for="member_{{ forloop.counter }}_relationship">Relationship:</label>
-                        {% if member.member_hobbies.all %}
+                            <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            {% if member.member_hobbies.all %}
                             <div class="hobbies-preview">
                                 <label>Hobbies:</label>
                                 {% for hobby in member.member_hobbies.all %}
                                     <input type="text" class="hobby-input" name="member_{{ forloop.counter }}_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
                                 {% endfor %}
                             </div>
-                        {% endif %}
-                            <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
+                            {% endif %}
                         </td>
                     </tr>
-                     <tr>
+                    <tr>
                         <td colspan="2">
                             <div style="display: flex; align-items: center; gap: 16px;">
                                 <div>
@@ -219,7 +244,6 @@
                                 {% if member.Photo %}
                                 <div>
                                     <img src="{{ member.Photo.url }}" alt="Member Photo" style="max-width:60px; max-height:80px; border-radius:6px; box-shadow:0 1px 4px #ccc; border: 1px solid black;">
-                                   
                                 </div>
                                 {% endif %}
                             </div>
@@ -248,6 +272,31 @@ window.initialMemberCount = {{ members|length }};
 </script>
 <script>
 $(function() {
+    // Show/hide wedding date for each member
+    $('[name^="member_"][name$="_marital_status"]').on('change', function() {
+        var name = $(this).attr('name');
+        var idx = name.match(/member_(\d+)_marital_status/)[1];
+        var married = $(this).val() === 'Married';
+        var row = $('#member_' + idx + '_wedding_date_row');
+        if (married) {
+            row.show();
+        } else {
+            row.hide();
+            row.find('input[type="date"]').val('');
+        }
+    });
+    // On page load, ensure correct wedding date visibility for all members
+    $('[name^="member_"][name$="_marital_status"]:checked').each(function() {
+        var name = $(this).attr('name');
+        var idx = name.match(/member_(\d+)_marital_status/)[1];
+        var married = $(this).val() === 'Married';
+        var row = $('#member_' + idx + '_wedding_date_row');
+        if (married) {
+            row.show();
+        } else {
+            row.hide();
+        }
+    });
     // jQuery Validation for registration form
     $('#registrationForm').validate({
         errorClass: 'error-message',
@@ -301,6 +350,18 @@ $(function() {
         let id = $(this).attr('id');
         if (id && $('#error-' + id).length) {
             $('#error-' + id).text('');
+        }
+        // Unique mobile check for head_mobile
+        if (id === 'head_mobile') {
+            let mobile = $(this).val().trim();
+            if (/^\d{10}$/.test(mobile)) {
+                let headId = '{{ head.HeadID|default:"" }}';
+                $.get('/fims/check_head_mobile_unique/', { mobile: mobile, head_id: headId }, function(data) {
+                    if (data.exists) {
+                        $('#error-head_mobile').text('This mobile number is already registered.');
+                    }
+                });
+            }
         }
     });
     $('input[name="head_marital_status"], input[name="head_gender"]').on('change', function() {

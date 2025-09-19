@@ -1,6 +1,4 @@
 {% extends 'base.html' %}
-
-
 {% load static %}
 
 {% block title %}Quick Stats{% endblock %}
@@ -10,79 +8,81 @@
 {% endblock %}
 
 {% block content %}
-<section id="stats-page" style="max-width: 100vw; padding: 10px 0 0 0; margin: 0;">
-    <!-- Top Half (Pie Chart + Donut) -->
-    <div class="stats-top" style="display: flex; justify-content: center; align-items: flex-start; min-height: unset; gap: 12px; margin-bottom: 6px;">
-        <div style="width: 340px;">
-            <h2 style="text-align:center; font-size: 1.2rem; margin-bottom: 8px;">Gender Distribution</h2>
-            <canvas id="genderPieChart" width="300" height="300"></canvas>
-            {{ labels|json_script:"gender-labels" }}
-            {{ data|json_script:"gender-data" }}
-        </div>
-        <div style="width: 340px;">
-            <h2 style="text-align:center; font-size: 1.2rem; margin-bottom: 8px;">Active vs Inactive</h2>
-            <canvas id="activeDonutChart" width="300" height="300"></canvas>
-            <script id="active-inactive-data" type="application/json">[{"label": "Active", "value": {{ active_members|default:0 }} }, {"label": "Inactive", "value": {{ inactive_members|default:0 }} }]</script>
-        </div>
+<section id="stats-page">
+  <!-- Left Column (Charts) -->
+  <div class="stats-left">
+    <div class="chart-box">
+      <h2>Gender Distribution</h2>
+      <canvas id="genderPieChart"></canvas>
+      {{ labels|json_script:"gender-labels" }}
+      {{ data|json_script:"gender-data" }}
     </div>
 
-    <!-- Bottom Half (Cards) -->
-    <div class="stats-bottom">
-        <div class="card"><h1>Total Families Registered</h1><p>{{ total_families }}</p></div>
-        <div class="card"><h1>Total Family Members</h1><p>{{ total_members }}</p></div>
-        <div class="card"><h1>Married People</h1><p>{{ married_people }}</p></div>
-        <div class="card"><h1>Unmarried People</h1><p>{{ unmarried_people }}</p></div>
-        <div class="card"><h1>Total Active Members</h1><p>{{ active_members }}</p></div>
-        <div class="card"><h1>Total Cities Registered</h1><p>{{ total_cities }}</p></div>
+    <div class="chart-box">
+      <h2>Active vs Inactive</h2>
+      <canvas id="activeDonutChart"></canvas>
+      <script id="active-inactive-data" type="application/json">
+        [
+          { "label": "Active", "value": {{ active_members|default:0 }} },
+          { "label": "Inactive", "value": {{ inactive_members|default:0 }} }
+        ]
+      </script>
     </div>
+  </div>
+
+  <!-- Right Column (Cards) -->
+  <div class="stats-right">
+    <div class="card"><h1>Total Families Registered</h1><p>{{ total_families }}</p></div>
+    <div class="card"><h1>Total Family Members</h1><p>{{ total_members }}</p></div>
+    <div class="card"><h1>Married People</h1><p>{{ married_people }}</p></div>
+    <div class="card"><h1>Unmarried People</h1><p>{{ unmarried_people }}</p></div>
+    <div class="card"><h1>Total Active Members</h1><p>{{ active_members }}</p></div>
+    <div class="card"><h1>Total Cities Registered</h1><p>{{ total_cities }}</p></div>
+  </div>
 </section>
+{% endblock %}
+
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var ctx = document.getElementById('genderPieChart').getContext('2d');
-    var genderPieChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: JSON.parse(document.getElementById('gender-labels').textContent),
-            datasets: [{
-                data: JSON.parse(document.getElementById('gender-data').textContent),
-                backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-            }]
-        },
-        options: {
-            responsive: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
-            width: 300,
-            height: 300
-        }
-    });
+document.addEventListener('DOMContentLoaded', function () {
+  // Pie Chart
+  const genderCtx = document.getElementById('genderPieChart').getContext('2d');
+  new Chart(genderCtx, {
+    type: 'pie',
+    data: {
+      labels: JSON.parse(document.getElementById('gender-labels').textContent),
+      datasets: [{
+        data: JSON.parse(document.getElementById('gender-data').textContent),
+        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
 
-        // Donut chart for active/inactive members
-        var activeData = JSON.parse(document.getElementById('active-inactive-data').textContent);
-        var donutCtx = document.getElementById('activeDonutChart').getContext('2d');
-        var donutChart = new Chart(donutCtx, {
-            type: 'doughnut',
-            data: {
-                labels: activeData.map(function(item) { return item.label; }),
-                datasets: [{
-                    data: activeData.map(function(item) { return item.value; }),
-                    backgroundColor: ['#4CAF50', '#F44336'],
-                }]
-            },
-            options: {
-                responsive: false,
-                cutout: '70%',
-                plugins: {
-                    legend: { position: 'bottom' }
-                },
-                width: 300,
-                height: 300
-            }
-        });
+  // Donut Chart
+  const activeData = JSON.parse(document.getElementById('active-inactive-data').textContent);
+  const donutCtx = document.getElementById('activeDonutChart').getContext('2d');
+  new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: activeData.map(item => item.label),
+      datasets: [{
+        data: activeData.map(item => item.value),
+        backgroundColor: ['#4CAF50', '#F44336'],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
 });
 </script>
-{% endblock %}
 {% endblock %}

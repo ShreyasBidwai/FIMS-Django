@@ -7,6 +7,9 @@ from fims.excel_export import excel_view
 
 
 urlpatterns = [
+    path('fims/check_city_name_unique/', check_city_name_unique, name='check_city_name_unique'),
+    path('fims/check_state_name_unique/', check_state_name_unique, name='check_state_name_unique'),
+    path('fims/check_head_mobile_unique/', check_head_mobile_unique, name='check_head_mobile_unique'),
     path('', home, name='home'),
     path('base/', base, name='base'),
     path('regis/', regis, name='regis'),

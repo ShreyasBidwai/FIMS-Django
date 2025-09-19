@@ -44,6 +44,7 @@
                     <label for="head_mobile">Mobile No:</label>
                     <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10" value="{{ head.MobileNo|default_if_none:'' }}">
                     <span class="error-message" id="error-head_mobile"></span>
+                    <span class="error-message" id="error-head_mobile_unique" style="color:firebrick;"></span>
                 </td>
             </tr>
             <tr>
@@ -390,11 +391,35 @@ $(function() {
         if (!valid) e.preventDefault();
         return valid;
     });
+    // Unique mobile number check for head
+$('#head_mobile').on('blur', function() {
+    var mobile = $(this).val().trim();
+    if (mobile.length === 10 && /^\d{10}$/.test(mobile)) {
+        $.get('/fims/check_head_mobile_unique/', {mobile: mobile}, function(data) {
+            if (data.exists) {
+                $('#error-head_mobile_unique').text('This mobile number is already registered.');
+            } else {
+                $('#error-head_mobile_unique').text('');
+            }
+        });
+    } else {
+        $('#error-head_mobile_unique').text('');
+    }
+});
+// Prevent form submit if mobile is not unique
+$('#registrationForm').on('submit', function(e) {
+    if ($('#error-head_mobile_unique').text()) {
+        e.preventDefault();
+        $('#head_mobile').focus();
+        return false;
+    }
+});
 });
 </script>
 <script>
     window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
 </script>
+
 <script src="{% static 'fims/js/registration.js' %}"></script>
 <script src="{% static 'fims/js/form_required_validation.js' %}">
 {% endblock %} {% endblock %}
