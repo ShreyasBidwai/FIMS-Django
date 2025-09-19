@@ -32,9 +32,7 @@ body {
 }
 
 
-/* =============================
-   Heading & Subtitle
-============================= */
+
 
 h1 {
     text-align: center;
@@ -69,10 +67,6 @@ h1 {
     font-weight: 500;
 }
 
-
-/* =============================
-   Notes Section
-============================= */
 
 #note-head {
     list-style: none;
@@ -109,9 +103,6 @@ h1 {
 }
 
 
-/* =============================
-   Fieldsets
-============================= */
 
 fieldset {
     border: 1px solid #ddd;
@@ -139,9 +130,6 @@ legend {
 }
 
 
-/* =============================
-   Form Tables (if any used)
-============================= */
 
 .form-table {
     width: 100%;
@@ -155,9 +143,7 @@ legend {
 }
 
 
-/* =============================
-   Labels & Inputs
-============================= */
+
 
 label {
     font-size: 0.9rem;
@@ -189,9 +175,6 @@ textarea:focus {
 }
 
 
-/* =============================
-   Hobby Section
-============================= */
 
 #hobbies-section {
     display: flex;
@@ -208,18 +191,13 @@ textarea:focus {
 }
 
 
-/* =============================
-   Radio Buttons
-============================= */
+
 
 input[type="radio"] {
     margin-right: 5px;
 }
 
 
-/* =============================
-   Members Section
-============================= */
 
 #members-container {
     background: #fff;
@@ -266,9 +244,6 @@ input[type="radio"] {
 }
 
 
-/* =============================
-   Buttons
-============================= */
 
 button {
     padding: 8px 14px;
@@ -299,9 +274,6 @@ button.secondary:hover {
 }
 
 
-/* =============================
-   Form Actions
-============================= */
 
 .form-actions {
     text-align: center;

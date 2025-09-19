@@ -94,6 +94,13 @@ a:hover {
     color: #fff;
     transition: background 0.3s ease;
 }
+.btn-yellow{
+    background-color: #f1c40f;
+}
+
+.btn-yellow:hover{
+    background-color: rgba(255, 255, 0, 0.74);
+}
 
 .btn-green {
     background-color: #28a745;
@@ -181,6 +188,10 @@ strong {
     max-width: auto;
     margin: 0.5rem auto 0.5rem;
     gap: 1.2rem;
+}
+
+.family-title tr{
+    text-align: center;
 }
 
 /* Responsive tweaks */

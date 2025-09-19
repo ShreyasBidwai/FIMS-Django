@@ -111,13 +111,15 @@
     {% csrf_token %}
     <label for="name">City Name:</label>
     <input type="text" id="name" name="name" value="{{ city.name }}" placeholder="Enter city name">
-
-    <button type="submit">Update</button>
-
-    {% if error %}
+    <input type="hidden" id="city_id" value="{{ city.id }}">
+    <input type="hidden" id="state_id" value="{{ city.state.id }}">
+ {% if error %}
         <div class="error-message">{{ error }}</div>
     {% endif %}
     <span class="error-message" style="color:red"></span>
+    <button type="submit">Update</button>
+
+   
 </form>
 {% if messages %}
     <script>
@@ -125,5 +127,75 @@
     </script>
 {% endif %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{% static 'fims/js/form_required_validation.js' %}"></script>
+<script>
+$(document).ready(function() {
+    var cityUnique = true;
+    var lastCheckedCity = '';
+    var lastCheckedState = '';
+    var lastCheckedId = '';
+
+    function checkCityUnique() {
+        var stateId = $('#state_id').val();
+        var cityName = $('#name').val().trim();
+        var cityId = $('#city_id').val();
+        var errorSpan = $('#editCityForm .error-message').last();
+        if (!stateId || !cityName) {
+            cityUnique = false;
+            return;
+        }
+        if (cityName === lastCheckedCity && stateId === lastCheckedState && cityId === lastCheckedId) return;
+        lastCheckedCity = cityName;
+        lastCheckedState = stateId;
+        lastCheckedId = cityId;
+        $.ajax({
+            url: '{% url "check_city_name_unique" %}',
+            type: 'GET',
+            data: {
+                state_id: stateId,
+                name: cityName,
+                city_id: cityId
+            },
+            success: function(response) {
+                if (response.exists) {
+                    errorSpan.text('City name already exists in this state.');
+                    $('#name').addClass('input-error');
+                    cityUnique = false;
+                } else {
+                    errorSpan.text('');
+                    $('#name').removeClass('input-error');
+                    cityUnique = true;
+                }
+            },
+            error: function() {
+                errorSpan.text('Error checking city name.');
+                cityUnique = false;
+            }
+        });
+    }
+
+    $('#name').on('input', function() {
+        $(this).removeClass('input-error');
+        $('#editCityForm .error-message').last().text('');
+        checkCityUnique();
+    });
+
+    $('#editCityForm').on('submit', function(e) {
+        var valid = true;
+        var city = $('#name');
+        var errorSpan = $(this).find('.error-message').last();
+        errorSpan.text('');
+        city.removeClass('input-error');
+        if (!city.val().trim()) {
+            errorSpan.text('City name is required.');
+            city.addClass('input-error');
+            valid = false;
+        } else if (!cityUnique) {
+            errorSpan.text('City name already exists in this state.');
+            city.addClass('input-error');
+            valid = false;
+        }
+        if (!valid) e.preventDefault();
+    });
+});
+</script>
 {% endblock %}

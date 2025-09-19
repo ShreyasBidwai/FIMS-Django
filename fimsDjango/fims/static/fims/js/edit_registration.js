@@ -56,9 +56,8 @@ window.addMember = function() {
     div.className = "member-form";
 
     div.innerHTML = `
-        <div class="member-heading">Member ${memberIndex}</div>
         <fieldset>
-            <legend style="display:none;">Member ${memberIndex}</legend>
+            <legend>Member ${memberIndex}</legend>
             <div>
                 <label>Name:</label>
                 <input type="text" name="member_${memberIndex}_name" placeholder="Name" maxlength="50">

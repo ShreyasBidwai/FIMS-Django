@@ -44,6 +44,7 @@
                     <label for="head_mobile">Mobile No:</label>
                     <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10" value="{{ head.MobileNo|default_if_none:'' }}">
                     <span class="error-message" id="error-head_mobile"></span>
+                    <span class="error-message" id="error-head_mobile_unique" style="color:firebrick;"></span>
                 </td>
             </tr>
             <tr>
@@ -143,6 +144,7 @@
     <!-- Family Members Section -->
     <div id="members-container">
     <h3 class="highlight-title">Family Members</h3>
+
         {% if members %}
             {% for member in members %}
             <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
@@ -185,7 +187,18 @@
                                 <option value="Other" {% if member.Gender == 'Other' %}selected{% endif %}>Other</option>
                             </select>
                         </td>
-                       
+                        <td>
+                            <label for="member_{{ forloop.counter }}_relationship">Relationship:</label>
+                        {% if member.member_hobbies.all %}
+                            <div class="hobbies-preview">
+                                <label>Hobbies:</label>
+                                {% for hobby in member.member_hobbies.all %}
+                                    <input type="text" class="hobby-input" name="member_{{ forloop.counter }}_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                            <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -378,10 +391,35 @@ $(function() {
         if (!valid) e.preventDefault();
         return valid;
     });
+    // Unique mobile number check for head
+$('#head_mobile').on('blur', function() {
+    var mobile = $(this).val().trim();
+    if (mobile.length === 10 && /^\d{10}$/.test(mobile)) {
+        $.get('/fims/check_head_mobile_unique/', {mobile: mobile}, function(data) {
+            if (data.exists) {
+                $('#error-head_mobile_unique').text('This mobile number is already registered.');
+            } else {
+                $('#error-head_mobile_unique').text('');
+            }
+        });
+    } else {
+        $('#error-head_mobile_unique').text('');
+    }
+});
+// Prevent form submit if mobile is not unique
+$('#registrationForm').on('submit', function(e) {
+    if ($('#error-head_mobile_unique').text()) {
+        e.preventDefault();
+        $('#head_mobile').focus();
+        return false;
+    }
+});
 });
 </script>
 <script>
     window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
 </script>
+
 <script src="{% static 'fims/js/registration.js' %}"></script>
+<script src="{% static 'fims/js/form_required_validation.js' %}">
 {% endblock %} {% endblock %}

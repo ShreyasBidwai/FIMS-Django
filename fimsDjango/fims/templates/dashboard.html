@@ -29,10 +29,10 @@
     </div>
 </div>
 <div id="cards">
-    <div class="card"><i class="bi bi-pencil-square" ></i><p>Families Registered</p><p id="card-families">{{ total_families }}</p></div>
-    <div class="card"><i class="bi bi-people"></i><p>TotalFamily Members</p><p id="card-members">{{ total_members }}</p></div>
-    <div class="card"><i class="bi bi-person-check"></i><p>Active members</p><p id="card-active">{{ active_members }}</p></div>
-    <div class="card"><i class="bi bi-exclamation-circle"></i><p>Inactive Members</p><p id="card-inactive">{{ inactive_members }}</p></div>  
+    <div class="card"><i class="bi bi-pencil-square icon text-warning"></i><p>Families Registered</p><p id="card-families">{{ total_families }}</p></div>
+    <div class="card"><i class="bi bi-people icon text-info"></i><p>Total Family Members</p><p id="card-members">{{ total_members }}</p></div>
+    <div class="card"><i class="bi bi-person-check icon text-success"></i><p>Active members</p><p id="card-active">{{ active_members }}</p></div>
+    <div class="card"><i class="bi bi-exclamation-circle icon text-danger"></i><p>Inactive Members</p><p id="card-inactive">{{ inactive_members }}</p></div>  
 </div>
 
 {% if not show_all_tables or head_page_obj.paginator.count > 0 %}
@@ -184,7 +184,9 @@
         <select name="state_filter" onchange="this.form.submit()" style="padding:0.4rem;">
             <option value="">All States</option>
             {% for state in all_states %}
-                <option value="{{ state.id }}" {% if state.id|stringformat:'s' == request.GET.state_filter %}selected{% endif %}>{{ state.name }}</option>
+                {% if state.country_id == 101 or state.country.id == 101 %}
+                    <option value="{{ state.id }}" {% if state.id|stringformat:'s' == request.GET.state_filter %}selected{% endif %}>{{ state.name }}</option>
+                {% endif %}
             {% endfor %}
         </select>
         <a href="{% url 'add_city' %}" class="add-btn">Add City</a>
@@ -399,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     updateDashboardCards();
-    setInterval(updateDashboardCards, 1000000); // update every 10 seconds
+    setInterval(updateDashboardCards, 500000); // update every 10 seconds
 });
 </script>
 {% endblock %}

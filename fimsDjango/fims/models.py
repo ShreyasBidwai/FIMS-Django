@@ -20,7 +20,8 @@ class FamilyHead(models.Model):
     Birthdate = models.DateField()
     MobileNo = models.CharField(
         max_length=10,
-        validators=[RegexValidator(regex='^\d{10}$', message='Enter exactly 10 digits.')], 
+        validators=[RegexValidator(regex='^\d{10}$', message='Enter exactly 10 digits.')],
+        unique=True
         
     )
     Address = models.TextField()
@@ -74,13 +75,6 @@ class Hobby(models.Model):
         blank=True,
         related_name='head_hobbies'
     )
-    member = models.ForeignKey(
-        'FamilyMember',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='member_hobbies'
-    )
     Hobby = models.CharField(max_length=100)
     is_deleted = models.BooleanField(default=False)
 
@@ -115,11 +109,14 @@ class FamilyMember(models.Model):
         null=True, blank=True
     )
     Photo = models.ImageField(upload_to='photos/', null=True, blank=True)
+
     MaritalStatus = models.CharField(
         max_length=10,
         choices=[('Married', 'Married'), ('Unmarried', 'Unmarried')],
         default='Unmarried'
     )
+    WeddingDate = models.DateField(null=True, blank=True)
+    Education = models.CharField(max_length=50, null=True, blank=True)
 
     STATUS_CHOICES = [
         (0, 'Inactive'),

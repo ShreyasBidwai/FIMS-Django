@@ -167,6 +167,10 @@ tbody tr:hover {
 }
 
 
+.icon{
+   font-size: 2rem;
+}
+
 form input[type="text"],
 form select {
     padding: 0.45rem 0.6rem;
@@ -198,9 +202,7 @@ form a:hover {
     color: #222;
 }
 
-/* =========================
-   PAGINATION
-========================= */
+
 .pagination {
     display: flex;
     justify-content: center;
@@ -218,9 +220,7 @@ form a:hover {
     text-decoration: underline;
 }
 
-/* =========================
-   STATUS MODAL
-========================= */
+
 #status-modal {
     display: none;
     position: fixed;

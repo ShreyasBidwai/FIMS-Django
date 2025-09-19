@@ -94,7 +94,21 @@
       padding: 18px 8px 18px 8px;
     }
   }
+    .back-btn{
+                background-color: rgba(31, 42, 56, 0.9);
+
+        color: white;
+        padding: 0.3rem;
+        border-radius: 10px;
+    }
+    .back-btn:hover{
+        background-color: rgba(31, 42, 56, 1);
+        color: white;
+        padding: 0.4rem;
+        border-radius: 10px;
+    }
 </style>
+<a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
 <div class="city-form-container">
   <h2>Add City</h2>
   <form id="addCityForm" method="post" action="" autocomplete="off">
@@ -118,6 +132,53 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     $(document).ready(function() {
+      var cityUnique = false;
+      var lastCheckedCity = '';
+      var lastCheckedState = '';
+
+      function checkCityUnique() {
+        var stateId = $('#state_id').val();
+        var cityName = $('#addCityForm input[name="name"]').val().trim();
+        var errorSpan = $('#addCityForm .error-message');
+        if (!stateId || !cityName) {
+          cityUnique = false;
+          return;
+        }
+        // Avoid duplicate AJAX calls for same value
+        if (cityName === lastCheckedCity && stateId === lastCheckedState) return;
+        lastCheckedCity = cityName;
+        lastCheckedState = stateId;
+        $.ajax({
+          url: '{% url "check_city_name_unique" %}',
+          type: 'GET',
+          data: {
+            state_id: stateId,
+            name: cityName
+          },
+          success: function(response) {
+            if (response.exists) {
+              errorSpan.text('City name already exists in this state.');
+              $('#addCityForm input[name="name"]').addClass('input-error');
+              cityUnique = false;
+            } else {
+              errorSpan.text('');
+              $('#addCityForm input[name="name"]').removeClass('input-error');
+              cityUnique = true;
+            }
+          },
+          error: function() {
+            errorSpan.text('Error checking city name.');
+            cityUnique = false;
+          }
+        });
+      }
+
+      $('#state_id, #addCityForm input[name="name"]').on('input change', function() {
+        $(this).removeClass('input-error');
+        $(this).closest('form').find('.error-message').text('');
+        checkCityUnique();
+      });
+
       $('#addCityForm').on('submit', function(e) {
         var valid = true;
         var state = $('#state_id');
@@ -134,12 +195,12 @@
           errorSpan.text('City name is required.');
           city.addClass('input-error');
           valid = false;
+        } else if (!cityUnique) {
+          errorSpan.text('City name already exists in this state.');
+          city.addClass('input-error');
+          valid = false;
         }
         if (!valid) e.preventDefault();
-      });
-      $('#state_id, #addCityForm input[name="name"]').on('input change', function() {
-        $(this).removeClass('input-error');
-        $(this).closest('form').find('.error-message').text('');
       });
     });
   </script>

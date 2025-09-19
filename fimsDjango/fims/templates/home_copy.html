@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Familink</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{% static 'fims/css/home_copy.css' %}" />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="{% static 'fims/images/family.png' %}"
+      type="image/png"
+    />
+  </head>
+
+  <body>
+    {% if messages %}
+    <script>
+      alert(
+        "{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}"
+      );
+    </script>
+    {% endif %}
+
+    <!-- Navbar -->
+    <nav id="nav-bar">
+      <div id="logo">
+        <img
+          src="{% static 'fims/images/family.png' %}"
+          alt="Familink Logo"
+          class="logo-img"
+        />
+        <span>Familink</span>
+      </div>
+      <ul>
+        <li><a href="{% url 'stats' %}">Quick Stats</a></li>
+        <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
+        <li><a href="{% url 'login_view' %}">Login</a></li>
+      </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home">
+      <div id="container-flex" class="hero-flex">
+        <div id="container-body" class="hero-left">
+          <h2 id="head-name" class="hero-title">Welcome to <span style="color:#1abc9c;  ">Familink</span></h2>
+          <p class="hero-subtitle">Your trusted Family Information Management System</p>
+          <div id="cnt-name" class="hero-desc">
+            <p>
+              Effortlessly manage, connect, and celebrate your family. <br>
+              Start by registering your family today.
+            </p>
+          </div>
+          <div id="cnt-button" class="hero-btn-row">
+            <a href="{% url 'regis' %}" class="btn hero-btn">Register</a>
+          </div>
+        </div>
+        <div id="container-body-01" class="hero-right">
+          <img
+            src="{% static 'fims/images/home_family.png' %}"
+            alt="Family illustration"
+            class="hero-img"
+          />
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

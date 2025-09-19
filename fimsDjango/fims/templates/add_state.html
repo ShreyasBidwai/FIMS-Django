@@ -86,7 +86,21 @@
             padding: 18px 8px 18px 8px;
         }
     }
+    .back-btn{
+                background-color: rgba(31, 42, 56, 0.9);
+
+        color: white;
+        padding: 0.3rem;
+        border-radius: 10px;
+    }
+    .back-btn:hover{
+        background-color: rgba(31, 42, 56, 1);
+        color: white;
+        padding: 0.4rem;
+        border-radius: 10px;
+    }
 </style>
+<a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
 <div class="form-container">
     <h2>Add State</h2>
 
@@ -95,11 +109,58 @@
         <div class="form-group">
             <label for="state_name">State Name:</label>
             <input type="text" id="state_name" name="name" placeholder="Enter state name" autocomplete="off">
+            <span class="error-message" id="error-state-name" style="color:red"></span>
         </div>
         <button type="submit" class="primary">Add State</button>
-        <span class="error-message" style="color:red"></span>
     </form>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    function checkStateUnique(name, callback) {
+        $.get('/fims/check_state_name_unique/', {name: name, country_id: 101}, function(data) {
+            callback(data.exists);
+        });
+    }
+
+    $('#state_name').on('input', function() {
+        var name = $(this).val().trim();
+        if (name) {
+            checkStateUnique(name, function(exists) {
+                if (exists) {
+                    $('#error-state-name').text('This state name already exists.');
+                } else {
+                    $('#error-state-name').text('');
+                }
+            });
+        } else {
+            $('#error-state-name').text('');
+        }
+    });
+
+    $('#addStateForm').on('submit', function(e) {
+        var name = $('#state_name').val().trim();
+        var errorElem = $('#error-state-name');
+        var allowSubmit = false;
+        if (!name) {
+            errorElem.text('State name is required.');
+            $('#state_name').focus();
+            e.preventDefault();
+            return false;
+        }
+        checkStateUnique(name, function(exists) {
+            if (exists) {
+                errorElem.text('This state name already exists.');
+                $('#state_name').focus();
+                allowSubmit = false;
+            } else {
+                errorElem.text('');
+                allowSubmit = true;
+                $('#addStateForm')[0].submit();
+            }
+        });
+        e.preventDefault();
+        return false;
+    });
+    </script>
     <script src="{% static 'fims/js/form_required_validation.js' %}"></script>
 </div>
 {% endblock %}
