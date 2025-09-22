@@ -283,99 +283,387 @@ def add_city(request):
                 error = str(e)
     return render(request, 'add_city.html', {'states': states, 'error': error})
 
+
+
+##__________Without validation code_______
+
+# def update_head(request, id):
+#     instance = get_object_or_404(FamilyHead, HeadID=id)
+#     if request.method == 'POST':
+#         instance.Name = request.POST.get('head_name')
+#         instance.Surname = request.POST.get('head_surname')
+#         instance.Gender = request.POST.get('head_gender')
+#         instance.Birthdate = request.POST.get('head_birthdate')
+#         instance.MobileNo = request.POST.get('head_mobile')
+#         instance.Address = request.POST.get('head_address')
+#         instance.State = request.POST.get('head_state')
+#         instance.City = request.POST.get('head_city')
+#         instance.Pincode = request.POST.get('head_pincode')
+#         instance.MaritalStatus = request.POST.get('head_marital_status')
+#         instance.WeddingDate = request.POST.get('head_wedding_date') or None
+#         instance.Education = request.POST.get('head_education')
+#         if request.FILES.get('head_photo'):
+#             instance.Photo = request.FILES.get('head_photo')
+#         instance.save()
+
+#         # Log update action for FamilyHead
+#         if request.user.is_authenticated:
+#             AdminLog.objects.create(
+#                 user=request.user,
+#                 username=request.user.username,
+#                 action='update',
+#                 description=f'Updated FamilyHead: {instance.Name} {instance.Surname}',
+#                 object_id=str(instance.HeadID),
+#                 object_type='FamilyHead'
+#             )
+
+#         # family members
+#         members = FamilyMember.objects.filter(HeadID=instance)
+#         for idx, member in enumerate(members, start=1):
+#             member.Name = request.POST.get(f'member_{idx}_name')
+#             member.Surname = request.POST.get(f'member_{idx}_surname')
+#             member.Birthdate = request.POST.get(f'member_{idx}_birthdate')
+#             member.MobileNo = request.POST.get(f'member_{idx}_mobile')
+#             member.Gender = request.POST.get(f'member_{idx}_gender')
+#             member.Relationship = request.POST.get(f'member_{idx}_relationship')
+#             member.Education = request.POST.get(f'member_{idx}_education')
+#             member.MaritalStatus = request.POST.get(f'member_{idx}_marital_status')
+#             member.WeddingDate = request.POST.get(f'member_{idx}_wedding_date') or None
+#             if request.FILES.get(f'member_{idx}_photo'):
+#                 member.Photo = request.FILES.get(f'member_{idx}_photo')
+#             member.save()
+#             # Log update action for FamilyMember
+#             if request.user.is_authenticated:
+#                 AdminLog.objects.create(
+#                     user=request.user,
+#                     username=request.user.username,
+#                     action='update',
+#                     description=f'Updated FamilyMember: {member.Name} {member.Surname}',
+#                     object_id=str(member.MemberID),
+#                     object_type='FamilyMember'
+#                 )
+
+#         # Add new members if present in POST data
+#         existing_count = members.count()
+#         new_idx = existing_count + 1
+#         while request.POST.get(f'member_{new_idx}_name'):
+#             new_member = FamilyMember(
+#                 HeadID=instance,
+#                 Name=request.POST.get(f'member_{new_idx}_name'),
+#                 Surname=request.POST.get(f'member_{new_idx}_surname'),
+#                 Birthdate=request.POST.get(f'member_{new_idx}_birthdate'),
+#                 MobileNo=request.POST.get(f'member_{new_idx}_mobile'),
+#                 Gender=request.POST.get(f'member_{new_idx}_gender'),
+#                 Relationship=request.POST.get(f'member_{new_idx}_relationship'),
+#                 Education=request.POST.get(f'member_{new_idx}_education'),
+#                 MaritalStatus=request.POST.get(f'member_{new_idx}_marital_status'),
+#                 WeddingDate=request.POST.get(f'member_{new_idx}_wedding_date') or None,
+#             )
+#             if request.FILES.get(f'member_{new_idx}_photo'):
+#                 new_member.Photo = request.FILES.get(f'member_{new_idx}_photo')
+#             new_member.save()
+#             # Log create action for new FamilyMember
+#             if request.user.is_authenticated:
+#                 AdminLog.objects.create(
+#                     user=request.user,
+#                     username=request.user.username,
+#                     action='create',
+#                     description=f'Created FamilyMember: {new_member.Name} {new_member.Surname}',
+#                     object_id=str(new_member.MemberID),
+#                     object_type='FamilyMember'
+#                 )
+#             new_idx += 1
+
+#         messages.success(request, 'Head and family updated successfully!')
+#         return redirect('dashboard')
+#     # GET request: show edit form
+#     states = list(State.objects.filter(country_id=101).values('id', 'name'))
+#     members = FamilyMember.objects.filter(HeadID=instance)
+#     return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': members})
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.db import transaction, IntegrityError
+from django.contrib import messages
+# from your_app.models import FamilyHead, FamilyMember, AdminLog, State # assuming these are your models
+from datetime import date
+import datetime
+
 def update_head(request, id):
     instance = get_object_or_404(FamilyHead, HeadID=id)
+    states = list(State.objects.filter(country_id=101).values('id', 'name'))
+    
     if request.method == 'POST':
-        instance.Name = request.POST.get('head_name')
-        instance.Surname = request.POST.get('head_surname')
-        instance.Gender = request.POST.get('head_gender')
-        instance.Birthdate = request.POST.get('head_birthdate')
-        instance.MobileNo = request.POST.get('head_mobile')
-        instance.Address = request.POST.get('head_address')
-        instance.State = request.POST.get('head_state')
-        instance.City = request.POST.get('head_city')
-        instance.Pincode = request.POST.get('head_pincode')
-        instance.MaritalStatus = request.POST.get('head_marital_status')
-        instance.WeddingDate = request.POST.get('head_wedding_date') or None
-        instance.Education = request.POST.get('head_education')
-        if request.FILES.get('head_photo'):
-            instance.Photo = request.FILES.get('head_photo')
-        instance.save()
+        error_messages = []
+        
+        # --- Head Validation ---
+        head_name = request.POST.get('head_name', '').strip()
+        if not head_name:
+            error_messages.append('First name is required for Family Head.')
+        
+        head_surname = request.POST.get('head_surname', '').strip()
+        if not head_surname:
+            error_messages.append('Surname is required for Family Head.')
+            
+        head_mobile = request.POST.get('head_mobile', '').strip()
+        if not head_mobile or not head_mobile.isdigit() or len(head_mobile) != 10:
+            error_messages.append('A valid 10-digit mobile number is required for Family Head.')
+        # Check for unique mobile number, excluding the current instance's mobile number
+        if head_mobile and FamilyHead.objects.filter(MobileNo=head_mobile).exclude(HeadID=instance.HeadID).exists():
+            error_messages.append('This mobile number is already registered. Please use a different number.')
 
-        # Log update action for FamilyHead
-        if request.user.is_authenticated:
-            AdminLog.objects.create(
-                user=request.user,
-                username=request.user.username,
-                action='update',
-                description=f'Updated FamilyHead: {instance.Name} {instance.Surname}',
-                object_id=str(instance.HeadID),
-                object_type='FamilyHead'
-            )
+        head_address = request.POST.get('head_address', '').strip()
+        if not head_address:
+            error_messages.append('Address is required for Family Head.')
 
-        # family members
+        head_state_id = request.POST.get('head_state', '').strip()
+        if not head_state_id:
+            error_messages.append('State is required for Family Head.')
+
+        head_city = request.POST.get('head_city', '').strip()
+        if not head_city:
+            error_messages.append('City is required for Family Head.')
+
+        head_pincode = request.POST.get('head_pincode', '').strip()
+        if not head_pincode or not head_pincode.isdigit() or len(head_pincode) != 6:
+            error_messages.append('A valid 6-digit pincode is required for Family Head.')
+
+        head_gender = request.POST.get('head_gender', '').strip()
+        if not head_gender:
+            error_messages.append('Gender is required for Family Head.')
+
+        head_marital_status = request.POST.get('head_marital_status', '').strip()
+        if not head_marital_status:
+            error_messages.append('Marital Status is required for Family Head.')
+        elif head_marital_status == 'Married':
+            head_wedding_date = request.POST.get('head_wedding_date', '').strip()
+            if not head_wedding_date:
+                error_messages.append('Wedding date is required for a married Family Head.')
+
+        head_birthdate_str = request.POST.get('head_birthdate', '').strip()
+        if not head_birthdate_str:
+            error_messages.append('Birthdate is required for Family Head.')
+        else:
+            try:
+                head_birthdate = datetime.datetime.strptime(head_birthdate_str, '%Y-%m-%d').date()
+                today = date.today()
+                age = today.year - head_birthdate.year - ((today.month, today.day) < (head_birthdate.month, head_birthdate.day))
+                if age < 21:
+                    error_messages.append('Family Head must be 21 years or older.')
+            except ValueError:
+                error_messages.append('Invalid birthdate format for Family Head.')
+
+        head_education = request.POST.get('head_education', '').strip()
+        if not head_education:
+            error_messages.append('Education is required for Family Head.')
+        
+        head_photo = request.FILES.get('head_photo')
+        # Check if a new photo is uploaded, or if a photo already exists
+        if not head_photo and not instance.Photo:
+            error_messages.append('Photo is required for Family Head.')
+        elif head_photo:
+            if head_photo.size > 2 * 1024 * 1024:
+                error_messages.append('Family Head photo size must be less than 2MB.')
+            if head_photo.content_type not in ['image/jpeg', 'image/png']:
+                error_messages.append('Family Head photo must be a JPG or PNG file.')
+
+        head_hobbies = request.POST.getlist('head_hobbies[]')
+        if not any(hobby.strip() for hobby in head_hobbies):
+            error_messages.append('At least one hobby is required for Family Head.')
+
+        # --- Member Validation (for existing members) ---
         members = FamilyMember.objects.filter(HeadID=instance)
         for idx, member in enumerate(members, start=1):
-            member.Name = request.POST.get(f'member_{idx}_name')
-            member.Surname = request.POST.get(f'member_{idx}_surname')
-            member.Birthdate = request.POST.get(f'member_{idx}_birthdate')
-            member.MobileNo = request.POST.get(f'member_{idx}_mobile')
-            member.Gender = request.POST.get(f'member_{idx}_gender')
-            member.Relationship = request.POST.get(f'member_{idx}_relationship')
-            member.Education = request.POST.get(f'member_{idx}_education')
-            member.MaritalStatus = request.POST.get(f'member_{idx}_marital_status')
-            member.WeddingDate = request.POST.get(f'member_{idx}_wedding_date') or None
-            if request.FILES.get(f'member_{idx}_photo'):
-                member.Photo = request.FILES.get(f'member_{idx}_photo')
-            member.save()
-            # Log update action for FamilyMember
-            if request.user.is_authenticated:
-                AdminLog.objects.create(
-                    user=request.user,
-                    username=request.user.username,
-                    action='update',
-                    description=f'Updated FamilyMember: {member.Name} {member.Surname}',
-                    object_id=str(member.MemberID),
-                    object_type='FamilyMember'
-                )
+            member_name = request.POST.get(f'member_{idx}_name', '').strip()
+            if not member_name:
+                error_messages.append(f'First name is required for member {idx}.')
+            
+            member_surname = request.POST.get(f'member_{idx}_surname', '').strip()
+            if not member_surname:
+                error_messages.append(f'Surname is required for member {idx}.')
 
-        # Add new members if present in POST data
-        existing_count = members.count()
-        new_idx = existing_count + 1
+            member_relationship = request.POST.get(f'member_{idx}_relationship', '').strip()
+            if not member_relationship:
+                error_messages.append(f'Relationship is required for member {idx}.')
+
+            member_birthdate_str = request.POST.get(f'member_{idx}_birthdate', '').strip()
+            if not member_birthdate_str:
+                error_messages.append(f'Birthdate is required for member {idx}.')
+
+            member_marital_status = request.POST.get(f'member_{idx}_marital_status', '').strip()
+            if not member_marital_status:
+                error_messages.append(f'Marital Status is required for member {idx}.')
+            elif member_marital_status == 'Married':
+                member_wedding_date = request.POST.get(f'member_{idx}_wedding_date', '').strip()
+                if not member_wedding_date:
+                    error_messages.append(f'Wedding date is required for a married member {idx}.')
+
+            member_gender = request.POST.get(f'member_{idx}_gender', '').strip()
+            if not member_gender:
+                error_messages.append(f'Gender is required for member {idx}.')
+
+            member_education = request.POST.get(f'member_{idx}_education', '').strip()
+            if not member_education:
+                error_messages.append(f'Education is required for member {idx}.')
+            
+            member_photo = request.FILES.get(f'member_{idx}_photo')
+            if not member_photo and not member.Photo:
+                error_messages.append(f'Photo is required for member {idx}.')
+            elif member_photo:
+                if member_photo.size > 2 * 1024 * 1024:
+                    error_messages.append(f'Member {idx} photo size must be less than 2MB.')
+                if member_photo.content_type not in ['image/jpeg', 'image/png']:
+                    error_messages.append(f'Member {idx} photo must be a JPG or PNG file.')
+
+        # --- Member Validation (for new members) ---
+        new_idx = members.count() + 1
         while request.POST.get(f'member_{new_idx}_name'):
-            new_member = FamilyMember(
-                HeadID=instance,
-                Name=request.POST.get(f'member_{new_idx}_name'),
-                Surname=request.POST.get(f'member_{new_idx}_surname'),
-                Birthdate=request.POST.get(f'member_{new_idx}_birthdate'),
-                MobileNo=request.POST.get(f'member_{new_idx}_mobile'),
-                Gender=request.POST.get(f'member_{new_idx}_gender'),
-                Relationship=request.POST.get(f'member_{new_idx}_relationship'),
-                Education=request.POST.get(f'member_{new_idx}_education'),
-                MaritalStatus=request.POST.get(f'member_{new_idx}_marital_status'),
-                WeddingDate=request.POST.get(f'member_{new_idx}_wedding_date') or None,
-            )
-            if request.FILES.get(f'member_{new_idx}_photo'):
-                new_member.Photo = request.FILES.get(f'member_{new_idx}_photo')
-            new_member.save()
-            # Log create action for new FamilyMember
-            if request.user.is_authenticated:
-                AdminLog.objects.create(
-                    user=request.user,
-                    username=request.user.username,
-                    action='create',
-                    description=f'Created FamilyMember: {new_member.Name} {new_member.Surname}',
-                    object_id=str(new_member.MemberID),
-                    object_type='FamilyMember'
-                )
+            member_name = request.POST.get(f'member_{new_idx}_name', '').strip()
+            if not member_name:
+                error_messages.append(f'First name is required for new member {new_idx}.')
+            
+            member_surname = request.POST.get(f'member_{new_idx}_surname', '').strip()
+            if not member_surname:
+                error_messages.append(f'Surname is required for new member {new_idx}.')
+
+            member_relationship = request.POST.get(f'member_{new_idx}_relationship', '').strip()
+            if not member_relationship:
+                error_messages.append(f'Relationship is required for new member {new_idx}.')
+
+            member_birthdate_str = request.POST.get(f'member_{new_idx}_birthdate', '').strip()
+            if not member_birthdate_str:
+                error_messages.append(f'Birthdate is required for new member {new_idx}.')
+
+            member_marital_status = request.POST.get(f'member_{new_idx}_marital_status', '').strip()
+            if not member_marital_status:
+                error_messages.append(f'Marital Status is required for new member {new_idx}.')
+            elif member_marital_status == 'Married':
+                member_wedding_date = request.POST.get(f'member_{new_idx}_wedding_date', '').strip()
+                if not member_wedding_date:
+                    error_messages.append(f'Wedding date is required for a married new member {new_idx}.')
+
+            member_gender = request.POST.get(f'member_{new_idx}_gender', '').strip()
+            if not member_gender:
+                error_messages.append(f'Gender is required for new member {new_idx}.')
+
+            member_education = request.POST.get(f'member_{new_idx}_education', '').strip()
+            if not member_education:
+                error_messages.append(f'Education is required for new member {new_idx}.')
+            
+            member_photo = request.FILES.get(f'member_{new_idx}_photo')
+            if not member_photo:
+                error_messages.append(f'Photo is required for new member {new_idx}.')
+            elif member_photo:
+                if member_photo.size > 2 * 1024 * 1024:
+                    error_messages.append(f'New member {new_idx} photo size must be less than 2MB.')
+                if member_photo.content_type not in ['image/jpeg', 'image/png']:
+                    error_messages.append(f'New member {new_idx} photo must be a JPG or PNG file.')
+
             new_idx += 1
 
-        messages.success(request, 'Head and family updated successfully!')
-        return redirect('dashboard')
-    # GET request: show edit form
-    states = list(State.objects.filter(country_id=101).values('id', 'name'))
-    members = FamilyMember.objects.filter(HeadID=instance)
-    return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': members})
+        if error_messages:
+            return JsonResponse({'success': False, 'errors': error_messages})
+        
+        # If no validation errors, proceed with the database transaction
+        try:
+            with transaction.atomic():
+                # Update and save Family Head
+                instance.Name = head_name
+                instance.Surname = head_surname
+                instance.Gender = head_gender
+                instance.Birthdate = head_birthdate_str
+                instance.MobileNo = head_mobile
+                instance.Address = head_address
+                instance.State = head_state_id
+                instance.City = head_city
+                instance.Pincode = head_pincode
+                instance.MaritalStatus = head_marital_status
+                instance.WeddingDate = request.POST.get('head_wedding_date') or None
+                instance.Education = head_education
+                if request.FILES.get('head_photo'):
+                    instance.Photo = request.FILES.get('head_photo')
+                instance.save()
+                
+                # Log update action for FamilyHead
+                if request.user.is_authenticated:
+                    AdminLog.objects.create(
+                        user=request.user,
+                        username=request.user.username,
+                        action='update',
+                        description=f'Updated FamilyHead: {instance.Name} {instance.Surname}',
+                        object_id=str(instance.HeadID),
+                        object_type='FamilyHead'
+                    )
+
+                # Update existing hobbies for Head
+                Hobby.objects.filter(head=instance).delete()
+                for hobby in head_hobbies:
+                    if hobby.strip():
+                        Hobby.objects.create(head=instance, Hobby=hobby.strip())
+
+                # Update existing family members
+                members = FamilyMember.objects.filter(HeadID=instance)
+                for idx, member in enumerate(members, start=1):
+                    member.Name = request.POST.get(f'member_{idx}_name')
+                    member.Surname = request.POST.get(f'member_{idx}_surname')
+                    member.Birthdate = request.POST.get(f'member_{idx}_birthdate') or None
+                    member.MobileNo = request.POST.get(f'member_{idx}_mobile')
+                    member.Gender = request.POST.get(f'member_{idx}_gender')
+                    member.Relationship = request.POST.get(f'member_{idx}_relationship')
+                    member.Education = request.POST.get(f'member_{idx}_education')
+                    member.MaritalStatus = request.POST.get(f'member_{idx}_marital_status')
+                    member.WeddingDate = request.POST.get(f'member_{idx}_wedding_date') or None
+                    if request.FILES.get(f'member_{idx}_photo'):
+                        member.Photo = request.FILES.get(f'member_{idx}_photo')
+                    member.save()
+                    
+                    if request.user.is_authenticated:
+                        AdminLog.objects.create(
+                            user=request.user,
+                            username=request.user.username,
+                            action='update',
+                            description=f'Updated FamilyMember: {member.Name} {member.Surname}',
+                            object_id=str(member.MemberID),
+                            object_type='FamilyMember'
+                        )
+
+                # Add new members
+                new_idx = members.count() + 1
+                while request.POST.get(f'member_{new_idx}_name'):
+                    new_member = FamilyMember(
+                        HeadID=instance,
+                        Name=request.POST.get(f'member_{new_idx}_name'),
+                        Surname=request.POST.get(f'member_{new_idx}_surname'),
+                        Birthdate=request.POST.get(f'member_{new_idx}_birthdate') or None,
+                        MobileNo=request.POST.get(f'member_{new_idx}_mobile'),
+                        Gender=request.POST.get(f'member_{new_idx}_gender'),
+                        Relationship=request.POST.get(f'member_{new_idx}_relationship'),
+                        Education=request.POST.get(f'member_{new_idx}_education'),
+                        MaritalStatus=request.POST.get(f'member_{new_idx}_marital_status'),
+                        WeddingDate=request.POST.get(f'member_{new_idx}_wedding_date') or None,
+                    )
+                    if request.FILES.get(f'member_{new_idx}_photo'):
+                        new_member.Photo = request.FILES.get(f'member_{new_idx}_photo')
+                    new_member.save()
+                    
+                    if request.user.is_authenticated:
+                        AdminLog.objects.create(
+                            user=request.user,
+                            username=request.user.username,
+                            action='create',
+                            description=f'Created FamilyMember: {new_member.Name} {new_member.Surname}',
+                            object_id=str(new_member.MemberID),
+                            object_type='FamilyMember'
+                        )
+                    new_idx += 1
+
+                return JsonResponse({'success': True, 'message': 'Family updated successfully!'})
+        
+        except IntegrityError:
+            return JsonResponse({'success': False, 'errors': ['A database error occurred. Please try again later.']})
+
+    return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': FamilyMember.objects.filter(HeadID=instance)})
+
 
 
 def edit_state(request, id):
@@ -511,127 +799,127 @@ def home(request):
     return render(request, 'home_copy.html')
 
 
-def regis(request):
-    states = list(State.objects.filter(country_id=101).values('id', 'name'))
+# def regis(request):
+#     states = list(State.objects.filter(country_id=101).values('id', 'name'))
 
-    if request.method == 'POST':
-        error_messages = []
-        # Validate head gender
-        head_gender = request.POST.get('head_gender')
-        if not head_gender:
-            error_messages.append('Gender is required for Family Head.')
-        # Validate other required head fields (optional: add more as needed)
-        # Validate members gender
-        member_index = 1
-        while True:
-            name = request.POST.get(f'member_{member_index}_name')
-            if not name:
-                break
-            member_gender = request.POST.get(f'member_{member_index}_gender')
-            if not member_gender:
-                error_messages.append(f'Gender is required for member {member_index}.')
-            member_index += 1
+#     if request.method == 'POST':
+#         error_messages = []
+#         # Validate head gender
+#         head_gender = request.POST.get('head_gender')
+#         # if not head_gender:
+#         #     error_messages.append('Gender is required for Family Head.')
+#         # Validate other required head fields (optional: add more as needed)
+#         # Validate members gender
+#         member_index = 1
+#         while True:
+#             name = request.POST.get(f'member_{member_index}_name')
+#             if not name:
+#                 break
+#             member_gender = request.POST.get(f'member_{member_index}_gender')
+#             if not member_gender:
+#                 error_messages.append(f'Gender is required for member {member_index}.')
+#             member_index += 1
 
-        if error_messages:
-            for msg in error_messages:
-                messages.error(request, msg)
-            return render(request, 'registration.html', {'states': states})
+#         if error_messages:
+#             for msg in error_messages:
+#                 messages.error(request, msg)
+#             return render(request, 'registration.html', {'states': states})
 
-        # Family Head - check unique mobile
-        head_mobile = request.POST.get('head_mobile')
-        if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
-            messages.error(request, 'This mobile number is already registered. Please use a different number.')
-            return render(request, 'registration.html', {'states': states})
-        head_birthdate = request.POST.get('head_birthdate')
-        if head_birthdate == '':
-            head_birthdate = None
-        head = FamilyHead(
-            Name=request.POST.get('head_name'),
-            Surname=request.POST.get('head_surname'),
-            Gender =head_gender,
-            Birthdate=head_birthdate,
-            MobileNo=head_mobile,
-            Address=request.POST.get('head_address'),
-            State=request.POST.get('head_state'),
-            City=request.POST.get('head_city'),
-            Pincode=request.POST.get('head_pincode'),
-            MaritalStatus=request.POST.get('head_marital_status'),
-            WeddingDate=request.POST.get('head_wedding_date') or None,
-            Education=request.POST.get('head_education'),
-            Photo=request.FILES.get('head_photo')
-        )
-        head.save()
+#         # Family Head - check unique mobile
+#         head_mobile = request.POST.get('head_mobile')
+#         if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
+#             messages.error(request, 'This mobile number is already registered. Please use a different number.')
+#             return render(request, 'registration.html', {'states': states})
+#         head_birthdate = request.POST.get('head_birthdate')
+#         if head_birthdate == '':
+#             head_birthdate = None
+#         head = FamilyHead(
+#             Name=request.POST.get('head_name'),
+#             Surname=request.POST.get('head_surname'),
+#             Gender =head_gender,
+#             Birthdate=head_birthdate,
+#             MobileNo=head_mobile,
+#             Address=request.POST.get('head_address'),
+#             State=request.POST.get('head_state'),
+#             City=request.POST.get('head_city'),
+#             Pincode=request.POST.get('head_pincode'),
+#             MaritalStatus=request.POST.get('head_marital_status'),
+#             WeddingDate=request.POST.get('head_wedding_date') or None,
+#             Education=request.POST.get('head_education'),
+#             Photo=request.FILES.get('head_photo')
+#         )
+#         head.save()
 
-        # Log create action for FamilyHead
-        if request.user.is_authenticated:
-            AdminLog.objects.create(
-                user=request.user,
-                username=request.user.username,
-                action='create',
-                description=f'Created FamilyHead: {head.Name} {head.Surname}',
-                object_id=str(head.HeadID),
-                object_type='FamilyHead'
-            )
+#         # Log create action for FamilyHead
+#         if request.user.is_authenticated:
+#             AdminLog.objects.create(
+#                 user=request.user,
+#                 username=request.user.username,
+#                 action='create',
+#                 description=f'Created FamilyHead: {head.Name} {head.Surname}',
+#                 object_id=str(head.HeadID),
+#                 object_type='FamilyHead'
+#             )
 
-        # Hobbies for Head
-        for hobby in request.POST.getlist('head_hobbies[]'):
-            if hobby.strip():
-                Hobby.objects.create(head=head, Hobby=hobby.strip())
+#         # Hobbies for Head
+#         for hobby in request.POST.getlist('head_hobbies[]'):
+#             if hobby.strip():
+#                 Hobby.objects.create(head=head, Hobby=hobby.strip())
 
-        # Family Members
-        member_index = 1
-        while True:
-            name = request.POST.get(f'member_{member_index}_name')
-            if not name:
-                break
-            address = request.POST.get(f'member_{member_index}_address')
-            address_override = bool(address)
-            if not address_override:
-                # Inherit address from head
-                address = head.Address
-                state = head.State
-                city = head.City
-                pincode = head.Pincode
-            else:
-                state = request.POST.get(f'member_{member_index}_state')
-                city = request.POST.get(f'member_{member_index}_city')
-                pincode = request.POST.get(f'member_{member_index}_pincode')
-            member_birthdate = request.POST.get(f'member_{member_index}_birthdate')
-            if member_birthdate == '':
-                member_birthdate = None
-            member_gender = request.POST.get(f'member_{member_index}_gender')
-            member = FamilyMember(
-                HeadID=head,
-                Name=name,
-                Surname=request.POST.get(f'member_{member_index}_surname'),
-                Gender=member_gender,
-                Relationship=request.POST.get(f'member_{member_index}_relationship'),
-                Birthdate=member_birthdate,
-                MobileNo=request.POST.get(f'member_{member_index}_mobile'),
-                Photo=request.FILES.get(f'member_{member_index}_photo'),
-                MaritalStatus=request.POST.get(f'member_{member_index}_marital_status'),
-            )
-            member.save()
-            # Log create action for FamilyMember
-            if request.user.is_authenticated:
-                AdminLog.objects.create(
-                    user=request.user,
-                    username=request.user.username,
-                    action='create',
-                    description=f'Created FamilyMember: {member.Name} {member.Surname}',
-                    object_id=str(member.MemberID),
-                    object_type='FamilyMember'
-                )
-            # Member hobbies
-            for hobby in request.POST.getlist(f'member_{member_index}_hobbies[]'):
-                if hobby.strip():
-                    Hobby.objects.create(head=head, member=member, Hobby=hobby.strip())
-            member_index += 1
+#         # Family Members
+#         member_index = 1
+#         while True:
+#             name = request.POST.get(f'member_{member_index}_name')
+#             if not name:
+#                 break
+#             address = request.POST.get(f'member_{member_index}_address')
+#             address_override = bool(address)
+#             if not address_override:
+#                 # Inherit address from head
+#                 address = head.Address
+#                 state = head.State
+#                 city = head.City
+#                 pincode = head.Pincode
+#             else:
+#                 state = request.POST.get(f'member_{member_index}_state')
+#                 city = request.POST.get(f'member_{member_index}_city')
+#                 pincode = request.POST.get(f'member_{member_index}_pincode')
+#             member_birthdate = request.POST.get(f'member_{member_index}_birthdate')
+#             if member_birthdate == '':
+#                 member_birthdate = None
+#             member_gender = request.POST.get(f'member_{member_index}_gender')
+#             member = FamilyMember(
+#                 HeadID=head,
+#                 Name=name,
+#                 Surname=request.POST.get(f'member_{member_index}_surname'),
+#                 Gender=member_gender,
+#                 Relationship=request.POST.get(f'member_{member_index}_relationship'),
+#                 Birthdate=member_birthdate,
+#                 MobileNo=request.POST.get(f'member_{member_index}_mobile'),
+#                 Photo=request.FILES.get(f'member_{member_index}_photo'),
+#                 MaritalStatus=request.POST.get(f'member_{member_index}_marital_status'),
+#             )
+#             member.save()
+#             # Log create action for FamilyMember
+#             if request.user.is_authenticated:
+#                 AdminLog.objects.create(
+#                     user=request.user,
+#                     username=request.user.username,
+#                     action='create',
+#                     description=f'Created FamilyMember: {member.Name} {member.Surname}',
+#                     object_id=str(member.MemberID),
+#                     object_type='FamilyMember'
+#                 )
+#             # Member hobbies
+#             for hobby in request.POST.getlist(f'member_{member_index}_hobbies[]'):
+#                 if hobby.strip():
+#                     Hobby.objects.create(head=head, member=member, Hobby=hobby.strip())
+#             member_index += 1
 
-        messages.success(request, 'Family registered successfully!')
-        return redirect('regis')
+#         messages.success(request, 'Family registered successfully!')
+#         return redirect('regis')
 
-    return render(request, 'registration.html', {'states': states})
+#     return render(request, 'registration.html', {'states': states})
 
 
 def login_view(request):
@@ -659,6 +947,218 @@ def login_view(request):
             return render(request, 'login.html', {'error_message': 'Invalid credentials or not a superuser', 'username': username})
 
     return render(request, 'login.html')
+
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import State, FamilyHead, FamilyMember, Hobby, AdminLog
+from django.contrib import messages
+from django.db.utils import IntegrityError
+from django.db import transaction
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.db import transaction, IntegrityError
+# from models import FamilyHead, FamilyMember, Hobby, AdminLog, State # Assuming your models are in 'your_app'
+from datetime import date
+import datetime
+
+def regis(request):
+    states = list(State.objects.filter(country_id=101).values('id', 'name'))
+
+    if request.method == 'POST':
+        error_messages = []
+        
+        # --- Head Validation ---
+        head_name = request.POST.get('head_name')
+        if not head_name:
+            error_messages.append('First name is required for Family Head.')
+        
+        head_surname = request.POST.get('head_surname')
+        if not head_surname:
+            error_messages.append('Surname is required for Family Head.')
+
+        head_mobile = request.POST.get('head_mobile')
+        if not head_mobile or not head_mobile.isdigit() or len(head_mobile) != 10:
+            error_messages.append('A valid 10-digit mobile number is required for Family Head.')
+        
+        head_address = request.POST.get('head_address')
+        if not head_address:
+            error_messages.append('Address is required for Family Head.')
+
+        head_state_id = request.POST.get('head_state')
+        if not head_state_id:
+            error_messages.append('State is required for Family Head.')
+
+        head_city = request.POST.get('head_city')
+        if not head_city:
+            error_messages.append('City is required for Family Head.')
+
+        head_pincode = request.POST.get('head_pincode')
+        if not head_pincode or not head_pincode.isdigit() or len(head_pincode) != 6:
+            error_messages.append('A valid 6-digit pincode is required for Family Head.')
+
+        head_gender = request.POST.get('head_gender')
+        if not head_gender:
+            error_messages.append('Gender is required for Family Head.')
+
+        head_marital_status = request.POST.get('head_marital_status')
+        if not head_marital_status:
+            error_messages.append('Marital Status is required for Family Head.')
+        elif head_marital_status == 'Married' and not request.POST.get('head_wedding_date'):
+            error_messages.append('Wedding date is required for a married Family Head.')
+
+        head_birthdate = request.POST.get('head_birthdate')
+        if not head_birthdate:
+            error_messages.append('Birthdate is required for Family Head.')
+        else:
+            try:
+                birth_date = datetime.datetime.strptime(head_birthdate, '%Y-%m-%d').date()
+                today = date.today()
+                age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+                if age < 21:
+                    error_messages.append('Family Head must be 21 years or older.')
+            except ValueError:
+                error_messages.append('Invalid birthdate format for Family Head.')
+
+        head_education = request.POST.get('head_education')
+        if not head_education:
+            error_messages.append('Education is required for Family Head.')
+        
+        head_photo = request.FILES.get('head_photo')
+        if not head_photo:
+            error_messages.append('Photo is required for Family Head.')
+
+        head_hobbies = request.POST.getlist('head_hobbies[]')
+        if not any(hobby.strip() for hobby in head_hobbies):
+            error_messages.append('At least one hobby is required for Family Head.')
+
+        # --- Member Validation ---
+        member_index = 1
+        while True:
+            name = request.POST.get(f'member_{member_index}_name')
+            if not name:
+                break
+            
+            member_surname = request.POST.get(f'member_{member_index}_surname')
+            if not member_surname:
+                error_messages.append(f'Surname is required for member {member_index}.')
+
+            member_gender = request.POST.get(f'member_{member_index}_gender')
+            if not member_gender:
+                error_messages.append(f'Gender is required for member {member_index}.')
+
+            member_relationship = request.POST.get(f'member_{member_index}_relationship')
+            if not member_relationship:
+                error_messages.append(f'Relationship is required for member {member_index}.')
+
+            member_birthdate = request.POST.get(f'member_{member_index}_birthdate')
+            if not member_birthdate:
+                error_messages.append(f'Birthdate is required for member {member_index}.')
+
+            member_marital_status = request.POST.get(f'member_{member_index}_marital_status')
+            if not member_marital_status:
+                error_messages.append(f'Marital Status is required for member {member_index}.')
+            elif member_marital_status == 'Married' and not request.POST.get(f'member_{member_index}_wedding_date'):
+                error_messages.append(f'Wedding date is required for a married member {member_index}.')
+            
+            member_photo = request.FILES.get(f'member_{member_index}_photo')
+            if not member_photo:
+                error_messages.append(f'Photo is required for member {member_index}.')
+          
+            member_index += 1
+
+        if error_messages:
+            return JsonResponse({'success': False, 'errors': error_messages})
+
+        # Family Head - check unique mobile
+        if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
+            return JsonResponse({'success': False, 'errors': ['This mobile number is already registered. Please use a different number.']})
+
+        # Use a transaction for atomicity
+        try:
+            with transaction.atomic():
+                head_birthdate = request.POST.get('head_birthdate') or None
+                head_wedding_date = request.POST.get('head_wedding_date') or None
+                
+                # Create and save Family Head
+                head = FamilyHead(
+                    Name=head_name,
+                    Surname=head_surname,
+                    Gender=head_gender,
+                    Birthdate=head_birthdate,
+                    MobileNo=head_mobile,
+                    Address=head_address,
+                    State=head_state_id,
+                    City=head_city,
+                    Pincode=head_pincode,
+                    MaritalStatus=head_marital_status,
+                    WeddingDate=head_wedding_date,
+                    Education=head_education,
+                    Photo=head_photo
+                )
+                head.save()
+
+                # Log create action for FamilyHead
+                if request.user.is_authenticated:
+                    AdminLog.objects.create(
+                        user=request.user,
+                        username=request.user.username,
+                        action='create',
+                        description=f'Created FamilyHead: {head.Name} {head.Surname}',
+                        object_id=str(head.HeadID),
+                        object_type='FamilyHead'
+                    )
+
+                # Hobbies for Head
+                for hobby in head_hobbies:
+                    if hobby.strip():
+                        Hobby.objects.create(head=head, Hobby=hobby.strip())
+
+                # Family Members
+                member_index = 1
+                while True:
+                    name = request.POST.get(f'member_{member_index}_name')
+                    if not name:
+                        break
+                    
+                    member_birthdate = request.POST.get(f'member_{member_index}_birthdate') or None
+                    member_marital_status = request.POST.get(f'member_{member_index}_marital_status')
+                    member_wedding_date = request.POST.get(f'member_{member_index}_wedding_date') if member_marital_status == 'Married' else None
+                    member_photo = request.FILES.get(f'member_{member_index}_photo')
+                    
+                    member = FamilyMember(
+                        HeadID=head,
+                        Name=name,
+                        Surname=request.POST.get(f'member_{member_index}_surname'),
+                        Gender=request.POST.get(f'member_{member_index}_gender'),
+                        Relationship=request.POST.get(f'member_{member_index}_relationship'),
+                        Birthdate=member_birthdate,
+                        MobileNo=request.POST.get(f'member_{member_index}_mobile') or None,
+                        Photo=member_photo,
+                        MaritalStatus=member_marital_status,
+                        WeddingDate=member_wedding_date,
+                        Education=request.POST.get(f'member_{member_index}_education'),
+                    )
+                    member.save()
+
+                    # Log create action for FamilyMember
+                    if request.user.is_authenticated:
+                        AdminLog.objects.create(
+                            user=request.user,
+                            username=request.user.username,
+                            action='create',
+                            description=f'Created FamilyMember: {member.Name} {member.Surname}',
+                            object_id=str(member.MemberID),
+                            object_type='FamilyMember'
+                        )
+                    member_index += 1
+
+                # Return a success response
+                return JsonResponse({'success': True, 'message': 'Family registered successfully!'})
+        
+        except IntegrityError:
+            return JsonResponse({'success': False, 'errors': ['A database error occurred. Please try again later.']})
+
+    return render(request, 'registration.html', {'states': states})
 
 def resetPassword(request):
     return render(request, 'resetPassword.html')

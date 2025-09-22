@@ -1,9 +1,9 @@
-{% extends 'dashboard_base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 {% block title %}Family Registration{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'fims/css/edit_registration.css' %}">
+<link rel="stylesheet" href="{% static 'fims/css/registration.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -210,7 +210,7 @@
                                     <option value="">Select</option>
                                     <option value="Graduate" {% if member.Education == 'Graduate' %}selected{% endif %}>Graduate</option>
                                     <option value="Post Graduate">Post Graduate</option>
-                                    <option value="Diploma">Diploma</option>
+                                    <option value="Diploma" {% if member.Education == 'Diploma' %}selected{% endif %}>Diploma</option>
                                 </select>
                                 <span class="error-message"></span>
                             </td>
@@ -263,29 +263,15 @@
         }
     }
     
-    function clearError(element) {
-        let errorSpan;
-        if (element.nextElementSibling && element.nextElementSibling.classList.contains('error-message')) {
-            errorSpan = element.nextElementSibling;
-        } else {
-            const parentTd = element.closest('td');
-            if (parentTd) {
-                errorSpan = parentTd.querySelector('.error-message');
-            }
-        }
-        if (errorSpan) {
-            errorSpan.textContent = "";
-        }
-    }
-    
-    function clearAllErrors() {
+    function clearErrors() {
         document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
     }
 
     // New validation function for Family Head
     function validateHead(showErrors = false) {
         let valid = true;
-        
+        if (showErrors) clearErrors();
+
         const headFields = [
             { id: "head_name", msg: "First name is required." },
             { id: "head_surname", msg: "Surname is required." },
@@ -426,7 +412,7 @@
     // Main form validation function
     function validateForm(event) {
         event.preventDefault();
-        clearAllErrors();
+        clearErrors();
         
         let valid = validateHead(true);
         
@@ -460,7 +446,7 @@
                     alert(response.message);
                     window.location.reload(); 
                 } else {
-                    clearAllErrors();
+                    clearErrors();
                     response.errors.forEach(error => {
                         const errorSpan = document.getElementById('general-errors');
                         if (errorSpan) {
@@ -504,14 +490,6 @@
     document.querySelectorAll('#head-fieldset input, #head-fieldset select, #head-fieldset textarea').forEach(input => {
         input.addEventListener('change', checkFormValidity);
         input.addEventListener('blur', checkFormValidity);
-        input.addEventListener('input', () => {
-            if (input.type === 'file') {
-                // Special handling for file input, as value changes only on blur or change
-                checkFormValidity();
-            } else {
-                clearError(input);
-            }
-        });
     });
 
     // Attach the main event listener to the form
@@ -532,7 +510,6 @@
                     }
                 });
             }
-            checkFormValidity();
         });
 
         $('input[name="head_marital_status"]').change(function() {
@@ -543,23 +520,6 @@
         $(document).on('change', 'input[name^="member_"][name$="_marital_status"]', function() {
             const index = $(this).attr('name').match(/member_(\d+)_marital_status/)[1];
             $(`#member_${index}_wedding_date_row`).toggle(this.value === 'Married');
-            const memberBlock = $(this).closest('.member-block')[0];
-            validateMember(memberBlock, true);
-        });
-        
-        // Add dynamic validation for existing members on page load
-        document.querySelectorAll('.member-block').forEach(memberBlock => {
-            memberBlock.querySelectorAll('input, select, textarea').forEach(input => {
-                input.addEventListener('change', () => validateMember(memberBlock, false));
-                input.addEventListener('blur', () => validateMember(memberBlock, false));
-                input.addEventListener('input', () => {
-                    if (input.type === 'file') {
-                        validateMember(memberBlock, false);
-                    } else {
-                        clearError(input);
-                    }
-                });
-            });
         });
 
         $('#head_mobile').on('blur', function() {
@@ -598,16 +558,6 @@
         input.placeholder = "Enter a hobby";
         input.classList.add("hobby-input");
         section.insertBefore(input, btn);
-
-        input.addEventListener('input', () => {
-            if (type === 'head') {
-                checkFormValidity();
-            } else {
-                const memberBlock = input.closest('.member-block');
-                validateMember(memberBlock, false);
-            }
-        });
-
         checkFormValidity(); // Check validity after adding hobby field
     };
     
@@ -712,15 +662,8 @@
         
         // Add real-time event listeners for the new member's form fields
         newMemberBlock.querySelectorAll('input, select, textarea').forEach(input => {
-            input.addEventListener('change', () => validateMember(newMemberBlock, false));
-            input.addEventListener('blur', () => validateMember(newMemberBlock, false));
-            input.addEventListener('input', () => {
-                if (input.type === 'file') {
-                    validateMember(newMemberBlock, false);
-                } else {
-                    clearError(input);
-                }
-            });
+            input.addEventListener('change', () => validateMember(newMemberBlock, true));
+            input.addEventListener('blur', () => validateMember(newMemberBlock, true));
         });
         
         // Add event listener for the new member's marital status

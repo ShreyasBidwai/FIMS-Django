@@ -3,6 +3,7 @@ body{
     overflow: hidden;
 }
 #stats-page {
+  margin-top:5rem;
   display: grid;
   grid-template-columns: 1fr 1.5fr; /* charts bigger, cards smaller */
   height: 100vh; /* fill screen */
@@ -56,8 +57,13 @@ body{
   gap: 0.8rem;
   align-content: stretch;
   justify-items: stretch;
+  /* margin-top: 80px; */
   height: 100%;
 }
+
+/* .stats-left{
+  margin-top: 80px;
+} */
 
 .card {
   background: #fff;
