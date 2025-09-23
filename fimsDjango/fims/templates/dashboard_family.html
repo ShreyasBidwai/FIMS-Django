@@ -86,7 +86,34 @@
         align-items: center;
     }
     #status-modal .modal-content {
-        /* ...existing styles... */
+        background: #fff;
+        padding: 0.7rem 1.2rem 1.1rem 1.2rem;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 170px;
+        max-width: 220px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.16);
+        position: relative;
+        margin: auto;
+        font-size: 1rem;
+    }
+    #status-modal .modal-content h3 {
+        font-size: 1.08rem;
+        margin-bottom: 0.7rem;
+    }
+    #status-modal .modal-content button {
+        margin: 0.2rem 0.2rem 0.2rem 0.2rem;
+        padding: 0.32rem 0.7rem;
+        font-size: 0.98rem;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    #status-modal .modal-content #cancel-status {
+        background: #f5f6fa;
+        color: #222;
+        border: 1px solid #d1d5db;
     }
 </style>
 <script>
@@ -117,35 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-        background: #fff;
-        padding: 0.7rem 1.2rem 1.1rem 1.2rem;
-        border-radius: 8px;
-        text-align: center;
-        min-width: 170px;
-        max-width: 220px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.16);
-        position: relative;
-        margin: auto;
-        font-size: 1rem;
-    }
-    #status-modal .modal-content h3 {
-        font-size: 1.08rem;
-        margin-bottom: 0.7rem;
-    }
-    #status-modal .modal-content button {
-        margin: 0.2rem 0.2rem 0.2rem 0.2rem;
-        padding: 0.32rem 0.7rem;
-        font-size: 0.98rem;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-    #status-modal .modal-content #cancel-status {
-        background: #f5f6fa;
-        color: #222;
-        border: 1px solid #d1d5db;
-    }
+
 </style>
 <div id="status-modal">
     <div class="modal-content">
