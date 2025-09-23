@@ -282,7 +282,7 @@
         document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
     }
 
-    // New validation function for Family Head
+
     function validateHead(showErrors = false) {
         let valid = true;
         
@@ -366,7 +366,7 @@
         return valid;
     }
     
-    // New validation function for individual members
+
     function validateMember(memberBlock, showErrors = false) {
         let valid = true;
         
@@ -423,7 +423,6 @@
         return valid;
     }
 
-    // Main form validation function
     function validateForm(event) {
         event.preventDefault();
         clearAllErrors();
@@ -485,7 +484,7 @@
         });
     }
     
-    // Check form validity and update "Add Member" button state
+
     function checkFormValidity() {
         const isValid = validateHead();
         const addMemberBtn = document.getElementById('add-member-btn');

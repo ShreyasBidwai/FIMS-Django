@@ -27,7 +27,7 @@ body {
     z-index: 1000;
 }
 
-/* Logo */
+
 #logo {
     font-size: 1.6rem;
     font-weight: bold;
@@ -65,9 +65,9 @@ body {
     border-radius: 6px;
 }
 
-/* Hover & Active */
+
 #nav-bar ul li a:hover {
-    color:white;           /* Teal accent */
+    color:white;          
     background-color: rgba(255,255,255,0.3);
 }
 

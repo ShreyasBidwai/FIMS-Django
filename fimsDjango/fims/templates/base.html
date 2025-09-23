@@ -77,10 +77,10 @@
         }
         
         #content-wrapper {
-            padding-top: 80px; /* Adjust based on navbar height */
+            padding-top: 80px; 
         }
 
-        /* Hamburger menu for mobile */
+
         .menu-toggle {
             display: none;
             flex-direction: column;
@@ -145,7 +145,7 @@
         </div>
         <ul id="nav-links">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
+                <a href="{% url 'dashboard_head' %}" class="back-btn">&larr; Back to Dashboard</a>
                 <li><a href="{% url 'regis' %}">Register</a></li>
                 <li><a href="{% url 'logout' %}">Logout</a></li>
                 

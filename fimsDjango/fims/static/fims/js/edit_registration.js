@@ -124,7 +124,7 @@ window.addMember = function() {
 
     container.appendChild(div);
 
-    // Show wedding date field only if married is selected for this member
+
     const marriedRadio = div.querySelector(`input[name="member_${memberIndex}_marital_status"][value="Married"]`);
     const unmarriedRadio = div.querySelector(`input[name="member_${memberIndex}_marital_status"][value="Unmarried"]`);
     const weddingDateRow = div.querySelector(`#member_${memberIndex}_wedding_date_row`);

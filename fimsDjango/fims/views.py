@@ -1,4 +1,15 @@
-
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import State, FamilyHead, FamilyMember, Hobby, AdminLog
+from django.contrib import messages
+from django.db.utils import IntegrityError
+from django.db import transaction
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.db import transaction, IntegrityError
+# from models import FamilyHead, FamilyMember, Hobby, AdminLog, State # Assuming your models are in 'your_app'
+from datetime import date
+import datetime
 
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
@@ -19,6 +30,14 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import State, City, Country
 from django.views.decorators.http import require_http_methods
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.db import transaction, IntegrityError
+from django.contrib import messages
+# from your_app.models import FamilyHead, FamilyMember, AdminLog, State # assuming these are your models
+from datetime import date
+import datetime
 
 import io
 from django.http import FileResponse
@@ -162,7 +181,7 @@ def pdf_view(request):
          Paragraph('<b>Marital Status</b>', styles['Normal']), Paragraph('<b>Wedding Status</b>', styles['Normal'])]
     ]
     for idx, member in enumerate(members):
-        # Photo: If exists, embed as small image, else '-'
+        
         photo_cell = '-'
         if member.Photo and hasattr(member.Photo, 'path') and os.path.exists(member.Photo.path):
             try:
@@ -170,7 +189,7 @@ def pdf_view(request):
                 photo_cell = mimg
             except Exception:
                 photo_cell = '-'
-        # Wedding status: 'Married' or 'Not Married' based on MaritalStatus
+
         wedding_status = 'Married' if getattr(member, 'MaritalStatus', None) == 'Married' else 'Not Married'
         member_data.append([
             photo_cell,
@@ -178,13 +197,13 @@ def pdf_view(request):
             str(member.Birthdate) if member.Birthdate else '-',
             member.Gender or '-',
             member.MobileNo or '-',
-            '-',  # No Education field for FamilyMember
+            '-',  
             member.MaritalStatus or '-',
             wedding_status,
         ])
 
     member_table = Table(member_data, colWidths=[50, 90, 70, 60, 80, 80, 70, 80])
-    # Alternate row coloring for readability
+    
     row_colors = [colors.white, colors.HexColor('#f8fafc')]
     table_style = [
         ('GRID', (0, 0), (-1, -1), 0.7, colors.HexColor('#1f2a38')),
@@ -217,7 +236,7 @@ def view_state(request, id):
 def view_family(request, id):
     head = get_object_or_404(FamilyHead, HeadID=id)
     members = head.familymember_set.all()
-    # Get state and city names for display
+    
     state_name = head.State
     city_name = head.City
     try:
@@ -281,6 +300,8 @@ def add_city(request):
                 return redirect('dashboard')
             except Exception as e:
                 error = str(e)
+    
+    
     return render(request, 'add_city.html', {'states': states, 'error': error})
 
 
@@ -381,13 +402,7 @@ def add_city(request):
 #     members = FamilyMember.objects.filter(HeadID=instance)
 #     return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': members})
 
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.db import transaction, IntegrityError
-from django.contrib import messages
-# from your_app.models import FamilyHead, FamilyMember, AdminLog, State # assuming these are your models
-from datetime import date
-import datetime
+
 
 def update_head(request, id):
     instance = get_object_or_404(FamilyHead, HeadID=id)
@@ -941,28 +956,61 @@ def login_view(request):
                 object_type='User'
             )
             messages.success(request, 'Login successful!')
-            return redirect('dashboard')
+            return redirect('dashboard_head')
         else:
             # Pass error_message for client-side display
             return render(request, 'login.html', {'error_message': 'Invalid credentials or not a superuser', 'username': username})
 
     return render(request, 'login.html')
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import State, FamilyHead, FamilyMember, Hobby, AdminLog
-from django.contrib import messages
-from django.db.utils import IntegrityError
-from django.db import transaction
+
+import datetime
+from datetime import date
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db import transaction, IntegrityError
-# from models import FamilyHead, FamilyMember, Hobby, AdminLog, State # Assuming your models are in 'your_app'
-from datetime import date
-import datetime
+from .models import FamilyHead, FamilyMember, Hobby, AdminLog, State
 
 def regis(request):
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
+    
+    # 🐞 Fix: Get the search query from the request's GET parameters
+    search = request.GET.get('search')
+
+    # Enable search filtering
+    if search:
+        from django.db.models import Q
+        heads = FamilyHead.objects.all()
+        families = FamilyMember.objects.all()
+        states = State.objects.all()
+        # filtered_cities is not defined in the original code,
+        # so this line will also cause an error.
+        # filtered_cities = filtered_cities.filter(Q(name__icontains=search))
+        # The following lines are filtered on the QuerySet
+        heads = heads.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(State__icontains=search) |
+            Q(City__icontains=search) |
+            Q(Address__icontains=search)
+        )
+        families = families.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(Relationship__icontains=search)
+        )
+        states = states.filter(Q(name__icontains=search))
+        show_all_tables = True
+    else:
+        show_all_tables = False
+        
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
+    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
+    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
 
     if request.method == 'POST':
         error_messages = []
@@ -973,39 +1021,12 @@ def regis(request):
             error_messages.append('First name is required for Family Head.')
         
         head_surname = request.POST.get('head_surname')
-        if not head_surname:
-            error_messages.append('Surname is required for Family Head.')
-
-        head_mobile = request.POST.get('head_mobile')
-        if not head_mobile or not head_mobile.isdigit() or len(head_mobile) != 10:
-            error_messages.append('A valid 10-digit mobile number is required for Family Head.')
-        
-        head_address = request.POST.get('head_address')
-        if not head_address:
-            error_messages.append('Address is required for Family Head.')
-
-        head_state_id = request.POST.get('head_state')
-        if not head_state_id:
-            error_messages.append('State is required for Family Head.')
-
-        head_city = request.POST.get('head_city')
-        if not head_city:
-            error_messages.append('City is required for Family Head.')
-
-        head_pincode = request.POST.get('head_pincode')
-        if not head_pincode or not head_pincode.isdigit() or len(head_pincode) != 6:
-            error_messages.append('A valid 6-digit pincode is required for Family Head.')
-
-        head_gender = request.POST.get('head_gender')
-        if not head_gender:
-            error_messages.append('Gender is required for Family Head.')
-
         head_marital_status = request.POST.get('head_marital_status')
         if not head_marital_status:
             error_messages.append('Marital Status is required for Family Head.')
         elif head_marital_status == 'Married' and not request.POST.get('head_wedding_date'):
             error_messages.append('Wedding date is required for a married Family Head.')
-
+        
         head_birthdate = request.POST.get('head_birthdate')
         if not head_birthdate:
             error_messages.append('Birthdate is required for Family Head.')
@@ -1018,7 +1039,7 @@ def regis(request):
                     error_messages.append('Family Head must be 21 years or older.')
             except ValueError:
                 error_messages.append('Invalid birthdate format for Family Head.')
-
+        
         head_education = request.POST.get('head_education')
         if not head_education:
             error_messages.append('Education is required for Family Head.')
@@ -1026,11 +1047,11 @@ def regis(request):
         head_photo = request.FILES.get('head_photo')
         if not head_photo:
             error_messages.append('Photo is required for Family Head.')
-
+        
         head_hobbies = request.POST.getlist('head_hobbies[]')
         if not any(hobby.strip() for hobby in head_hobbies):
             error_messages.append('At least one hobby is required for Family Head.')
-
+        
         # --- Member Validation ---
         member_index = 1
         while True:
@@ -1041,19 +1062,19 @@ def regis(request):
             member_surname = request.POST.get(f'member_{member_index}_surname')
             if not member_surname:
                 error_messages.append(f'Surname is required for member {member_index}.')
-
+            
             member_gender = request.POST.get(f'member_{member_index}_gender')
             if not member_gender:
                 error_messages.append(f'Gender is required for member {member_index}.')
-
+            
             member_relationship = request.POST.get(f'member_{member_index}_relationship')
             if not member_relationship:
                 error_messages.append(f'Relationship is required for member {member_index}.')
-
+            
             member_birthdate = request.POST.get(f'member_{member_index}_birthdate')
             if not member_birthdate:
                 error_messages.append(f'Birthdate is required for member {member_index}.')
-
+            
             member_marital_status = request.POST.get(f'member_{member_index}_marital_status')
             if not member_marital_status:
                 error_messages.append(f'Marital Status is required for member {member_index}.')
@@ -1065,14 +1086,23 @@ def regis(request):
                 error_messages.append(f'Photo is required for member {member_index}.')
           
             member_index += 1
-
+        
         if error_messages:
             return JsonResponse({'success': False, 'errors': error_messages})
+        
+        # 🐞 Fix: Get head_mobile, head_address, head_state_id, head_city, head_pincode
+        # since they are used later but not defined
+        head_mobile = request.POST.get('head_mobile')
+        head_gender = request.POST.get('head_gender')
+        head_address = request.POST.get('head_address')
+        head_state_id = request.POST.get('head_state_id')
+        head_city = request.POST.get('head_city')
+        head_pincode = request.POST.get('head_pincode')
 
         # Family Head - check unique mobile
         if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
             return JsonResponse({'success': False, 'errors': ['This mobile number is already registered. Please use a different number.']})
-
+        
         # Use a transaction for atomicity
         try:
             with transaction.atomic():
@@ -1096,7 +1126,7 @@ def regis(request):
                     Photo=head_photo
                 )
                 head.save()
-
+                
                 # Log create action for FamilyHead
                 if request.user.is_authenticated:
                     AdminLog.objects.create(
@@ -1107,12 +1137,12 @@ def regis(request):
                         object_id=str(head.HeadID),
                         object_type='FamilyHead'
                     )
-
+                
                 # Hobbies for Head
                 for hobby in head_hobbies:
                     if hobby.strip():
                         Hobby.objects.create(head=head, Hobby=hobby.strip())
-
+                
                 # Family Members
                 member_index = 1
                 while True:
@@ -1139,7 +1169,7 @@ def regis(request):
                         Education=request.POST.get(f'member_{member_index}_education'),
                     )
                     member.save()
-
+                    
                     # Log create action for FamilyMember
                     if request.user.is_authenticated:
                         AdminLog.objects.create(
@@ -1151,53 +1181,39 @@ def regis(request):
                             object_type='FamilyMember'
                         )
                     member_index += 1
-
+                
                 # Return a success response
                 return JsonResponse({'success': True, 'message': 'Family registered successfully!'})
         
         except IntegrityError:
             return JsonResponse({'success': False, 'errors': ['A database error occurred. Please try again later.']})
-
+    
     return render(request, 'registration.html', {'states': states})
 
 def resetPassword(request):
     return render(request, 'resetPassword.html')
 
 @login_required(login_url='login')
-def dashboard(request):
-    total_families = FamilyHead.objects.exclude(status=9).count()
-    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
-    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
-    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
-    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
-
-    tab = request.GET.get('tab', 'head')
+def dashboard_head(request):
     head_page = request.GET.get('head_page', 1)
     family_page = request.GET.get('family_page', 1)
     state_page = request.GET.get('state_page', 1)
     city_page = request.GET.get('city_page', 1)
     search = request.GET.get('search', '').strip()
-
-    tabs = [
-        {'key': 'head', 'label': 'Head'},
-        {'key': 'family', 'label': 'Family'},
-        {'key': 'state', 'label': 'State'},
-        {'key': 'city', 'label': 'City'},
-    ]
+    state_filter = request.GET.get('state_filter', '')
 
     heads = FamilyHead.objects.exclude(status=9)
     families = FamilyMember.objects.exclude(status=9)
     states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
     all_states = State.objects.exclude(status=9)
-    state_filter = request.GET.get('state_filter', '')
     if state_filter:
         filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter)
     else:
         filtered_cities = City.objects.exclude(status=9)
-# Check if search term exists and filter accordingly
+
+    # Enable search filtering
     if search:
         from django.db.models import Q
-    
         heads = heads.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
@@ -1206,31 +1222,57 @@ def dashboard(request):
             Q(City__icontains=search) |
             Q(Address__icontains=search)
         )
-
         families = families.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
             Q(MobileNo__icontains=search) |
             Q(Relationship__icontains=search)
         )
-
         states = states.filter(Q(name__icontains=search))
         filtered_cities = filtered_cities.filter(Q(name__icontains=search))
-
-        # Flag to show all tables when search is used
         show_all_tables = True
     else:
-        show_all_tables = False  # or some other default value if necessary
+        show_all_tables = False
+
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
+    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
+    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
+# Check if search term exists and filter accordingly
+    # if search:
+    #     from django.db.models import Q
+    
+    #     heads = heads.filter(
+    #         Q(Name__icontains=search) |
+    #         Q(Surname__icontains=search) |
+    #         Q(MobileNo__icontains=search) |
+    #         Q(State__icontains=search) |
+    #         Q(City__icontains=search) |
+    #         Q(Address__icontains=search)
+    #     )
+
+    #     families = families.filter(
+    #         Q(Name__icontains=search) |
+    #         Q(Surname__icontains=search) |
+    #         Q(MobileNo__icontains=search) |
+    #         Q(Relationship__icontains=search)
+    #     )
+
+    #     states = states.filter(Q(name__icontains=search))
+    #     filtered_cities = filtered_cities.filter(Q(name__icontains=search))
+
+    #     # Flag to show all tables when search is used
+    #     show_all_tables = True
+    # else:
+    #     show_all_tables = False  # or some other default value if necessary
     head_paginator = Paginator(heads, 10)
     family_paginator = Paginator(families, 10)
     state_paginator = Paginator(states, 10)
     city_paginator = Paginator(filtered_cities, 10)
 
     context = {
-        'active_tab': tab,
-        'tabs': tabs,
         'search': search,
-        'show_all_tables': show_all_tables,
         'head_page_obj': head_paginator.get_page(head_page),
         'family_page_obj': family_paginator.get_page(family_page),
         'state_page_obj': state_paginator.get_page(state_page),
@@ -1242,9 +1284,263 @@ def dashboard(request):
         'deleted': deleted,
         'username': request.user.username if request.user.is_authenticated else '',
         'all_states': all_states,
+        'show_all_tables': show_all_tables,
     }
-    return render(request, 'dashboard.html', context)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'dashboard_head.html', context, content_type='text/html')
+    return render(request, 'dashboard_head.html', context)
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import FamilyHead, FamilyMember, State, City
+from django.contrib.auth.decorators import login_required
 
+@login_required(login_url='login')
+def dashboard_family(request):
+    search = request.GET.get('search', '').strip()
+    state_filter = request.GET.get('state_filter', '')
+
+    heads = FamilyHead.objects.exclude(status=9)
+    families = FamilyMember.objects.exclude(status=9)
+    states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
+    all_states = State.objects.exclude(status=9)
+    if state_filter:
+        filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter)
+    else:
+        filtered_cities = City.objects.exclude(status=9)
+
+    show_all_tables = False
+    if search:
+        # Correct filtering for each table based on its model's fields
+        heads = heads.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(State__icontains=search) |
+            Q(City__icontains=search) |
+            Q(Address__icontains=search)
+        )
+        families = families.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(Relationship__icontains=search)
+        )
+        states = states.filter(
+            Q(name__icontains=search)
+        )
+        filtered_cities = filtered_cities.filter(
+            Q(name__icontains=search)
+        )
+        show_all_tables = True
+
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
+    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
+    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
+
+    head_page = request.GET.get('head_page', 1)
+    family_page = request.GET.get('family_page', 1)
+    state_page = request.GET.get('state_page', 1)
+    city_page = request.GET.get('city_page', 1)
+
+    head_paginator = Paginator(heads, 10)
+    family_paginator = Paginator(families, 10)
+    state_paginator = Paginator(states, 10)
+    city_paginator = Paginator(filtered_cities, 10)
+
+    context = {
+        'search': search,
+        'head_page_obj': head_paginator.get_page(head_page),
+        'family_page_obj': family_paginator.get_page(family_page),
+        'state_page_obj': state_paginator.get_page(state_page),
+        'city_page_obj': city_paginator.get_page(city_page),
+        'total_families': total_families,
+        'total_members': total_members,
+        'active_members': active_members,
+        'inactive_members': inactive_members,
+        'deleted': deleted,
+        'username': request.user.username if request.user.is_authenticated else '',
+        'all_states': all_states,
+        'show_all_tables': show_all_tables,
+    }
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'dashboard_family.html', context, content_type='text/html')
+    return render(request, 'dashboard_family.html', context)
+
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import FamilyHead, FamilyMember, State, City
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='login')
+def dashboard_state(request):
+    # Define variables and initialize querysets at the beginning
+    search = request.GET.get('search', '').strip()
+    state_filter = request.GET.get('state_filter', '')
+
+    heads = FamilyHead.objects.exclude(status=9)
+    families = FamilyMember.objects.exclude(status=9)
+    states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
+    all_states = State.objects.exclude(status=9)
+    if state_filter:
+        filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter, country_id=101)
+    else:
+        filtered_cities = City.objects.exclude(status=9).filter(country_id=101)
+
+    show_all_tables = False
+    if search:
+        heads = heads.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(State__icontains=search) |
+            Q(City__icontains=search) |
+            Q(Address__icontains=search)
+        )
+        families = families.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(Relationship__icontains=search)
+        )
+        states = states.filter(Q(name__icontains=search))
+        filtered_cities = filtered_cities.filter(Q(name__icontains=search))
+        show_all_tables = True
+
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
+    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
+    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
+
+    head_page = request.GET.get('head_page', 1)
+    family_page = request.GET.get('family_page', 1)
+    state_page = request.GET.get('state_page', 1)
+    city_page = request.GET.get('city_page', 1)
+
+    from django.core.paginator import EmptyPage
+    head_paginator = Paginator(heads, 10)
+    family_paginator = Paginator(families, 10)
+    state_paginator = Paginator(states, 10)
+    city_paginator = Paginator(filtered_cities, 10)
+
+    try:
+        head_page_obj = head_paginator.get_page(head_page)
+    except EmptyPage:
+        head_page_obj = head_paginator.get_page(1)
+    try:
+        family_page_obj = family_paginator.get_page(family_page)
+    except EmptyPage:
+        family_page_obj = family_paginator.get_page(1)
+    try:
+        state_page_obj = state_paginator.get_page(state_page)
+    except EmptyPage:
+        state_page_obj = state_paginator.get_page(1)
+    try:
+        city_page_obj = city_paginator.get_page(city_page)
+    except EmptyPage:
+        city_page_obj = city_paginator.get_page(1)
+
+    context = {
+        'search': search,
+        'head_page_obj': head_page_obj,
+        'family_page_obj': family_page_obj,
+        'state_page_obj': state_page_obj,
+        'city_page_obj': city_page_obj,
+        'total_families': total_families,
+        'total_members': total_members,
+        'active_members': active_members,
+        'inactive_members': inactive_members,
+        'deleted': deleted,
+        'username': request.user.username if request.user.is_authenticated else '',
+        'all_states': all_states,
+        'show_all_tables': show_all_tables,
+    }
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'dashboard_state.html', context, content_type='text/html')
+    return render(request, 'dashboard_state.html', context)
+
+
+
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import FamilyHead, FamilyMember, State, City
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='login')
+def dashboard_city(request):
+    # Define variables and initialize querysets at the beginning
+    search = request.GET.get('search', '').strip()
+    state_filter = request.GET.get('state_filter', '')
+
+    heads = FamilyHead.objects.exclude(status=9)
+    families = FamilyMember.objects.exclude(status=9)
+    states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
+    all_states = State.objects.exclude(status=9)
+    if state_filter:
+        filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter, country_id=101)
+    else:
+        filtered_cities = City.objects.exclude(status=9).filter(country_id=101)
+
+
+    show_all_tables = False 
+    if search:
+        heads = heads.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(State__icontains=search) |
+            Q(City__icontains=search) |
+            Q(Address__icontains=search)
+        )
+        families = families.filter(
+            Q(Name__icontains=search) |
+            Q(Surname__icontains=search) |
+            Q(MobileNo__icontains=search) |
+            Q(Relationship__icontains=search)
+        )
+        states = states.filter(Q(name__icontains=search))
+        filtered_cities = filtered_cities.filter(Q(name__icontains=search))
+        show_all_tables = True
+
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
+    inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
+    deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
+
+    head_page = request.GET.get('head_page', 1)
+    family_page = request.GET.get('family_page', 1)
+    state_page = request.GET.get('state_page', 1)
+    city_page = request.GET.get('city_page', 1)
+    
+    head_paginator = Paginator(heads, 10)
+    family_paginator = Paginator(families, 10)
+    state_paginator = Paginator(states, 10)
+    city_paginator = Paginator(filtered_cities, 10)
+
+    context = {
+        'search': search,
+        'head_page_obj': head_paginator.get_page(head_page),
+        'family_page_obj': family_paginator.get_page(family_page),
+        'state_page_obj': state_paginator.get_page(state_page),
+        'city_page_obj': city_paginator.get_page(city_page),
+        'total_families': total_families,
+        'total_members': total_members,
+        'active_members': active_members,
+        'inactive_members': inactive_members,
+        'deleted': deleted,
+        'username': request.user.username if request.user.is_authenticated else '',
+        'all_states': all_states,
+        'show_all_tables': show_all_tables,
+    }
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'dashboard_city.html', context, content_type='text/html')
+    return render(request, 'dashboard_city.html', context)
 
 def logout_view(request):
     if request.user.is_authenticated:

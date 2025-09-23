@@ -9,20 +9,20 @@ html, body {
 #home {
     position: relative;
     background: url('../images/bg.png') center/cover no-repeat;
-    min-height: 100vh;        /* Full viewport height */
+    min-height: 100vh;        
     width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;   /* Align content to top */
+    justify-content: flex-start;  
     flex-basis: 0;
     align-items: center;
     color: white;
     text-align: center;
     z-index: 1;
-    padding-top: 0.5rem;             /* Space below navbar */
+    padding-top: 0.5rem;            
 }
 
-/* Dark overlay (black film) */
+
 #home::before {
     content: "";
     position: absolute;
@@ -44,7 +44,6 @@ html, body {
     z-index: 1000;
 }
 
-/* Logo inside navbar */
 #logo {
     font-size: 1.6rem;
     font-weight: bold;
@@ -52,7 +51,7 @@ html, body {
     letter-spacing: 1px;
 }
 
-/* Nav links */
+
 #nav-bar ul {
     list-style: none;
     display: flex;
@@ -74,9 +73,8 @@ html, body {
     border-radius: 6px;
 }
 
-/* Hover */
 #nav-bar ul li a:hover {
-    color: #1abc9c;                 /* Teal accent */
+    color: #1abc9c;                
     background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -127,7 +125,6 @@ html, body {
     font-style: italic;
 }
 
-/* Welcome message */
 #cnt-name p {
     font-size: 1.2rem;
     max-width: 700px;
@@ -136,7 +133,7 @@ html, body {
     color: #eaeaea;
 }
 
-/* CTA Buttons */
+
 #cnt-button {
     display: flex;
     gap: 1rem;
@@ -161,8 +158,6 @@ html, body {
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(0,0,0,0.3);
 }
-
-/* Responsive */
 @media (max-width: 768px) {
     #logo h2 {
         font-size: 1.8rem;

@@ -1,6 +1,6 @@
-// jQuery dynamic required field validation for add/edit state/city forms
+
 $(document).ready(function() {
-  // Add City form
+
   $('#addCityForm').on('submit', function(e) {
     var valid = true;
     var state = $('#state_id');
@@ -42,7 +42,7 @@ $(document).ready(function() {
     $(this).closest('form').find('.error-message').text('');
   });
 
-  // Edit City form
+
   $('#editCityForm').on('submit', function(e) {
     var name = $(this).find('input[name="name"], input[name="city_name"]');
     var errorSpan = $(this).find('.error-message');
@@ -59,7 +59,7 @@ $(document).ready(function() {
     $(this).closest('form').find('.error-message').text('');
   });
 
-  // Edit State form
+
   $('#editStateForm').on('submit', function(e) {
     var name = $(this).find('input[name="name"], input[name="state_name"]');
     var errorSpan = $(this).find('.error-message');

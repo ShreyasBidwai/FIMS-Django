@@ -282,7 +282,7 @@
         document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
     }
 
-    // New validation function for Family Head
+
     function validateHead(showErrors = false) {
         let valid = true;
         
@@ -366,7 +366,7 @@
         return valid;
     }
     
-    // New validation function for individual members
+//memValidation
     function validateMember(memberBlock, showErrors = false) {
         let valid = true;
         
@@ -423,7 +423,7 @@
         return valid;
     }
 
-    // Main form validation function
+// MainFormValidation
     function validateForm(event) {
         event.preventDefault();
         clearAllErrors();
@@ -485,7 +485,7 @@
         });
     }
     
-    // Check form validity and update "Add Member" button state
+// Checking form validity and update Add Member
     function checkFormValidity() {
         const isValid = validateHead();
         const addMemberBtn = document.getElementById('add-member-btn');
@@ -500,21 +500,20 @@
         }
     }
 
-    // Attach real-time validation to all head form fields
+// Attaching real-time validation to all head form fields
     document.querySelectorAll('#head-fieldset input, #head-fieldset select, #head-fieldset textarea').forEach(input => {
         input.addEventListener('change', checkFormValidity);
         input.addEventListener('blur', checkFormValidity);
         input.addEventListener('input', () => {
             if (input.type === 'file') {
-                // Special handling for file input, as value changes only on blur or change
+                
                 checkFormValidity();
             } else {
                 clearError(input);
             }
         });
     });
-
-    // Attach the main event listener to the form
+// Attaching the main event listener to the form
     document.getElementById("registrationForm").addEventListener("submit", validateForm);
 
     $(document).ready(function() {
@@ -547,7 +546,7 @@
             validateMember(memberBlock, true);
         });
         
-        // Add dynamic validation for existing members on page load
+// Adding dynamic validation for existing members on page load
         document.querySelectorAll('.member-block').forEach(memberBlock => {
             memberBlock.querySelectorAll('input, select, textarea').forEach(input => {
                 input.addEventListener('change', () => validateMember(memberBlock, false));
@@ -580,7 +579,7 @@
             }
         });
         
-        // Initial check on page load in case of saved data
+// Initial check on page load in case of saved data
         checkFormValidity();
     });
 
@@ -613,7 +612,7 @@
     
     window.addMember = function() {
         if (document.getElementById('add-member-btn').disabled) {
-            validateHead(true); // Show errors if user tries to bypass
+            validateHead(true); 
             return;
         }
 
@@ -710,7 +709,7 @@
         `;
         container.appendChild(newMemberBlock);
         
-        // Add real-time event listeners for the new member's form fields
+
         newMemberBlock.querySelectorAll('input, select, textarea').forEach(input => {
             input.addEventListener('change', () => validateMember(newMemberBlock, false));
             input.addEventListener('blur', () => validateMember(newMemberBlock, false));
@@ -723,7 +722,7 @@
             });
         });
         
-        // Add event listener for the new member's marital status
+
         newMemberBlock.querySelectorAll(`input[name="member_${memberIndex}_marital_status"]`).forEach(radio => {
             radio.addEventListener('change', function() {
                 const weddingDateRow = newMemberBlock.querySelector(`#member_${memberIndex}_wedding_date_row`);
