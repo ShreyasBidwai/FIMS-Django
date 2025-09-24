@@ -6,28 +6,26 @@ body{
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background: #f9f9fb;
     color: #333;
+    
 }
-
-
 #dashboard-head {
     margin-bottom: 1rem;
 }
-
 #dashboard-head h1 {
     font-size: 1.6rem;
     font-weight: 600;
     color: #222;
 }
-
-
 #cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    justify-content: space-between;
 }
-
 #cards .card {
+    flex-grow: 1;
+    min-width: 180px;
     background: #eef2f9;
     border-radius: 10px;
     padding: 1rem;
@@ -36,25 +34,20 @@ body{
     box-shadow: 0 2px 6px rgba(0,0,0,0.09);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 #cards .card:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-
 #cards .card p:first-child {
     font-size: 0.9rem;
     color: #666;
     margin-bottom: 0.3rem;
 }
-
 #cards .card p:last-child {
     font-size: 1.4rem;
     font-weight: 700;
     color: #2c3e50;
 }
-
-
 .dashboard-table {
     background: #fff;
     border-radius: 10px;
@@ -62,15 +55,12 @@ body{
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     margin-bottom: 1.5rem;
 }
-
-/* Table Head (title + buttons in one line) */
 .dashboard-table h2 {
     font-size: 1.2rem;
     font-weight: 600;
     color: #2c3e50;
     margin: 0;
 }
-
 .dashboard-table > div:first-child,
 #city-table-head,
 #state-table-head {
@@ -81,18 +71,14 @@ body{
     flex-wrap: wrap;
     gap: 0.5rem;
 }
-
-
 table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
 }
-
 thead {
     background: #f4f6fa;
 }
-
 thead th {
     text-align: left;
     padding: 0.75rem;
@@ -100,23 +86,19 @@ thead th {
     color: #444;
     border-bottom: 2px solid #e0e4eb;
 }
-
 tbody td {
     padding: 0.7rem;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
 }
-
 tbody tr:hover {
     background: #f9fbff;
 }
-
 .actions {
     display: flex;
     gap: 0.4rem;
     flex-wrap: wrap;
 }
-
 .actions a,
 .actions button {
     padding: 0.35rem 0.6rem;
@@ -127,8 +109,6 @@ tbody tr:hover {
     text-decoration: none;
     transition: background 0.2s ease;
 }
-
-/* Default buttons */
 .edit-btn {
     background: #3498db;
     color: #fff;
@@ -137,14 +117,12 @@ tbody tr:hover {
     background: #2980b9;
 }
 .status-btn {
-    background: #e74c3c; /* strong red */
+    background: #e74c3c;
     color: #fff;
 }
 .status-btn:hover {
-    background: #c0392b; /* darker red */
+    background: #c0392b;
 }
-
-
 .view-btn {
     background: #f1c40f;
     color: #fff;
@@ -152,7 +130,6 @@ tbody tr:hover {
 .view-btn:hover {
     background: #d4ac0d;
 }
-
 .add-btn {
     background: #27ae60;
     color: #fff !important;
@@ -165,12 +142,9 @@ tbody tr:hover {
 .add-btn:hover {
     background: #1e8449;
 }
-
-
 .icon{
    font-size: 2rem;
 }
-
 form input[type="text"],
 form select {
     padding: 0.45rem 0.6rem;
@@ -178,7 +152,6 @@ form select {
     border-radius: 6px;
     font-size: 0.85rem;
 }
-
 form button[type="submit"] {
     padding: 0.45rem 0.9rem;
     border: none;
@@ -192,7 +165,6 @@ form button[type="submit"] {
 form button[type="submit"]:hover {
     background: #2980b9;
 }
-
 form a {
     font-size: 0.85rem;
     color: #666;
@@ -201,8 +173,6 @@ form a {
 form a:hover {
     color: #222;
 }
-
-
 .pagination {
     display: flex;
     justify-content: center;
@@ -210,7 +180,6 @@ form a:hover {
     margin-top: 1rem;
     font-size: 0.85rem;
 }
-
 .pagination a {
     text-decoration: none;
     color: #3498db;
@@ -219,8 +188,6 @@ form a:hover {
 .pagination a:hover {
     text-decoration: underline;
 }
-
-
 #status-modal {
     display: none;
     position: fixed;
@@ -271,7 +238,7 @@ form a:hover {
 #status-modal #set-delete {
    background-color: #e74c3c;
     color: #fff;
-} 
+}
 #status-modal #cancel-status {
     background: #fff;
     color: #2980b9;

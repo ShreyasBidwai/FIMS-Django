@@ -1,0 +1,337 @@
+ {% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Familink Dashboard{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'fims/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <script>
+        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+    </script>
+{% endif %}
+<div id="dash-container">
+
+<div id="dashboard-head">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <h1 style="margin: 0;">Dashboard</h1>
+        <form method="get" action="" style="display: flex; gap: 1rem; align-items: center; margin: 0;">
+            <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
+            <button type="submit">Search</button>
+            <a href="?" style="margin-left: 1rem;">Clear</a>
+        </form>
+    </div>
+</div>
+<div id="cards">
+    <div class="card"><i class="bi bi-pencil-square icon text-warning"></i><p>Families Registered</p><p id="card-families">{{ total_families }}</p></div>
+    <div class="card"><i class="bi bi-people icon text-info"></i><p>Total Family Members</p><p id="card-members">{{ total_members }}</p></div>
+    <div class="card"><i class="bi bi-person-check icon text-success"></i><p>Active members</p><p id="card-active">{{ active_members }}</p></div>
+    <div class="card"><i class="bi bi-exclamation-circle icon text-danger"></i><p>Inactive Members</p><p id="card-inactive">{{ inactive_members }}</p></div>  
+</div>
+ 
+ <div id="table-head" class="dashboard-table">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <h2 style="margin: 0;">Head</h2>
+        <a href="{% url 'regis' %}" class="add-btn">Add Head</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Index</th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Total Members</th>
+                <th>Mobile Num</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="head-table-body">
+            {% for head in head_page_obj %}
+            <tr>
+                <td>{{ forloop.counter0|add:head_page_obj.start_index }}</td>
+                <td>{% if head.Photo %}<img src="{{ head.Photo.url }}" alt="Photo" width="40" height="40">{% else %}-{% endif %}</td>
+                <td>{{ head.Name }} {{ head.Surname }}</td>
+                <td>{{ head.familymember_set.count }}</td>
+                <td>{{ head.MobileNo }}</td>
+                <td>{{ head.get_status_display }}</td>
+                <td class="actions">
+                    <a href="{% url 'update_head' head.HeadID %}" class="edit-btn">Edit</a>
+                    <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
+                    <a href="{% url 'view_family' head.HeadID %}" class="view-btn">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination" id="head-pagination">
+        {% if head_page_obj.has_previous %}
+            <a href="?tab=head&head_page={{ head_page_obj.previous_page_number }}" class="ajax-page-link">Previous</a>
+        {% endif %}
+        <span>Page {{ head_page_obj.number }} of {{ head_page_obj.paginator.num_pages }}</span>
+        {% if head_page_obj.has_next %}
+            <a href="?tab=head&head_page={{ head_page_obj.next_page_number }}" class="ajax-page-link">Next</a>
+        {% endif %}
+    </div>
+    {% if show_all_tables and head_page_obj.paginator.count == 0 %}
+        <div style="text-align:center; color: #888;">No matching Head records found.</div>
+    {% endif %}
+</div>
+<script>
+// AJAX pagination and search for all dashboard tables
+document.addEventListener('DOMContentLoaded', function() {
+    // AJAX Clear button for head dashboard
+    const clearBtn = document.querySelector('form[action=""] a[href="?"]');
+    const searchInput = document.querySelector('form[action=""] input[name="search"]');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            let url = clearBtn.getAttribute('href');
+            fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(res => res.text())
+            .then(html => {
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                // Replace table and pagination
+                const newTable = temp.querySelector('#table-head');
+                if (newTable) {
+                    document.querySelector('#table-head').innerHTML = newTable.innerHTML;
+                }
+                // Clear the search input field
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+            });
+        });
+    }
+    function ajaxPaginate(table, bodyId, pagId) {
+        const container = document.getElementById(table);
+        if (!container) return;
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains('ajax-page-link')) {
+                e.preventDefault();
+                fetch(e.target.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+                .then(res => res.text())
+                .then(html => {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const newBody = temp.querySelector('tbody');
+                    const newPag = temp.querySelector('.pagination');
+                    if (newBody && document.getElementById(bodyId)) {
+                        document.getElementById(bodyId).innerHTML = newBody.innerHTML;
+                    }
+                    if (newPag && document.getElementById(pagId)) {
+                        document.getElementById(pagId).innerHTML = newPag.innerHTML;
+                    }
+                });
+            }
+        });
+    }
+    function ajaxSearch(formSelector, table, bodyId, pagId) {
+        const form = document.querySelector(formSelector);
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = form.action || window.location.href;
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData).toString();
+            fetch(url + (url.includes('?') ? '&' : '?') + params, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(res => res.text())
+            .then(html => {
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const newBody = temp.querySelector('tbody');
+                const newPag = temp.querySelector('.pagination');
+                if (newBody && document.getElementById(bodyId)) {
+                    document.getElementById(bodyId).innerHTML = newBody.innerHTML;
+                }
+                if (newPag && document.getElementById(pagId)) {
+                    document.getElementById(pagId).innerHTML = newPag.innerHTML;
+                }
+            });
+        });
+    }
+    ajaxPaginate('table-head', 'head-table-body', 'head-pagination');
+    ajaxPaginate('table-family', 'family-table-body', 'family-pagination');
+    ajaxPaginate('table-state', 'state-table-body', 'state-pagination');
+    ajaxPaginate('table-city', 'city-table-body', 'city-pagination');
+
+    // Attach AJAX search for each table (use more specific selectors)
+    ajaxSearch('#dashboard-head form', 'table-head', 'head-table-body', 'head-pagination');
+    ajaxSearch('#table-family form', 'table-family', 'family-table-body', 'family-pagination');
+    ajaxSearch('#table-state form', 'table-state', 'state-table-body', 'state-pagination');
+    ajaxSearch('#table-city form', 'table-city', 'city-table-body', 'city-pagination');
+});
+</script>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    #status-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    #status-modal .modal-content {
+        background: #fff;
+        padding: 0.7rem 1.2rem 1.1rem 1.2rem;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 170px;
+        max-width: 220px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.16);
+        position: relative;
+        margin: auto;
+        font-size: 1rem;
+    }
+    #status-modal .modal-content h3 {
+        font-size: 1.08rem;
+        margin-bottom: 0.7rem;
+    }
+    #status-modal .modal-content button {
+        margin: 0.2rem 0.2rem 0.2rem 0.2rem;
+        padding: 0.32rem 0.7rem;
+        font-size: 0.98rem;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    #status-modal .modal-content #cancel-status {
+        background: #f5f6fa;
+        color: #222;
+        border: 1px solid #d1d5db;
+    }
+</style>
+<div id="status-modal">
+    <div class="modal-content">
+        <h3>Set status for this entry:</h3>
+        <button id="set-active" style="background:#27ae60;color:#fff;">Active</button>
+        <button id="set-inactive">Inactive</button>
+        <button id="set-delete" style="background:#e74c3c;color:#fff;">Delete</button>
+        <br><br>
+        <button id="cancel-status">Cancel</button>
+    </div>
+</div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    let modal = document.getElementById('status-modal');
+    let entryType = null, entryId = null;
+    document.querySelectorAll('.status-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            entryType = btn.getAttribute('data-type');
+            entryId = btn.getAttribute('data-id');
+            modal.style.display = 'flex';
+        });
+    });
+    document.getElementById('cancel-status').onclick = function() {
+        modal.style.display = 'none';
+    };
+    document.getElementById('set-active').onclick = function() {
+        if(confirm('Are you sure you want to set status to Active?')) {
+            updateStatus(entryType, entryId, 1);
+            modal.style.display = 'none';
+        }
+    };
+    document.getElementById('set-inactive').onclick = function() {
+        if(confirm('Are you sure you want to set status to Inactive?')) {
+            updateStatus(entryType, entryId, 0);
+            modal.style.display = 'none';
+        }
+    };
+    document.getElementById('set-delete').onclick = function() {
+        if(confirm('Are you sure you want to set status to Soft Deleted?')) {
+            updateStatus(entryType, entryId, 9);
+            modal.style.display = 'none';
+        }
+    };
+
+    function updateStatus(type, id, status) {
+        fetch('/update-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({type: type, id: id, status: status})
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                
+                let row;
+                if(type === 'head') {
+                    row = document.querySelector('button.status-btn[data-type="head"][data-id="' + id + '"]').closest('tr');
+                } else if(type === 'member') {
+                    row = document.querySelector('button.status-btn[data-type="member"][data-id="' + id + '"]').closest('tr');
+                } else if(type === 'state') {
+                    row = document.querySelector('button.status-btn[data-type="state"][data-id="' + id + '"]').closest('tr');
+                } else if(type === 'city') {
+                    row = document.querySelector('button.status-btn[data-type="city"][data-id="' + id + '"]').closest('tr');
+                }
+                if(row) {
+                    if(status === 9) {
+                        row.parentNode.removeChild(row);
+                    } else {
+                        let statusCell = row.querySelector('td:nth-child(6)');
+                        if(statusCell) {
+                            let statusText = status === 1 ? 'Active' : (status === 0 ? 'Inactive' : 'Soft Deleted');
+                            statusCell.textContent = statusText;
+                        }
+                        let btn = row.querySelector('button.status-btn');
+                        if(btn) {
+                            btn.style.background = '#e74c3c';
+                            btn.style.color = '#fff';
+                        }
+                    }
+                }
+            } else {
+                alert('Failed to update status');
+            }
+        });
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Periodically update dashboard cards
+    function updateDashboardCards() {
+        fetch('/dashboard-stats-api/')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('card-families').textContent = data.total_families;
+                document.getElementById('card-members').textContent = data.total_members;
+                document.getElementById('card-active').textContent = data.active_members;
+                document.getElementById('card-inactive').textContent = data.inactive_members;
+            });
+    }
+    updateDashboardCards();
+    //setInterval(updateDashboardCards, 5000000); 
+});
+</script>
+{% endblock %}
+
+ 

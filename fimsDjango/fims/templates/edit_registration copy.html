@@ -1,0 +1,532 @@
+{% extends 'dashboard_base.html' %} {% load static %} {% block title %}Family Registration{% endblock %} {% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/edit_registration.css' %}"> {% endblock %} 
+{% block content %}
+{% if messages %}
+    <script>
+        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+    </script>
+{% endif %}
+
+<p class="form-subtitle"><a href="{% url 'dashboard' %}" id="back-btn">&larr; Back to Dashboard</a>Update Family Information.</p>
+
+<ul id="note-head">
+    <li class="note">Note:</li>
+    <li class="note">Head of the Family should be registered</li>
+    <li class="note">Family Head Should be 21 years or older</li>
+    <li class="note">Family Members can be added at the end of the form</li>
+</ul>
+
+<form method="post" enctype="multipart/form-data" id="registrationForm">
+    {% csrf_token %}
+     
+    <fieldset>
+    <legend class="highlight-title">Family Head ({{ members|length }} Members)</legend>
+        <table class="form-table two-column">
+            <tr>
+                <td>
+                    <label for="head_name">First Name:</label>
+                    <input type="text" id="head_name" name="head_name" placeholder="First Name" maxlength="50" value="{{ head.Name|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_name"></span>
+                </td>
+                <td>
+                    <label for="head_surname">Surname:</label>
+                    <input type="text" id="head_surname" name="head_surname" placeholder="Surname" maxlength="50" value="{{ head.Surname|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_surname"></span>
+                </td>
+             </tr>
+             <tr>
+               
+           </tr>
+            <tr>
+                <td>
+                    <label for="head_birthdate">Birthdate:</label>
+                    <input type="date" id="head_birthdate" name="head_birthdate" value="{{ head.Birthdate|date:'Y-m-d'|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_birthdate"></span>
+                </td>
+                <td>
+                    <label for="head_mobile">Mobile No:</label>
+                    <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10" value="{{ head.MobileNo|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_mobile"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_address">Address:</label>
+                    <textarea id="head_address" name="head_address" placeholder="Address">{{ head.Address|default_if_none:'' }}</textarea>
+                    <span class="error-message" id="error-head_address"></span>
+                </td>
+                <td>
+                    <label for="head_state">State:</label>
+                    <select name="head_state" id="head_state">
+                        <option value="">Select State</option>
+                        {% for state in states %}
+                        <option value="{{ state.id }}" {% if head.State == state.name or head.State == state.id|stringformat:'s' %}selected{% endif %}>{{ state.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="error-message" id="error-head_state"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_city">City:</label>
+                    <select name="head_city" id="head_city">
+                        <option value="">Select City</option>
+                        {% if head.City %}
+                        <option value="{{ head.City }}" selected>{{ head.City }}</option>
+                        {% endif %}
+                    </select>
+                    <span class="error-message" id="error-head_city"></span>
+                </td>
+                <td>
+                    <label for="head_pincode">Pincode:</label>
+                    <input type="text" id="head_pincode" name="head_pincode" placeholder="Pincode" maxlength="6" value="{{ head.Pincode|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_pincode"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>Marital Status:</label>
+                    <label><input type="radio" name="head_marital_status" value="Married" {% if head.MaritalStatus == 'Married' %}checked{% endif %}> Married</label>
+                    <label><input type="radio" name="head_marital_status" value="Unmarried" {% if head.MaritalStatus == 'Unmarried' %}checked{% endif %}> Unmarried</label>
+                    <span class="error-message" id="error-head_marital_status"></span>
+                </td>
+                <td>
+                    <label>Gender:</label>
+                    <label><input type="radio" name="head_gender" value="Male" {% if head.Gender == 'Male' %}checked{% endif %}> Male</label>
+                    <label><input type="radio" name="head_gender" value="Female" {% if head.Gender == 'Female' %}checked{% endif %}> Female</label>
+                    <span class="error-message" id="error-head_gender"></span>
+                </td>
+            </tr>
+            <tr id="wedding_date_row" style="display:none;">
+                <td colspan="2">
+                    <label for="head_wedding_date">Wedding Date:</label>
+                    <input type="date" name="head_wedding_date" id="wedding_date" value="{{ head.WeddingDate|date:'Y-m-d'|default_if_none:'' }}">
+                    <span class="error-message" id="error-head_wedding_date"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="head_education">Education:</label>
+                    <select name="head_education" id="head_education">
+                        <option value="">Select</option>
+                        <option value="Graduate" {% if head.Education == 'Graduate' %}selected{% endif %}>Graduate</option>
+                        <option value="Post Graduate" {% if head.Education == 'Post Graduate' %}selected{% endif %}>Post Graduate</option>
+                        <option value="Diploma" {% if head.Education == 'Diploma' %}selected{% endif %}>Diploma</option>
+                    </select>
+                    <span class="error-message" id="error-head_education"></span>
+                </td>
+                 <td colspan="2">
+                    <div style="display: flex; gap: 16px; align-items: flex-end;">
+                        <div style="flex:1; display: flex; flex-direction: column; align-items: flex-start;">
+                            <label for="head_photo">Change Photo:</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="file" id="head_photo" name="head_photo" accept="image/png, image/jpeg">
+                                {% if head.Photo %}
+                                    <img src="{{ head.Photo.url }}" alt="Head Photo" style="max-width:60px; max-height:80px; border-radius:6px; box-shadow:0 1px 4px #ccc; border: 1px solid black;">
+                                {% endif %}
+                            </div>
+                            {% if head.Photo %}
+                                <div class="photo-preview">Current file: {{ head.Photo.name }}</div>
+                            {% endif %}
+                            <span class="error-message" id="error-head_photo"></span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <label>Hobbies:</label>
+                    <div id="hobbies-section">
+                        <button type="button" class="secondary hobby-btn" onclick="addHobby()">+ Add Hobby</button>
+                        {% if head.head_hobbies.all %}
+                            {% for hobby in head.head_hobbies.all %}
+                                <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                            {% endfor %}
+                        {% else %}
+                            <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                        {% endif %}
+                    </div>
+                    <span class="error-message" id="error-head_hobbies"></span>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+
+    <!-- Family Members Section -->
+    <div id="members-container">
+    <h3 class="highlight-title">Family Members</h3>
+    <p>Members count: {{ members|length }}</p>
+        {% if members %}
+            {% for member in members %}
+            <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
+            <div class="member-heading">Member {{ forloop.counter }}</div>
+            <div class="member-block">
+                <table class="form-table two-column">
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_name">First Name:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_name" value="{{ member.Name|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_surname">Surname:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_surname" value="{{ member.Surname|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_birthdate">Birthdate:</label>
+                            <input type="date" name="member_{{ forloop.counter }}_birthdate" value="{{ member.Birthdate|date:'Y-m-d'|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_mobile">Mobile No:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_mobile" value="{{ member.MobileNo|default_if_none:'' }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_gender">Gender:</label>
+                            <select name="member_{{ forloop.counter }}_gender">
+                                <option value="">Select Gender</option>
+                                <option value="Male" {% if member.Gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if member.Gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if member.Gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_education">Education:</label>
+                            <select name="member_{{ forloop.counter }}_education">
+                                <option value="">Select</option>
+                                <option value="Graduate" {% if member.Education == 'Graduate' %}selected{% endif %}>Graduate</option>
+                                <option value="Post Graduate" {% if member.Education == 'Post Graduate' %}selected{% endif %}>Post Graduate</option>
+                                <option value="Diploma" {% if member.Education == 'Diploma' %}selected{% endif %}>Diploma</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Marital Status:</label>
+                            <label><input type="radio" name="member_{{ forloop.counter }}_marital_status" value="Married" {% if member.MaritalStatus == 'Married' %}checked{% endif %}> Married</label>
+                            <label><input type="radio" name="member_{{ forloop.counter }}_marital_status" value="Unmarried" {% if member.MaritalStatus == 'Unmarried' %}checked{% endif %}> Unmarried</label>
+                        </td>
+                        <td>
+                            <div id="member_{{ forloop.counter }}_wedding_date_row" style="display: {% if member.MaritalStatus == 'Married' %}table-row{% else %}none{% endif %};">
+                                <label for="member_{{ forloop.counter }}_wedding_date">Wedding Date:</label>
+                                <input type="date" name="member_{{ forloop.counter }}_wedding_date" value="{{ member.WeddingDate|date:'Y-m-d'|default_if_none:'' }}">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="member_{{ forloop.counter }}_relationship">Relationship:</label>
+                            <input type="text" name="member_{{ forloop.counter }}_relationship" value="{{ member.Relationship|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            {% if member.member_hobbies.all %}
+                            <div class="hobbies-preview">
+                                <label>Hobbies:</label>
+                                {% for hobby in member.member_hobbies.all %}
+                                    <input type="text" class="hobby-input" name="member_{{ forloop.counter }}_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div>
+                                    <label for="member_{{ forloop.counter }}_photo">Change Photo:</label>
+                                    <input type="file" name="member_{{ forloop.counter }}_photo" accept="image/png, image/jpeg">
+                                     <div class="photo-preview">Current file: {{ member.Photo.name }}</div>
+                                </div>
+                                {% if member.Photo %}
+                                <div>
+                                    <img src="{{ member.Photo.url }}" alt="Member Photo" style="max-width:60px; max-height:80px; border-radius:6px; box-shadow:0 1px 4px #ccc; border: 1px solid black;">
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <button type="button" class="secondary" onclick="addMember()">+ Add Member</button>
+
+    <div class="form-actions">
+        <button type="submit" class="primary">Submit</button>
+    </div>
+</form>
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/additional-methods.min.js"></script>
+<script>
+// Pass the initial member count from Django to JS
+window.initialMemberCount = {{ members|length }};
+</script>
+<script>
+$(function() {
+    // Show/hide wedding date for each member
+    $('[name^="member_"][name$="_marital_status"]').on('change', function() {
+        var name = $(this).attr('name');
+        var idx = name.match(/member_(\d+)_marital_status/)[1];
+        var married = $(this).val() === 'Married';
+        var row = $('#member_' + idx + '_wedding_date_row');
+        if (married) {
+            row.show();
+        } else {
+            row.hide();
+            row.find('input[type="date"]').val('');
+        }
+    });
+    // On page load, ensure correct wedding date visibility for all members
+    $('[name^="member_"][name$="_marital_status"]:checked').each(function() {
+        var name = $(this).attr('name');
+        var idx = name.match(/member_(\d+)_marital_status/)[1];
+        var married = $(this).val() === 'Married';
+        var row = $('#member_' + idx + '_wedding_date_row');
+        if (married) {
+            row.show();
+        } else {
+            row.hide();
+        }
+    });
+    // jQuery Validation for registration form
+    $('#registrationForm').validate({
+        errorClass: 'error-message',
+        errorElement: 'span',
+        rules: {
+            head_name: { required: true, maxlength: 50 },
+            head_surname: { required: true, maxlength: 50 },
+            head_birthdate: { required: true },
+            head_mobile: { required: true, digits: true, minlength: 10, maxlength: 10 },
+            head_address: { required: true },
+            head_state: { required: true },
+            head_city: { required: true },
+            head_pincode: { required: true, digits: true, minlength: 6, maxlength: 6 },
+            head_marital_status: { required: true },
+            head_gender: { required: true },
+            head_education: { required: true },
+            'head_hobbies[]': { required: true },
+            head_photo: { required: function() { return $('.photo-preview').length === 0; }, extension: "jpg|jpeg|png" }
+        },
+        messages: {
+            head_name: { required: "First name is required", maxlength: "Max 50 chars" },
+            head_surname: { required: "Surname is required", maxlength: "Max 50 chars" },
+            head_birthdate: { required: "Birthdate is required" },
+            head_mobile: { required: "Mobile is required", digits: "Digits only", minlength: "10 digits", maxlength: "10 digits" },
+            head_address: { required: "Address is required" },
+            head_state: { required: "State is required" },
+            head_city: { required: "City is required" },
+            head_pincode: { required: "Pincode is required", digits: "Digits only", minlength: "6 digits", maxlength: "6 digits" },
+            head_marital_status: { required: "Select marital status" },
+            head_gender: { required: "Select gender" },
+            head_education: { required: "Select education" },
+            'head_hobbies[]': { required: "At least one hobby is required" },
+            head_photo: { required: "Photo is required", extension: "Only JPG/PNG allowed" }
+        },
+        errorPlacement: function(error, element) {
+            var id = element.attr('id') || element.attr('name');
+            if (id && $("#error-" + id).length) {
+                $("#error-" + id).text(error.text());
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        highlight: function(element) {
+            $(element).addClass('input-error');
+        },
+        unhighlight: function(element) {
+            $(element).removeClass('input-error');
+        }
+    });
+    $('#registrationForm input, #registrationForm textarea, #registrationForm select').on('input change', function() {
+        let id = $(this).attr('id');
+        if (id && $('#error-' + id).length) {
+            $('#error-' + id).text('');
+        }
+        // Unique mobile check for head_mobile
+        if (id === 'head_mobile') {
+            let mobile = $(this).val().trim();
+            if (/^\d{10}$/.test(mobile)) {
+                let headId = '{{ head.HeadID|default:"" }}';
+                $.get('/fims/check_head_mobile_unique/', { mobile: mobile, head_id: headId }, function(data) {
+                    if (data.exists) {
+                        $('#error-head_mobile').text('This mobile number is already registered.');
+                    }
+                });
+            }
+        }
+    });
+    $('input[name="head_marital_status"], input[name="head_gender"]').on('change', function() {
+        let name = $(this).attr('name');
+        $('#error-' + name).text('');
+    });
+    // Remove error for hobbies
+    $(document).on('input', 'input[name="head_hobbies[]"]', function() {
+        $('#error-head_hobbies').text('');
+    });
+    // Remove error for photo
+    $('#head_photo').on('change', function() {
+        $('#error-head_photo').text('');
+    });
+    // Remove error for member fields
+    $(document).on('input change', '[name^="member_"]', function() {
+        let name = $(this).attr('name');
+        if ($('#error-' + name).length) {
+            $('#error-' + name).text('');
+        }
+    });
+    // Remove error for member hobbies
+    $(document).on('input', 'input[name*="_hobbies[]"]', function() {
+        let name = $(this).attr('name');
+        $('#error-' + name).text('');
+    });
+    // Remove error for member photo
+    $(document).on('change', 'input[type="file"][name*="_photo"]', function() {
+        let name = $(this).attr('name');
+        $('#error-' + name).text('');
+    });
+    $('#registrationForm').on('submit', function(e) {
+        let valid = true;
+        $('.error-message').text('');
+        // Head validation (as before)...
+        if (!$('#head_name').val().trim()) {
+            $('#error-head_name').text('First name is required');
+            valid = false;
+        }
+        if (!$('#head_surname').val().trim()) {
+            $('#error-head_surname').text('Surname is required');
+            valid = false;
+        }
+        if (!$('#head_birthdate').val()) {
+            $('#error-head_birthdate').text('Birthdate is required');
+            valid = false;
+        }
+        let mobile = $('#head_mobile').val().trim();
+        if (!/^\d{10}$/.test(mobile)) {
+            $('#error-head_mobile').text('Enter a valid 10-digit mobile number');
+            valid = false;
+        }
+        if (!$('#head_address').val().trim()) {
+            $('#error-head_address').text('Address is required');
+            valid = false;
+        }
+        if (!$('#head_state').val()) {
+            $('#error-head_state').text('State is required');
+            valid = false;
+        }
+        if (!$('#head_city').val()) {
+            $('#error-head_city').text('City is required');
+            valid = false;
+        }
+        let pincode = $('#head_pincode').val().trim();
+        if (!/^\d{6}$/.test(pincode)) {
+            $('#error-head_pincode').text('Enter a valid 6-digit pincode');
+            valid = false;
+        }
+        if (!$('input[name="head_marital_status"]:checked').val()) {
+            $('#error-head_marital_status').text('Select marital status');
+            valid = false;
+        }
+        if (!$('input[name="head_gender"]:checked').val()) {
+            $('#error-head_gender').text('Select gender');
+            valid = false;
+        }
+        if (!$('#head_education').val()) {
+            $('#error-head_education').text('Select education');
+            valid = false;
+        }
+        // At least one hobby required
+        let hobbyFilled = false;
+        $('input[name="head_hobbies[]"]').each(function() {
+            if ($(this).val().trim()) hobbyFilled = true;
+        });
+        if (!hobbyFilled) {
+            $('#error-head_hobbies').text('At least one hobby is required');
+            valid = false;
+        }
+        // Photo required
+        if (!$('#head_photo').val()) {
+            $('#error-head_photo').text('Photo is required');
+            valid = false;
+        }
+        // Member validation
+        $('[name^="member_"][name$="_name"]').each(function() {
+            let idx = $(this).attr('name').match(/member_(\d+)_name/)[1];
+            let prefix = 'member_' + idx + '_';
+            // Name
+            if (!$(this).val().trim()) {
+                $('#error-' + prefix + 'name').text('First name is required');
+                valid = false;
+            }
+            // Surname
+            if (!$('[name="' + prefix + 'surname"]').val().trim()) {
+                $('#error-' + prefix + 'surname').text('Surname is required');
+                valid = false;
+            }
+            // Birthdate
+            if (!$('[name="' + prefix + 'birthdate"]').val()) {
+                $('#error-' + prefix + 'birthdate').text('Birthdate is required');
+                valid = false;
+            }
+            // Mobile
+            let mmobile = $('[name="' + prefix + 'mobile"]').val().trim();
+            if (!/^\d{10}$/.test(mmobile)) {
+                $('#error-' + prefix + 'mobile').text('Enter a valid 10-digit mobile number');
+                valid = false;
+            }
+            // Gender
+            if (!$('[name="' + prefix + 'gender"]').val()) {
+                $('#error-' + prefix + 'gender').text('Select gender');
+                valid = false;
+            }
+            // Relationship
+            if (!$('[name="' + prefix + 'relationship"]').val().trim()) {
+                $('#error-' + prefix + 'relationship').text('Relationship is required');
+                valid = false;
+            }
+            // Address
+            if (!$('[name="' + prefix + 'address"]').val().trim()) {
+                $('#error-' + prefix + 'address').text('Address is required');
+                valid = false;
+            }
+            // State
+            if (!$('[name="' + prefix + 'state"]').val().trim()) {
+                $('#error-' + prefix + 'state').text('State is required');
+                valid = false;
+            }
+            // City
+            if (!$('[name="' + prefix + 'city"]').val().trim()) {
+                $('#error-' + prefix + 'city').text('City is required');
+                valid = false;
+            }
+            // Pincode
+            let mpincode = $('[name="' + prefix + 'pincode"]').val().trim();
+            if (!/^\d{6}$/.test(mpincode)) {
+                $('#error-' + prefix + 'pincode').text('Enter a valid 6-digit pincode');
+                valid = false;
+            }
+
+            // Photo required for member
+            if (!$('[name="' + prefix + 'photo"]').val()) {
+                $('#error-' + prefix + 'photo').text('Photo is required');
+                valid = false;
+            }
+        });
+        if (!valid) e.preventDefault();
+        return valid;
+    });
+});
+</script>
+<script>
+    window.statesForMembers = JSON.parse(document.getElementById('states-data').textContent);
+</script>
+<script src="{% static 'fims/js/edit_registration.js' %}"></script>
+<script src="{% static 'fims/js/form_required_validation.js' %}"></script>
+
+{% endblock %} {% endblock %}

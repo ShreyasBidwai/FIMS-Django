@@ -11,12 +11,11 @@
 body {
     font-family: "Poppins", "Segoe UI", sans-serif;
     background: #f4f6f9;
-    /* lighter than base background */
+   
     color: #2c3e50;
     line-height: 1.6;
     min-height: 100vh;
     padding: 90px 20px 20px;
-    /* extra top padding so content clears navbar */
 }
 
 
@@ -44,7 +43,7 @@ h1 {
 .error-message {
     font-size: 0.85rem;
     color: red;
-    /* 🔴 ensures messages appear red */
+   
     margin-top: 4px;
     display: block;
     font-weight: 500;
@@ -192,7 +191,7 @@ input[type="radio"] {
 }
 
 
-/* Two-column grid inside members */
+
 
 .member-form fieldset {
     display: grid;
@@ -212,8 +211,6 @@ input[type="radio"] {
     grid-column: span 2;
 }
 
-
-/* Spacing for address inputs */
 
 .member-form .address-fields textarea,
 .member-form .address-fields select,

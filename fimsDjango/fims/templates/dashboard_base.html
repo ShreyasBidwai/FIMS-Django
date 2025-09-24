@@ -3,20 +3,18 @@
 <html lang="en">
 
 <head>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
   <link rel="stylesheet" href="{% static 'fims/css/base.css' %}">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="shortcut icon" href="{% static 'fims/images/family.png' %}" type="image/x-icon">
-  <link rel="stylesheet" href="	https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href=" https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
 
   <style>
     body {
@@ -29,7 +27,7 @@
       padding-top: 0;
     }
 
-    /* Sidebar */
+
     #sidebar {
       position: fixed;
       top: 0;
@@ -44,6 +42,8 @@
       box-shadow: 2px 0 18px rgba(0, 0, 0, 0.18);
       border-top-right-radius: 14px;
       border-bottom-right-radius: 14px;
+      transition: transform 0.3s ease-in-out;
+      z-index: 1000;
     }
 
     #sidebar #logo {
@@ -68,17 +68,15 @@
       font-size: 1rem;
       color: #bdc3c7;
       font-weight: 400;
-      /* text-align: center; */
     }
 
-    /* Divider */
     .divider {
       border: none;
       border-top: 1px solid rgba(255, 255, 255, 0.15);
       margin: 0.6rem 0;
     }
 
-    /* Nav sections */
+  
     #sidebar ul {
       list-style: none;
       padding: 0;
@@ -130,7 +128,7 @@
       transform: translateX(3px);
     }
 
-    /* Logout button special */
+
     #logout-btn {
       background: linear-gradient(135deg, #3498db, #2980b9);
       color: #fff !important;
@@ -159,38 +157,54 @@
       box-shadow: 0 6px 14px rgba(41, 128, 185, 0.3);
     }
 
-    /* Stick dashboard options at bottom */
-    #Main-functionality {
-      margin-top: auto;
-      padding-top: 0.6rem;
-    }
 
-    /* Main content */
     #main-content {
+      display: flex;
+      flex-direction: column;
       flex: 1;
-      margin-left: 240px;
+      margin-left: 240px; */
       padding: 1rem 1.5rem;
       background: #fff;
       border-radius: 20px 0 0 20px;
       box-shadow: -6px 0 20px rgba(0, 0, 0, 0.06);
-      min-height: 100vh;
       transition: margin-left 0.3s ease;
     }
 
-    /* Responsive */
+
+    .menu-toggle {
+        display: none;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: #2c3e50;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
     @media (max-width: 900px) {
       #sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        flex-direction: row;
-        border-radius: 0;
-        padding: 0.6rem;
+        transform: translateX(-240px);
+        box-shadow: none;
       }
-
+      #sidebar.active {
+        transform: translateX(0);
+        box-shadow: 2px 0 18px rgba(0, 0, 0, 0.18);
+      }
       #main-content {
         margin-left: 0;
         border-radius: 0;
+      }
+      .menu-toggle {
+        display: flex;
       }
     }
   </style>
@@ -198,11 +212,15 @@
 </head>
 
 <body>
+  
+  <button id="menu-toggle" class="menu-toggle">
+    <i class="bi bi-list"></i>
+  </button>
 
   <div id="sidebar">
     <div id="logo">
       <img src="{% static 'fims/images/family.png' %}" alt="Logo">
-      Familylink
+      Familink
     </div>
     <div class="greeting">Hello {{ username }}</div>
 
@@ -210,17 +228,17 @@
 
     <ul id="view-content">
       <li class="list-head">Master Data</li>
-      <li><i class="bi bi-person-fill"></i><button onclick="showTable('head')">Head</button></li>
-      <li><i class="bi bi-people-fill"></i><button onclick="showTable('family')">Family</button></li>
-      <li><i class="bi bi-geo-alt-fill"></i><button onclick="showTable('state')">State</button></li>
-      <li><i class="bi bi-building"></i><button onclick="showTable('city')">City</button></li>
+      <li><i class="bi bi-person-fill"></i><a href="{% url 'dashboard_head' %}">Head</a></li>
+      <li><i class="bi bi-people-fill"></i><a href="{% url 'dashboard_family' %}">Family</a></li>
+      <li><i class="bi bi-geo-alt-fill"></i><a href="{% url 'dashboard_state' %}">State</a><li>
+      <li><i class="bi bi-building"></i><a href="{% url 'dashboard_city' %}">City</a></li>
     </ul>
 
     <hr class="divider">
 
     <ul id="Main-functionality">
       <li class="list-head">Dashboard</li>
-      <li><i class="bi bi-house-door-fill"></i></i><a href="{% url 'dashboard' %}">Dashboard Home</a></li>
+      <li><i class="bi bi-house-door-fill"></i></i><a href="{% url 'dashboard_head' %}">Dashboard Home</a></li>
       <li><i class="bi bi-calculator-fill"></i><a href="{% url 'stats' %}">Quick Stats</a></li>
       <li><i class="bi bi-pencil-square"></i><a href="{% url 'regis' %}">Register</a></li>
       <li><i class="bi bi-person-lines-fill"></i></i><a href="{% url 'admin:index' %}">Django Admin</a></li>
@@ -243,4 +261,14 @@
 </body>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    });
+</script>
 </html>

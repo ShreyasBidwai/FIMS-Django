@@ -1,4 +1,5 @@
-<!DOCTYPE html> {% load static %}
+<!DOCTYPE html>
+{% load static %}
 <html lang="en">
 
 <head>
@@ -6,7 +7,129 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Familylink</title>
     <link rel="stylesheet" href="{% static 'fims/css/base.css' %}">
-    <link rel="icon" href="{% static 'fims/images/family.png' %}" type="image/png"> {% block extra_head %}{% endblock %}
+    <link rel="icon" href="{% static 'fims/images/family.png' %}" type="image/png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f9;
+        }
+
+        #nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: #2c3e50;
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        #nav-bar #logo {
+            font-weight: bold;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        #nav-bar ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+        }
+
+        #nav-bar ul li {
+            margin-left: 1.5rem;
+        }
+
+        #nav-bar ul a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        #nav-bar ul a:hover {
+            color: #bdc3c7;
+        }
+
+        .back-btn {
+            display: inline-block;
+            
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin-right: 1.5rem;
+        }
+
+        .back-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        #content-wrapper {
+            padding-top: 80px; 
+        }
+
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .menu-toggle .bar {
+            width: 25px;
+            height: 3px;
+            background-color: #fff;
+            margin: 4px 0;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            #nav-bar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+
+            #nav-bar ul {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+                background-color: #2c3e50;
+                padding: 1rem 0;
+                transition: all 0.3s ease-in-out;
+            }
+            
+            #nav-bar ul.active {
+                display: flex;
+            }
+
+            #nav-bar ul li {
+                margin: 0.5rem 0;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .back-btn {
+                margin-right: 0;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body>
@@ -15,23 +138,37 @@
             <img src="{% static 'fims/images/family.png' %}" alt="Familink Logo" style="height: 1.2em; width: auto; vertical-align: middle; margin-right: 0.1em;">
             Familink
         </div>
-        <ul>
-
-            
-
+        <div class="menu-toggle" id="mobile-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <ul id="nav-links">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
+                <a href="{% url 'dashboard_head' %}" class="back-btn">&larr; Back to Dashboard</a>
                 <li><a href="{% url 'regis' %}">Register</a></li>
                 <li><a href="{% url 'logout' %}">Logout</a></li>
+                
             {% else %}
                 <li><a href="{% url 'home' %}">Home</a></li>
                 <li><a href="{% url 'stats' %}">Quick Stats</a></li>
                 <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
                 <li><a href="{% url 'login_view' %}">Login</a></li>
             {% endif %}
+            
         </ul>
     </nav>
-    {% block content %}{% endblock %}
+    <div id="content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 

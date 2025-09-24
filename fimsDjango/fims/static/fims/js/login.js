@@ -29,7 +29,7 @@ $(document).ready(function() {
         }
     });
 
-    // Django error handling for incorrect credentials
+// Django error handling for incorrect credentials
     var incorrectMsg = $('.main').data('incorrect');
     if (incorrectMsg) {
         $passwordError.text(incorrectMsg);
