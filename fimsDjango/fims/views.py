@@ -804,7 +804,7 @@ def edit_city(request, id):
         return redirect('dashboard')
     return render(request, 'edit_city.html', {'city': city})
 
-# AJAX endpoint for status update
+
 @csrf_exempt
 def update_status(request):
     if request.method == 'POST':
@@ -813,17 +813,42 @@ def update_status(request):
         entry_id = data.get('id')
         status = data.get('status')
         try:
+            import os
             if entry_type == 'head':
                 obj = FamilyHead.objects.get(HeadID=entry_id)
                 obj.status = status
                 obj.save()
                 if status == 9:
-                    # Soft delete all related members
-                    FamilyMember.objects.filter(HeadID=obj).update(status=9)
+                    
+                    if obj.Photo and hasattr(obj.Photo, 'path') and os.path.exists(obj.Photo.path):
+                        try:
+                            os.remove(obj.Photo.path)
+                        except Exception:
+                            pass
+                    obj.Photo = None
+                    obj.save()
+                   
+                    for member in FamilyMember.objects.filter(HeadID=obj):
+                        member.status = 9
+                        if member.Photo and hasattr(member.Photo, 'path') and os.path.exists(member.Photo.path):
+                            try:
+                                os.remove(member.Photo.path)
+                            except Exception:
+                                pass
+                        member.Photo = None
+                        member.save()
             elif entry_type == 'member':
                 obj = FamilyMember.objects.get(MemberID=entry_id)
                 obj.status = status
                 obj.save()
+                if status == 9:
+                    if obj.Photo and hasattr(obj.Photo, 'path') and os.path.exists(obj.Photo.path):
+                        try:
+                            os.remove(obj.Photo.path)
+                        except Exception:
+                            pass
+                    obj.Photo = None
+                    obj.save()
             elif entry_type == 'state':
                 obj = State.objects.get(id=entry_id)
                 obj.status = status
