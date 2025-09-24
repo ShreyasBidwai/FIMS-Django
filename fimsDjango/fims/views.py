@@ -1,51 +1,132 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import State, FamilyHead, FamilyMember, Hobby, AdminLog
-from django.contrib import messages
-from django.db.utils import IntegrityError
-from django.db import transaction
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.db import transaction, IntegrityError
-# from models import FamilyHead, FamilyMember, Hobby, AdminLog, State # Assuming your models are in 'your_app'
-from datetime import date
+from django.db import models
+from django.http import FileResponse, JsonResponse
+import io
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from django.core.paginator import Paginator
+from django.views.decorators.http import require_GET
+from .models import FamilyHead, FamilyMember, State, City, Country, Hobby, AdminLog, PasswordReset
+from django.contrib.auth.models import User
+from django.db.models import Q
 import datetime
-
-from django.contrib.auth import authenticate, login, logout
+from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.db import transaction, IntegrityError
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.urls import reverse
 
-from .models import *
-from django.db.models import Count
-from django.core.paginator import Paginator
-from django.views.decorators.csrf import csrf_exempt
+@require_GET
+def dashboard_stats_api(request):
+    # Get stats for dashboard cards
+    total_families = FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count()
+    active_members = FamilyMember.objects.filter(status=1).count()
+    inactive_members = FamilyMember.objects.filter(status=0).count()
+    return JsonResponse({
+        'total_families': total_families,
+        'total_members': total_members,
+        'active_members': active_members,
+        'inactive_members': inactive_members,
+    })
 
-import json
-from .models import State, City, Country
-from django.views.decorators.http import require_http_methods
+@require_GET
+def export_heads_excel(request):
+    """
+    Exports FamilyHead and FamilyMember data to an Excel file.
+    Filters data based on a search query if provided; otherwise, exports all records.
+    """
+    search = request.GET.get('search', '').strip()
 
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.db import transaction, IntegrityError
-from django.contrib import messages
-# from your_app.models import FamilyHead, FamilyMember, AdminLog, State # assuming these are your models
-from datetime import date
-import datetime
+    # Get all FamilyHead objects, excluding status=9.
+    heads = FamilyHead.objects.exclude(status=9)
 
-import io
-from django.http import FileResponse
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
-from reportlab.lib.pagesizes import letter
+    # If a search query is given, filter the queryset based on multiple fields.
+    if search:
+        heads = heads.filter(
+            models.Q(Name__icontains=search) |
+            models.Q(Surname__icontains=search) |
+            models.Q(MobileNo__icontains=search) |
+            models.Q(State__icontains=search) |
+            models.Q(City__icontains=search) |
+            models.Q(Address__icontains=search)
+        )
 
-from django.views.decorators.http import require_GET
+    # Create a new workbook and select the active worksheet.
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Heads & Family Members"
+
+    # Define and append the header row.
+    headers = [
+        "Head Name", "Head Surname", "Mobile", "State", "City", "Address",
+        "Member Name", "Member Surname", "Member Mobile", "Relationship",
+        "Member Gender", "Member Birthdate", "Member Marital Status"
+    ]
+    ws.append(headers)
+
+    # Apply bold font to the header row.
+    bold_font = Font(bold=True)
+    for cell in ws[1]:
+        cell.font = bold_font
+
+    # Iterate through the heads queryset (either filtered or all).
+    for head in heads:
+        # Resolve state and city names by ID or name.
+        state_name = head.State
+        city_name = head.City
+        
+        try:
+            state_obj = State.objects.filter(name=head.State).first() or State.objects.filter(id=head.State).first()
+            if state_obj:
+                state_name = state_obj.name
+        except (ValueError, TypeError):
+            pass
+        
+        try:
+            city_obj = City.objects.filter(name=head.City).first() or City.objects.filter(id=head.City).first()
+            if city_obj:
+                city_name = city_obj.name
+        except (ValueError, TypeError):
+            pass
+
+        # Fetch all family members related to the current head (no member filtering)
+        members = head.familymember_set.all()
+
+        # If members exist, add a row for each one.
+        if members:
+            for member in members:
+                ws.append([
+                    head.Name, head.Surname, head.MobileNo, state_name, city_name, head.Address,
+                    member.Name, member.Surname, member.MobileNo, member.Relationship,
+                    member.Gender, member.Birthdate, member.MaritalStatus
+                ])
+        else:
+            # If no members, add a row with just the head's information.
+            ws.append([
+                head.Name, head.Surname, head.MobileNo, state_name, city_name, head.Address,
+                '', '', '', '', '', '', ''
+            ])
+
+    # Adjust column widths for better readability.
+    for col in ws.columns:
+        max_length = 20
+        col_letter = col[0].column_letter
+        ws.column_dimensions[col_letter].width = max_length
+
+    # Save the workbook to a byte stream and prepare the response.
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    filename = "heads_family_export.xlsx"
+    return FileResponse(output, as_attachment=True, filename=filename)
 
 
 @require_GET
@@ -1649,6 +1730,3 @@ def ResetPassword(request, reset_id):
         return redirect('forgot-password')
 
     return render(request, 'reset_password.html')
-
-
-

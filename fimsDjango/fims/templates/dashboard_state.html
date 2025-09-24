@@ -18,7 +18,7 @@
 <div id="dashboard-head">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
         <h1 style="margin: 0;">Dashboard</h1>
-        <form method="get" action="" style="display: flex; gap: 1rem; align-items: center; margin: 0;">
+        <form id="main-search-form" method="get" action="" style="display: flex; gap: 1rem; align-items: center; margin: 0;">
             <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
             <button type="submit">Search</button>
             <a href="?" style="margin-left: 1rem;">Clear</a>
@@ -33,6 +33,7 @@
 </div>
 <div id="table-state" class="dashboard-table">
     <div class="sub-table-head">
+        <h2>States</h2>
         <table>
             <thead>
                 <tr>
@@ -85,7 +86,7 @@
         align-items: center;
     }
     #status-modal .modal-content {
-                background: #fff;
+        background: #fff;
         padding: 0.7rem 1.2rem 1.1rem 1.2rem;
         border-radius: 8px;
         text-align: center;
@@ -113,38 +114,7 @@
         background: #f5f6fa;
         color: #222;
         border: 1px solid #d1d5db;
-    
     }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // AJAX Clear button for state dashboard
-    const clearBtn = document.querySelector('form[action=""] a[href="?"]');
-    const searchInput = document.querySelector('form[action=""] input[name="search"]');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let url = clearBtn.getAttribute('href');
-            fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-            .then(res => res.text())
-            .then(html => {
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-                // Replace table and pagination
-                const newTable = temp.querySelector('#table-state');
-                if (newTable) {
-                    document.querySelector('#table-state').innerHTML = newTable.innerHTML;
-                }
-                // Clear the search input field
-                if (searchInput) {
-                    searchInput.value = '';
-                }
-            });
-        });
-    }
-});
-</script>
-     
 </style>
 <div id="status-modal">
     <div class="modal-content">
@@ -158,19 +128,22 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
     let modal = document.getElementById('status-modal');
     let entryType = null, entryId = null;
-    document.querySelectorAll('.status-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            entryType = btn.getAttribute('data-type');
-            entryId = btn.getAttribute('data-id');
-            modal.style.display = 'flex';
+
+    // Function to attach event listeners to status buttons
+    function attachStatusListeners() {
+        document.querySelectorAll('.status-btn').forEach(function(btn) {
+            btn.onclick = function(e) {
+                entryType = btn.getAttribute('data-type');
+                entryId = btn.getAttribute('data-id');
+                modal.style.display = 'flex';
+            };
         });
-    });
-    document.getElementById('cancel-status').onclick = function() {
-        modal.style.display = 'none';
-    };
+    }
+
+    // Modal button actions
+    document.getElementById('cancel-status').onclick = function() { modal.style.display = 'none'; };
     document.getElementById('set-active').onclick = function() {
         if(confirm('Are you sure you want to set status to Active?')) {
             updateStatus(entryType, entryId, 1);
@@ -190,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // AJAX function to update status
     function updateStatus(type, id, status) {
         fetch('/update-status/', {
             method: 'POST',
@@ -200,38 +174,26 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({type: type, id: id, status: status})
         }).then(res => res.json()).then(data => {
             if(data.success) {
-                
-                let row;
-                if(type === 'head') {
-                    row = document.querySelector('button.status-btn[data-type="head"][data-id="' + id + '"]').closest('tr');
-                } else if(type === 'member') {
-                    row = document.querySelector('button.status-btn[data-type="member"][data-id="' + id + '"]').closest('tr');
-                } else if(type === 'state') {
-                    row = document.querySelector('button.status-btn[data-type="state"][data-id="' + id + '"]').closest('tr');
-                } else if(type === 'city') {
-                    row = document.querySelector('button.status-btn[data-type="city"][data-id="' + id + '"]').closest('tr');
-                }
-                if(row) {
-                    if(status === 9) {
-                        row.parentNode.removeChild(row);
-                    } else {
-                        let statusCell = row.querySelector('td:nth-child(6)');
-                        if(statusCell) {
-                            let statusText = status === 1 ? 'Active' : (status === 0 ? 'Inactive' : 'Soft Deleted');
+                let row = document.querySelector(`button.status-btn[data-type="${type}"][data-id="${id}"]`).closest('tr');
+                if (row) {
+                    let statusCell = row.querySelector('td:nth-child(3)');
+                    if (statusCell) {
+                        if (status === 9) {
+                            row.style.display = 'none'; // Hide the row for soft delete
+                        } else {
+                            // Update the status text
+                            let statusText = status === 1 ? 'Active' : 'Inactive';
                             statusCell.textContent = statusText;
-                        }
-                        let btn = row.querySelector('button.status-btn');
-                        if(btn) {
-                            btn.style.background = '#e74c3c';
-                            btn.style.color = '#fff';
                         }
                     }
                 }
+                updateDashboardCards(); // Update card counts after a status change
             } else {
                 alert('Failed to update status');
             }
         });
     }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -247,63 +209,50 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
 
-    // New AJAX search function to update all tables
-    const searchForm = document.querySelector('#dashboard-head form');
+    // AJAX function to update cards
+    function updateDashboardCards() {
+        fetch('/dashboard-stats-api/')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('card-families').textContent = data.total_families;
+                document.getElementById('card-members').textContent = data.total_members;
+                document.getElementById('card-active').textContent = data.active_members;
+                document.getElementById('card-inactive').textContent = data.inactive_members;
+            }).catch(error => {
+                console.error('Error fetching dashboard stats:', error);
+            });
+    }
+
+    // AJAX search function to update all tables
+    const searchForm = document.querySelector('#main-search-form');
     if (searchForm) {
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const url = this.action || window.location.href;
             const formData = new FormData(this);
             const params = new URLSearchParams(formData).toString();
+            const url = `?${params}`;
             
-            fetch(url + '?' + params, {
-                headers: {'X-Requested-With': 'XMLHttpRequest'}
-            })
-            .then(res => res.text())
-            .then(html => {
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-
-                // Update the Head table (if it exists)
-                const newHeadBody = temp.querySelector('#head-table-body');
-                const newHeadPag = temp.querySelector('#head-pagination');
-                if (newHeadBody && document.getElementById('head-table-body')) {
-                    document.getElementById('head-table-body').innerHTML = newHeadBody.innerHTML;
-                }
-                if (newHeadPag && document.getElementById('head-pagination')) {
-                    document.getElementById('head-pagination').innerHTML = newHeadPag.innerHTML;
-                }
-
-                // Update the Family table (if it exists)
-                const newFamilyBody = temp.querySelector('#family-table-body');
-                const newFamilyPag = temp.querySelector('#family-pagination');
-                if (newFamilyBody && document.getElementById('family-table-body')) {
-                    document.getElementById('family-table-body').innerHTML = newFamilyBody.innerHTML;
-                }
-                if (newFamilyPag && document.getElementById('family-pagination')) {
-                    document.getElementById('family-pagination').innerHTML = newFamilyPag.innerHTML;
-                }
-
-                // Update the State table (if it exists)
-                const newStateBody = temp.querySelector('#state-table-body');
-                const newStatePag = temp.querySelector('#state-pagination');
-                if (newStateBody && document.getElementById('state-table-body')) {
-                    document.getElementById('state-table-body').innerHTML = newStateBody.innerHTML;
-                }
-                if (newStatePag && document.getElementById('state-pagination')) {
-                    document.getElementById('state-pagination').innerHTML = newStatePag.innerHTML;
-                }
-                
-                // Update the City table (if it exists)
-                const newCityBody = temp.querySelector('#city-table-body');
-                const newCityPag = temp.querySelector('#city-pagination');
-                if (newCityBody && document.getElementById('city-table-body')) {
-                    document.getElementById('city-table-body').innerHTML = newCityBody.innerHTML;
-                }
-                if (newCityPag && document.getElementById('city-pagination')) {
-                    document.getElementById('city-pagination').innerHTML = newCityPag.innerHTML;
-                }
-            });
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    
+                    const tables = ['head', 'family', 'state', 'city'];
+                    tables.forEach(table => {
+                        const newBody = temp.querySelector(`#${table}-table-body`);
+                        const newPag = temp.querySelector(`#${table}-pagination`);
+                        if (newBody && document.getElementById(`${table}-table-body`)) {
+                            document.getElementById(`${table}-table-body`).innerHTML = newBody.innerHTML;
+                        }
+                        if (newPag && document.getElementById(`${table}-pagination`)) {
+                            document.getElementById(`${table}-pagination`).innerHTML = newPag.innerHTML;
+                        }
+                    });
+                    
+                    history.pushState(null, '', url);
+                    attachStatusListeners();
+                });
         });
     }
 
@@ -314,50 +263,42 @@ document.addEventListener('DOMContentLoaded', function() {
         container.addEventListener('click', function(e) {
             if (e.target.classList.contains('ajax-page-link')) {
                 e.preventDefault();
-                const searchParams = new URLSearchParams(window.location.search);
                 const pageUrl = new URL(e.target.href);
-                if (searchParams.has('search')) {
-                    pageUrl.searchParams.set('search', searchParams.get('search'));
-                }
-
-                fetch(pageUrl.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                .then(res => res.text())
-                .then(html => {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const newBody = temp.querySelector('tbody');
-                    const newPag = temp.querySelector('.pagination');
-                    if (newBody && document.getElementById(bodyId)) {
-                        document.getElementById(bodyId).innerHTML = newBody.innerHTML;
-                    }
-                    if (newPag && document.getElementById(pagId)) {
-                        document.getElementById(pagId).innerHTML = newPag.innerHTML;
-                        history.pushState(null, '', pageUrl.href); // Update URL in address bar
-                    }
-                });
+                fetch(pageUrl.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.text())
+                    .then(html => {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = html;
+                        const newBody = temp.querySelector('tbody');
+                        const newPag = temp.querySelector('.pagination');
+                        if (newBody && document.getElementById(bodyId)) {
+                            document.getElementById(bodyId).innerHTML = newBody.innerHTML;
+                        }
+                        if (newPag && document.getElementById(pagId)) {
+                            document.getElementById(pagId).innerHTML = newPag.innerHTML;
+                            history.pushState(null, '', pageUrl.href);
+                        }
+                        attachStatusListeners();
+                    });
             }
         });
     }
-    
-    // Attach AJAX pagination for each table
-    ajaxPaginate('table-head', 'head-table-body', 'head-pagination');
-    ajaxPaginate('table-family', 'family-table-body', 'family-pagination');
-    ajaxPaginate('table-state', 'state-table-body', 'state-pagination');
-    ajaxPaginate('table-city', 'city-table-body', 'city-pagination');
 
-    // Periodically update dashboard cards
-    function updateDashboardCards() {
-        fetch('/dashboard-stats-api/')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('card-families').textContent = data.total_families;
-                document.getElementById('card-members').textContent = data.total_members;
-                document.getElementById('card-active').textContent = data.active_members;
-                document.getElementById('card-inactive').textContent = data.inactive_members;
-            });
-    }
+    // Call initial functions
     updateDashboardCards();
-    //setInterval(updateDashboardCards, 5000000); 
+    attachStatusListeners();
+    ajaxPaginate('table-state', 'state-table-body', 'state-pagination');
+
+    // Handle clear button
+    const clearBtn = document.querySelector('#main-search-form a[href="?"]');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const searchInput = document.querySelector('#main-search-form input[name="search"]');
+            searchInput.value = '';
+            searchForm.submit(); // Submit the form to reload with empty search
+        });
+    }
 });
 </script>
 {% endblock %}

@@ -36,6 +36,7 @@ urlpatterns = [
     path('view_state/<int:id>/', view_state, name='view_state'),
     path('pdf_view/', pdf_view, name='pdf_view'),
     path('excel_view/', excel_view, name='excel_view'),
+    path('export_heads_excel/', export_heads_excel, name='export_heads_excel'),
     path('dashboard-stats-api/', dashboard_stats_api, name='dashboard_stats_api'),
 ]
 

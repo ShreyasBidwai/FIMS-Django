@@ -131,7 +131,7 @@ tbody tr:hover {
     background: #d4ac0d;
 }
 .add-btn {
-    background: #27ae60;
+    background:  #1e8449;
     color: #fff !important;
     padding: 0.45rem 0.9rem;
     border-radius: 6px;
@@ -140,7 +140,7 @@ tbody tr:hover {
     text-decoration: none;
 }
 .add-btn:hover {
-    background: #1e8449;
+    background: #27ae60;
 }
 .icon{
    font-size: 2rem;
