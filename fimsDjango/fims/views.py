@@ -1070,29 +1070,28 @@ def login_view(request):
     return render(request, 'login.html')
 
 
+from django.db import models
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.db import transaction, IntegrityError
+from django.db.models import Q
 import datetime
 from datetime import date
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.db import transaction, IntegrityError
-from .models import FamilyHead, FamilyMember, Hobby, AdminLog, State
-
+from .models import FamilyHead, FamilyMember, State, Hobby, AdminLog
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 def regis(request):
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
     
-    # 🐞 Fix: Get the search query from the request's GET parameters
     search = request.GET.get('search')
+    show_all_tables = bool(search)
+    
+    heads = FamilyHead.objects.all()
+    families = FamilyMember.objects.all()
 
-    # Enable search filtering
     if search:
-        from django.db.models import Q
-        heads = FamilyHead.objects.all()
-        families = FamilyMember.objects.all()
-        states = State.objects.all()
-        # filtered_cities is not defined in the original code,
-        # so this line will also cause an error.
-        # filtered_cities = filtered_cities.filter(Q(name__icontains=search))
-        # The following lines are filtered on the QuerySet
         heads = heads.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
@@ -1107,13 +1106,9 @@ def regis(request):
             Q(MobileNo__icontains=search) |
             Q(Relationship__icontains=search)
         )
-        states = states.filter(Q(name__icontains=search))
-        show_all_tables = True
-    else:
-        show_all_tables = False
         
     total_families = FamilyHead.objects.exclude(status=9).count()
-    total_members = FamilyMember.objects.exclude(status=9).count() + FamilyHead.objects.exclude(status=9).count()
+    total_members = FamilyMember.objects.exclude(status=9).count() + total_families
     active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
     inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
     deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
@@ -1122,31 +1117,58 @@ def regis(request):
         error_messages = []
         
         # --- Head Validation ---
-        head_name = request.POST.get('head_name')
+        head_name = request.POST.get('head_name', '').strip()
         if not head_name:
             error_messages.append('First name is required for Family Head.')
         
-        head_surname = request.POST.get('head_surname')
-        head_marital_status = request.POST.get('head_marital_status')
+        head_surname = request.POST.get('head_surname', '').strip()
+        if not head_surname:
+            error_messages.append('Surname is required for Family Head.')
+        
+        head_mobile = request.POST.get('head_mobile', '').strip()
+        if not head_mobile or not head_mobile.isdigit() or len(head_mobile) != 10:
+            error_messages.append('A valid 10-digit mobile number is required for Family Head.')
+        
+        head_address = request.POST.get('head_address', '').strip()
+        if not head_address:
+            error_messages.append('Address is required for Family Head.')
+            
+        head_state_id = request.POST.get('head_state', '').strip()
+        if not head_state_id:
+            error_messages.append('State is required for Family Head.')
+
+        head_city = request.POST.get('head_city', '').strip()
+        if not head_city:
+            error_messages.append('City is required for Family Head.')
+            
+        head_pincode = request.POST.get('head_pincode', '').strip()
+        if not head_pincode or not head_pincode.isdigit() or len(head_pincode) != 6:
+            error_messages.append('A valid 6-digit pincode is required for Family Head.')
+
+        head_gender = request.POST.get('head_gender', '').strip()
+        if not head_gender:
+            error_messages.append('Gender is required for Family Head.')
+            
+        head_marital_status = request.POST.get('head_marital_status', '').strip()
         if not head_marital_status:
             error_messages.append('Marital Status is required for Family Head.')
         elif head_marital_status == 'Married' and not request.POST.get('head_wedding_date'):
             error_messages.append('Wedding date is required for a married Family Head.')
         
-        head_birthdate = request.POST.get('head_birthdate')
+        head_birthdate = request.POST.get('head_birthdate', '').strip()
         if not head_birthdate:
             error_messages.append('Birthdate is required for Family Head.')
         else:
             try:
-                birth_date = datetime.datetime.strptime(head_birthdate, '%Y-%m-%d').date()
+                birth_date_obj = datetime.datetime.strptime(head_birthdate, '%Y-%m-%d').date()
                 today = date.today()
-                age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+                age = today.year - birth_date_obj.year - ((today.month, today.day) < (birth_date_obj.month, birth_date_obj.day))
                 if age < 21:
                     error_messages.append('Family Head must be 21 years or older.')
             except ValueError:
                 error_messages.append('Invalid birthdate format for Family Head.')
         
-        head_education = request.POST.get('head_education')
+        head_education = request.POST.get('head_education', '').strip()
         if not head_education:
             error_messages.append('Education is required for Family Head.')
         
@@ -1157,6 +1179,10 @@ def regis(request):
         head_hobbies = request.POST.getlist('head_hobbies[]')
         if not any(hobby.strip() for hobby in head_hobbies):
             error_messages.append('At least one hobby is required for Family Head.')
+
+        # Family Head - check unique mobile
+        if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
+            error_messages.append('This mobile number is already registered. Please use a different number.')
         
         # --- Member Validation ---
         member_index = 1
@@ -1165,23 +1191,23 @@ def regis(request):
             if not name:
                 break
             
-            member_surname = request.POST.get(f'member_{member_index}_surname')
+            member_surname = request.POST.get(f'member_{member_index}_surname', '')
             if not member_surname:
                 error_messages.append(f'Surname is required for member {member_index}.')
             
-            member_gender = request.POST.get(f'member_{member_index}_gender')
+            member_gender = request.POST.get(f'member_{member_index}_gender', '')
             if not member_gender:
                 error_messages.append(f'Gender is required for member {member_index}.')
             
-            member_relationship = request.POST.get(f'member_{member_index}_relationship')
+            member_relationship = request.POST.get(f'member_{member_index}_relationship', '')
             if not member_relationship:
                 error_messages.append(f'Relationship is required for member {member_index}.')
             
-            member_birthdate = request.POST.get(f'member_{member_index}_birthdate')
+            member_birthdate = request.POST.get(f'member_{member_index}_birthdate', '')
             if not member_birthdate:
                 error_messages.append(f'Birthdate is required for member {member_index}.')
             
-            member_marital_status = request.POST.get(f'member_{member_index}_marital_status')
+            member_marital_status = request.POST.get(f'member_{member_index}_marital_status', '')
             if not member_marital_status:
                 error_messages.append(f'Marital Status is required for member {member_index}.')
             elif member_marital_status == 'Married' and not request.POST.get(f'member_{member_index}_wedding_date'):
@@ -1190,50 +1216,44 @@ def regis(request):
             member_photo = request.FILES.get(f'member_{member_index}_photo')
             if not member_photo:
                 error_messages.append(f'Photo is required for member {member_index}.')
-          
+            
             member_index += 1
         
         if error_messages:
             return JsonResponse({'success': False, 'errors': error_messages})
         
-        # 🐞 Fix: Get head_mobile, head_address, head_state_id, head_city, head_pincode
-        # since they are used later but not defined
-        head_mobile = request.POST.get('head_mobile')
-        head_gender = request.POST.get('head_gender')
-        head_address = request.POST.get('head_address')
-        head_state_id = request.POST.get('head_state_id')
-        head_city = request.POST.get('head_city')
-        head_pincode = request.POST.get('head_pincode')
-
-        # Family Head - check unique mobile
-        if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
-            return JsonResponse({'success': False, 'errors': ['This mobile number is already registered. Please use a different number.']})
-        
-        # Use a transaction for atomicity
+        # Data is valid, now convert and save
         try:
+            head_state = get_object_or_404(State, id=head_state_id)
+            head_birthdate_obj = None
+            if head_birthdate:
+                head_birthdate_obj = datetime.datetime.strptime(head_birthdate, '%Y-%m-%d').date()
+            
+            head_wedding_date_obj = None
+            if head_marital_status == 'Married':
+                head_wedding_date_str = request.POST.get('head_wedding_date')
+                if head_wedding_date_str:
+                    head_wedding_date_obj = datetime.datetime.strptime(head_wedding_date_str, '%Y-%m-%d').date()
+
             with transaction.atomic():
-                head_birthdate = request.POST.get('head_birthdate') or None
-                head_wedding_date = request.POST.get('head_wedding_date') or None
-                
                 # Create and save Family Head
                 head = FamilyHead(
                     Name=head_name,
                     Surname=head_surname,
                     Gender=head_gender,
-                    Birthdate=head_birthdate,
+                    Birthdate=head_birthdate_obj,
                     MobileNo=head_mobile,
                     Address=head_address,
-                    State=head_state_id,
+                    State=head_state.name, # Save the state name, not the ID
                     City=head_city,
                     Pincode=head_pincode,
                     MaritalStatus=head_marital_status,
-                    WeddingDate=head_wedding_date,
+                    WeddingDate=head_wedding_date_obj,
                     Education=head_education,
                     Photo=head_photo
                 )
                 head.save()
                 
-                # Log create action for FamilyHead
                 if request.user.is_authenticated:
                     AdminLog.objects.create(
                         user=request.user,
@@ -1244,21 +1264,28 @@ def regis(request):
                         object_type='FamilyHead'
                     )
                 
-                # Hobbies for Head
                 for hobby in head_hobbies:
                     if hobby.strip():
                         Hobby.objects.create(head=head, Hobby=hobby.strip())
                 
-                # Family Members
                 member_index = 1
                 while True:
                     name = request.POST.get(f'member_{member_index}_name')
                     if not name:
                         break
                     
-                    member_birthdate = request.POST.get(f'member_{member_index}_birthdate') or None
-                    member_marital_status = request.POST.get(f'member_{member_index}_marital_status')
-                    member_wedding_date = request.POST.get(f'member_{member_index}_wedding_date') if member_marital_status == 'Married' else None
+                    member_birthdate_str = request.POST.get(f'member_{member_index}_birthdate')
+                    member_birthdate_obj = None
+                    if member_birthdate_str:
+                        member_birthdate_obj = datetime.datetime.strptime(member_birthdate_str, '%Y-%m-%d').date()
+                    
+                    member_marital_status = request.POST.get(f'member_{member_index}_marital_status', '')
+                    member_wedding_date_obj = None
+                    if member_marital_status == 'Married':
+                        member_wedding_date_str = request.POST.get(f'member_{member_index}_wedding_date')
+                        if member_wedding_date_str:
+                            member_wedding_date_obj = datetime.datetime.strptime(member_wedding_date_str, '%Y-%m-%d').date()
+
                     member_photo = request.FILES.get(f'member_{member_index}_photo')
                     
                     member = FamilyMember(
@@ -1267,16 +1294,15 @@ def regis(request):
                         Surname=request.POST.get(f'member_{member_index}_surname'),
                         Gender=request.POST.get(f'member_{member_index}_gender'),
                         Relationship=request.POST.get(f'member_{member_index}_relationship'),
-                        Birthdate=member_birthdate,
+                        Birthdate=member_birthdate_obj,
                         MobileNo=request.POST.get(f'member_{member_index}_mobile') or None,
                         Photo=member_photo,
                         MaritalStatus=member_marital_status,
-                        WeddingDate=member_wedding_date,
+                        WeddingDate=member_wedding_date_obj,
                         Education=request.POST.get(f'member_{member_index}_education'),
                     )
                     member.save()
                     
-                    # Log create action for FamilyMember
                     if request.user.is_authenticated:
                         AdminLog.objects.create(
                             user=request.user,
@@ -1288,13 +1314,19 @@ def regis(request):
                         )
                     member_index += 1
                 
-                # Return a success response
                 return JsonResponse({'success': True, 'message': 'Family registered successfully!'})
         
-        except IntegrityError:
-            return JsonResponse({'success': False, 'errors': ['A database error occurred. Please try again later.']})
+        except State.DoesNotExist:
+            return JsonResponse({'success': False, 'errors': ['Invalid state selected.']})
+        except ValueError as e:
+            return JsonResponse({'success': False, 'errors': [f'Data format error: {e}']})
+        except IntegrityError as e:
+            return JsonResponse({'success': False, 'errors': [f'A database error occurred: {e}']})
+        except Exception as e:
+            return JsonResponse({'success': False, 'errors': [f'An unexpected server error occurred: {e}']})
     
     return render(request, 'registration.html', {'states': states})
+
 
 def resetPassword(request):
     return render(request, 'resetPassword.html')

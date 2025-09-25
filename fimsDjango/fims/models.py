@@ -154,7 +154,7 @@ class Country(models.Model):
 
 
 class State(models.Model):
-
+    objects = models.Manager()
     STATUS_CHOICES = [
         (0, 'Inactive'),
         (1, 'Active'),
