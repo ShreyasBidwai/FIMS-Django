@@ -579,6 +579,19 @@
             }
         });
         
+        document.addEventListener('DOMContentLoaded', function() {
+    const headPhotoInput = document.getElementById('head_photo');
+    const headPhotoError = document.getElementById('error-head_photo');
+
+    headPhotoInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            headPhotoError.textContent = ''; // Clear the error message
+        } else {
+            headPhotoError.textContent = 'Photo is required for Family Head.';
+        }
+    });
+});
+
 // Initial check on page load in case of saved data
         checkFormValidity();
     });
@@ -609,7 +622,20 @@
 
         checkFormValidity(); // Check validity after adding hobby field
     };
+
+
     
+$(document).on('change', 'input[id$="_photo"]', function() {
+    const memberIndex = this.id.match(/member_(\d+)_/)[1];
+    const memberPhotoError = document.getElementById(`error-member_${memberIndex}_photo`);
+    
+    if (this.files.length > 0) {
+        memberPhotoError.textContent = ''; // Clear the error message
+    } else {
+        memberPhotoError.textContent = 'Photo is required for this member.';
+    }
+}); 
+
     window.addMember = function() {
         if (document.getElementById('add-member-btn').disabled) {
             validateHead(true); 
@@ -762,6 +788,8 @@
             }
         });
     }
+
+
 </script>
 {% endblock %}
 {% endblock %}

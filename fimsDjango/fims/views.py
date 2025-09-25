@@ -39,10 +39,7 @@ def dashboard_stats_api(request):
 
 @require_GET
 def export_heads_excel(request):
-    """
-    Exports FamilyHead and FamilyMember data to an Excel file.
-    Filters data based on a search query if provided; otherwise, exports all records.
-    """
+
     search = request.GET.get('search', '').strip()
 
     # Get all FamilyHead objects, excluding status=9.

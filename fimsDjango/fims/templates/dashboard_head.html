@@ -20,14 +20,12 @@
         <h1 style="margin: 0;">Dashboard</h1>
         <div style="display: flex; gap: 1rem; align-items: center;">
             <form method="get" action="" style="display: flex; gap: 1rem; align-items: center; margin: 0;">
-                <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
+                <input type="text" name="search" id="search-input" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
                 <button type="submit">Search</button>
                 <a href="?" style="margin-left: 1rem;">Clear</a>
             </form>
             <form method="get" action="{% url 'export_heads_excel' %}" style="margin-left: 1rem;">
-                {% if search %}
-                <input type="hidden" name="search" value="{{ search }}">
-                {% endif %}
+                <input type="hidden" name="search" id="export-search-input" value="{{ search }}">
                 <input type="hidden" name="head_page" value="{{ head_page_obj.number }}">
                 <button type="submit" class="add-btn" style="background:#198754;color:#fff;">Export Excel</button>
             </form>
@@ -237,6 +235,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }).catch(error => {
                 console.error('Error fetching dashboard stats:', error);
             });
+    }
+
+    // This section is what needs to be fixed.
+    const searchInput = document.getElementById('search-input');
+    const exportSearchInput = document.getElementById('export-search-input');
+
+    if (searchInput && exportSearchInput) {
+        // Function to update the hidden input in the export form
+        const updateExportSearch = () => {
+            exportSearchInput.value = searchInput.value;
+        };
+
+        // Update the value on page load
+        updateExportSearch();
+
+        // Update the value whenever the user types in the search field
+        searchInput.addEventListener('input', updateExportSearch);
     }
     
     // AJAX pagination and search for all dashboard tables
