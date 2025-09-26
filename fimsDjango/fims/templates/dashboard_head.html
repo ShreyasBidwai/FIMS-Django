@@ -56,6 +56,44 @@
                 <th>Actions</th>
             </tr>
         </thead>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <tbody id="head-table-body">
             {% for head in head_page_obj %}
             <tr>
@@ -78,7 +116,7 @@
         {% if head_page_obj.has_previous %}
             <a href="?tab=head&head_page={{ head_page_obj.previous_page_number }}" class="ajax-page-link">Previous</a>
         {% endif %}
-        <span>Page {{ head_page_obj.number }} of {{ head_page_obj.paginator.num_pages }}</span>
+        <span>Page {{ head_page_obj.number }} of {{ head_page_obj.num_pages }}</span>
         {% if head_page_obj.has_next %}
             <a href="?tab=head&head_page={{ head_page_obj.next_page_number }}" class="ajax-page-link">Next</a>
         {% endif %}

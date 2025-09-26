@@ -26,7 +26,7 @@ a:hover {
 /* Back button */
 .back-btn {
     display: inline-block;
-    margin: 20px;
+    /* margin: 20px; */
     padding: 8px 15px;
     background-color: #f0f0f0;
     color: #333;
@@ -38,6 +38,7 @@ a:hover {
 .back-btn:hover {
     background: linear-gradient(180deg, #1f2a38, #2c3e50);
     color:white;
+    text-decoration: none;
 }
 
 /* Head Table */

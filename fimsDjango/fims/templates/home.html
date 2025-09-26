@@ -18,9 +18,18 @@
     {% endif %}
      <nav id="nav-bar">
         
-        <div id="logo">
-            <img src="{% static 'fims/images/family.png' %}" alt="Familink Logo" style="height: 1.2em; width: auto; vertical-align: middle; margin-right: 0.5em;">Familink</div>
-        <ul>
+        <div style="display: flex; align-items: center;">
+            <div id="logo">
+                <img src="{% static 'fims/images/family.png' %}" alt="Familink Logo" style="height: 1.2em; width: auto; vertical-align: middle; margin-right: 0.5em;">Familink
+            </div>
+        </div>
+        
+        <div class="menu-toggle" id="menu-toggle">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <ul id="nav-links">
             <li><a href="{% url 'stats' %}">Quick Stats</a></li>
            
             <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
@@ -43,6 +52,20 @@
         </div>
         </div>
     </section>
-</body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const navLinks = document.getElementById('nav-links');
+
+            menuToggle.addEventListener('click', function() {
+                // Toggle the 'active' class on the button (for animation)
+                menuToggle.classList.toggle('active');
+                // Toggle the 'active' class on the <ul> (to show/hide menu)
+                navLinks.classList.toggle('active');
+            });
+        });
+    </script>
+    </body>
 
 </html>

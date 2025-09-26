@@ -23,6 +23,19 @@ from django.core.mail import EmailMessage
 from django.utils import timezone
 from django.urls import reverse
 
+from django.db import models
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.db import transaction, IntegrityError
+from django.db.models import Q
+import datetime
+from datetime import date
+from .models import FamilyHead, FamilyMember, State, Hobby, AdminLog
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
 @require_GET
 def dashboard_stats_api(request):
     # Get stats for dashboard cards
@@ -42,10 +55,10 @@ def export_heads_excel(request):
 
     search = request.GET.get('search', '').strip()
 
-    # Get all FamilyHead objects, excluding status=9.
+    
     heads = FamilyHead.objects.exclude(status=9)
 
-    # If a search query is given, filter the queryset based on multiple fields.
+    
     if search:
         heads = heads.filter(
             models.Q(Name__icontains=search) |
@@ -74,9 +87,9 @@ def export_heads_excel(request):
     for cell in ws[1]:
         cell.font = bold_font
 
-    # Iterate through the heads queryset (either filtered or all).
+   
     for head in heads:
-        # Resolve state and city names by ID or name.
+        
         state_name = head.State
         city_name = head.City
         
@@ -160,7 +173,7 @@ def check_head_mobile_unique(request):
     exists = qs.exists()
     return JsonResponse({'exists': exists})
 
-
+@login_required(login_url='login')
 def pdf_view(request):
     from .models import FamilyHead, FamilyMember, Hobby
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
@@ -301,7 +314,7 @@ def pdf_view(request):
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=pdf_filename)
 
-
+@login_required(login_url='login')
 def view_state(request, id):
     from .models import State, City
     state = get_object_or_404(State, id=id)
@@ -311,6 +324,7 @@ def view_state(request, id):
         cities = cities.filter(name__icontains=search)
     return render(request, 'view_state.html', {'state': state, 'cities': cities})
 
+@login_required(login_url='login')
 def view_family(request, id):
     head = get_object_or_404(FamilyHead, HeadID=id)
     members = head.familymember_set.all()
@@ -331,6 +345,7 @@ def view_family(request, id):
         pass
     return render(request, 'view_family.html', {'head': head, 'members': members, 'state_name': state_name, 'city_name': city_name})
 
+@login_required(login_url='login')
 @require_http_methods(["GET", "POST"])
 def add_state(request):
     error = None
@@ -356,6 +371,8 @@ def add_state(request):
     return render(request, 'add_state.html', {'error': error})
 
 from django.views.decorators.http import require_http_methods
+
+@login_required(login_url='login')
 @require_http_methods(["GET", "POST"])
 def add_city(request):
     error = None
@@ -481,7 +498,7 @@ def add_city(request):
 #     return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': members})
 
 
-
+@login_required(login_url='login')
 def update_head(request, id):
     instance = get_object_or_404(FamilyHead, HeadID=id)
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
@@ -751,6 +768,7 @@ def update_head(request, id):
                     new_idx += 1
 
                 return JsonResponse({'success': True, 'message': 'Family updated successfully!'})
+    
         
         except IntegrityError:
             return JsonResponse({'success': False, 'errors': ['A database error occurred. Please try again later.']})
@@ -758,7 +776,7 @@ def update_head(request, id):
     return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': FamilyMember.objects.filter(HeadID=instance)})
 
 
-
+@login_required(login_url='login')
 def edit_state(request, id):
     state = get_object_or_404(State, id=id)
     if request.method == 'POST':
@@ -779,9 +797,11 @@ def edit_state(request, id):
                 object_type='State'
             )
         messages.success(request, 'State updated successfully!')
-        return redirect('dashboard')
+        return redirect('dashboard_state')
     return render(request, 'edit_state.html', {'state': state})
 
+
+@login_required(login_url='login')
 def edit_city(request, id):
     city = get_object_or_404(City, id=id)
     if request.method == 'POST':
@@ -801,7 +821,7 @@ def edit_city(request, id):
         return redirect('dashboard')
     return render(request, 'edit_city.html', {'city': city})
 
-
+@login_required(login_url='login')
 @csrf_exempt
 def update_status(request):
     if request.method == 'POST':
@@ -1067,18 +1087,7 @@ def login_view(request):
     return render(request, 'login.html')
 
 
-from django.db import models
-from django.http import JsonResponse
-from django.core.paginator import Paginator
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.db import transaction, IntegrityError
-from django.db.models import Q
-import datetime
-from datetime import date
-from .models import FamilyHead, FamilyMember, State, Hobby, AdminLog
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+
 def regis(request):
     states = list(State.objects.filter(country_id=101).values('id', 'name'))
     
@@ -1337,18 +1346,22 @@ def dashboard_head(request):
     search = request.GET.get('search', '').strip()
     state_filter = request.GET.get('state_filter', '')
 
-    heads = FamilyHead.objects.exclude(status=9)
-    families = FamilyMember.objects.exclude(status=9)
-    states = State.objects.exclude(status=9) if hasattr(State, 'status') else State.objects.all()
-    all_states = State.objects.exclude(status=9)
+
+    heads = FamilyHead.objects.exclude(status=9).order_by('-HeadID')
+    families = FamilyMember.objects.exclude(status=9).order_by('-MemberID')
+    
+    # Assuming State and City also need to be ordered latest first
+    states = State.objects.exclude(status=9).order_by('-id') if hasattr(State, 'status') else State.objects.all().order_by('-id')
+    all_states = State.objects.exclude(status=9).order_by('name') # Usually, the filter list of states is ordered alphabetically
+    # ------------------------------------------------------------------------------------
+
     if state_filter:
-        filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter)
+        filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter).order_by('-id')
     else:
-        filtered_cities = City.objects.exclude(status=9)
+        filtered_cities = City.objects.exclude(status=9).order_by('-id')
 
     # Enable search filtering
     if search:
-        from django.db.models import Q
         heads = heads.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
@@ -1374,34 +1387,9 @@ def dashboard_head(request):
     active_members = FamilyMember.objects.filter(status=1).exclude(status=9).count() + FamilyHead.objects.filter(status=1).exclude(status=9).count()
     inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
     deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
-# Check if search term exists and filter accordingly
-    # if search:
-    #     from django.db.models import Q
-    
-    #     heads = heads.filter(
-    #         Q(Name__icontains=search) |
-    #         Q(Surname__icontains=search) |
-    #         Q(MobileNo__icontains=search) |
-    #         Q(State__icontains=search) |
-    #         Q(City__icontains=search) |
-    #         Q(Address__icontains=search)
-    #     )
 
-    #     families = families.filter(
-    #         Q(Name__icontains=search) |
-    #         Q(Surname__icontains=search) |
-    #         Q(MobileNo__icontains=search) |
-    #         Q(Relationship__icontains=search)
-    #     )
-
-    #     states = states.filter(Q(name__icontains=search))
-    #     filtered_cities = filtered_cities.filter(Q(name__icontains=search))
-
-    #     # Flag to show all tables when search is used
-    #     show_all_tables = True
-    # else:
-    #     show_all_tables = False  # or some other default value if necessary
-    head_paginator = Paginator(heads, 10)
+    # The line where you had the error is now corrected by ordering the QuerySet beforehand
+    head_paginator = Paginator(heads, 10) # 'heads' is already ordered
     family_paginator = Paginator(families, 10)
     state_paginator = Paginator(states, 10)
     city_paginator = Paginator(filtered_cities, 10)
@@ -1424,11 +1412,8 @@ def dashboard_head(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'dashboard_head.html', context, content_type='text/html')
     return render(request, 'dashboard_head.html', context)
-from django.db.models import Q
-from django.core.paginator import Paginator
-from django.shortcuts import render
-from .models import FamilyHead, FamilyMember, State, City
-from django.contrib.auth.decorators import login_required
+
+
 
 @login_required(login_url='login')
 def dashboard_family(request):

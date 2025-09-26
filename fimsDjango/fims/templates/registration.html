@@ -128,7 +128,7 @@
                 <td colspan="2">
                     <label>Hobbies:</label>
                     <div id="hobbies-section" class="hobbies-section">
-                        <button type="button" class="secondary hobby-btn" onclick="addHobby('head', this)">+ Add Hobby</button>
+                        
                         {% if head.head_hobbies.all %}
                             {% for hobby in head.head_hobbies.all %}
                                 <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
@@ -136,6 +136,7 @@
                         {% else %}
                             <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
                         {% endif %}
+                        <button type="button" class="secondary hobby-btn" onclick="addHobby('head', this)">+ Add Hobby</button>
                     </div>
                     <span class="error-message" id="error-head_hobbies"></span>
                 </td>
@@ -300,6 +301,19 @@
             if (!input.value.trim()) {
                 if (showErrors) showError(input, field.msg);
                 valid = false;
+            } else {
+                // Name and Surname Validation
+                if (field.id === "head_name" || field.id === "head_surname") {
+                    if (/\d/.test(input.value.trim())) {
+                        if (showErrors) showError(input, "Numbers are not allowed.");
+                        valid = false;
+                    } else if (/\s/.test(input.value.trim())) {
+                        if (showErrors) showError(input, "Spaces are not allowed.");
+                        valid = false;
+                    }
+                }
+                // Clear error for valid fields (important for inputs that trigger change/blur)
+                if (!showErrors) clearError(input);
             }
         });
 
@@ -313,6 +327,8 @@
             if (age < 21) {
                 if (showErrors) showError(birthdateInput, "Head must be 21+ years.");
                 valid = false;
+            } else {
+                 if (!showErrors) clearError(birthdateInput);
             }
         }
 
@@ -320,27 +336,41 @@
         if (!/^\d{10}$/.test(mobileInput.value.trim())) {
             if (showErrors) showError(mobileInput, "Enter a valid 10-digit mobile number.");
             valid = false;
+        } else {
+             if (!showErrors) clearError(mobileInput);
         }
 
         const pincodeInput = document.getElementById("head_pincode");
         if (!/^\d{6}$/.test(pincodeInput.value.trim())) {
             if (showErrors) showError(pincodeInput, "Enter a valid 6-digit pincode.");
             valid = false;
+        } else {
+             if (!showErrors) clearError(pincodeInput);
         }
 
         const maritalStatus = document.querySelector("input[name='head_marital_status']:checked");
         if (!maritalStatus) {
             if (showErrors) document.getElementById("error-head_marital_status").textContent = "* Select marital status.";
             valid = false;
-        } else if (maritalStatus.value === "Married" && !document.getElementById("wedding_date").value) {
-            if (showErrors) document.getElementById("error-head_wedding_date").textContent = "* Wedding date required.";
-            valid = false;
+        } else {
+            if (!showErrors) document.getElementById("error-head_marital_status").textContent = "";
+            if (maritalStatus.value === "Married") {
+                const weddingDateInput = document.getElementById("wedding_date");
+                if (!weddingDateInput.value) {
+                    if (showErrors) document.getElementById("error-head_wedding_date").textContent = "* Wedding date required.";
+                    valid = false;
+                } else {
+                    if (!showErrors) document.getElementById("error-head_wedding_date").textContent = "";
+                }
+            }
         }
 
         const gender = document.querySelector("input[name='head_gender']:checked");
         if (!gender) {
             if (showErrors) document.getElementById("error-head_gender").textContent = "* Select gender.";
             valid = false;
+        } else {
+             if (!showErrors) document.getElementById("error-head_gender").textContent = "";
         }
 
         const hobbiesInputs = document.querySelectorAll("input[name='head_hobbies[]']");
@@ -348,20 +378,33 @@
         if (!hasHobby) {
             if (showErrors) document.getElementById("error-head_hobbies").textContent = "* Enter at least one hobby.";
             valid = false;
+        } else {
+             if (!showErrors) document.getElementById("error-head_hobbies").textContent = "";
         }
         
         const photoInput = document.getElementById("head_photo");
         const photoPreview = document.querySelector('#head_photo + .photo-preview');
-        if (!photoInput.files[0] && !photoPreview) {
+        
+        // **FIXED LOGIC START**
+        if (photoInput.files[0] || photoPreview) {
+            // A file is selected or a file already exists on the server
+            if (photoInput.files[0]) {
+                const file = photoInput.files[0];
+                if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
+                    if (showErrors) document.getElementById("error-head_photo").textContent = "* Only JPG/PNG ≤2MB allowed.";
+                    valid = false;
+                } else {
+                    if (!showErrors) document.getElementById("error-head_photo").textContent = "";
+                }
+            } else {
+                 if (!showErrors) document.getElementById("error-head_photo").textContent = "";
+            }
+        } else {
+            // No file selected and no previous file exists
             if (showErrors) document.getElementById("error-head_photo").textContent = "* Photo is required.";
             valid = false;
-        } else if (photoInput.files[0]) {
-            const file = photoInput.files[0];
-            if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
-                if (showErrors) document.getElementById("error-head_photo").textContent = "* Only JPG/PNG ≤2MB allowed.";
-                valid = false;
-            }
         }
+        // **FIXED LOGIC END**
         
         return valid;
     }
@@ -385,19 +428,44 @@
             if (input && !input.value.trim()) {
                 if (showErrors) showError(input, field.msg);
                 valid = false;
+            } else if (input) {
+                // Name and Surname Validation for members
+                if (field.name === `member_${index}_name` || field.name === `member_${index}_surname`) {
+                    if (/\d/.test(input.value.trim())) {
+                        if (showErrors) showError(input, "Numbers are not allowed.");
+                        valid = false;
+                    } else if (/\s/.test(input.value.trim())) {
+                        if (showErrors) showError(input, "Spaces are not allowed.");
+                        valid = false;
+                    } else {
+                        if (!showErrors) clearError(input);
+                    }
+                } else {
+                    if (!showErrors) clearError(input);
+                }
             }
         });
 
         const memberMaritalStatus = memberBlock.querySelector(`input[name="member_${index}_marital_status"]:checked`);
+        const maritalStatusTd = memberBlock.querySelector('td:has(input[name="member_' + index + '_marital_marital_status"])');
+        const maritalErrorSpan = maritalStatusTd ? maritalStatusTd.querySelector('.error-message') : null;
+        
         if (!memberMaritalStatus) {
-            const maritalStatusLabel = memberBlock.querySelector('td:has(input[name="member_' + index + '_marital_status"])');
-            if (showErrors) showError(maritalStatusLabel, "Select marital status.");
+            if (showErrors && maritalErrorSpan) {
+                 maritalErrorSpan.textContent = "* Select marital status.";
+            }
             valid = false;
-        } else if (memberMaritalStatus.value === 'Married') {
-            const weddingDateInput = memberBlock.querySelector(`input[name="member_${index}_wedding_date"]`);
-            if (!weddingDateInput.value) {
-                if (showErrors) showError(weddingDateInput, "Wedding date is required.");
-                valid = false;
+        } else {
+            if (!showErrors && maritalErrorSpan) maritalErrorSpan.textContent = "";
+
+            if (memberMaritalStatus.value === 'Married') {
+                const weddingDateInput = memberBlock.querySelector(`input[name="member_${index}_wedding_date"]`);
+                if (!weddingDateInput.value) {
+                    if (showErrors) showError(weddingDateInput, "Wedding date is required.");
+                    valid = false;
+                } else {
+                    if (!showErrors) clearError(weddingDateInput);
+                }
             }
         }
         
@@ -405,19 +473,29 @@
         if (!memberGender.value) {
             if (showErrors) showError(memberGender, "Select gender.");
             valid = false;
+        } else {
+            if (!showErrors) clearError(memberGender);
         }
         
         const memberPhoto = memberBlock.querySelector(`input[name="member_${index}_photo"]`);
         const memberPhotoPreview = memberBlock.querySelector('.photo-preview');
-        if (!memberPhoto.files[0] && !memberPhotoPreview) {
+        const memberPhotoErrorSpan = memberPhoto ? memberPhoto.nextElementSibling : null;
+
+        if (memberPhoto.files[0] || memberPhotoPreview) {
+            if (memberPhoto.files[0]) {
+                const file = memberPhoto.files[0];
+                if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
+                    if (showErrors) showError(memberPhoto, "Only JPG/PNG ≤2MB allowed.");
+                    valid = false;
+                } else {
+                    if (!showErrors && memberPhotoErrorSpan) memberPhotoErrorSpan.textContent = "";
+                }
+            } else {
+                if (!showErrors && memberPhotoErrorSpan) memberPhotoErrorSpan.textContent = "";
+            }
+        } else {
             if (showErrors) showError(memberPhoto, "Photo is required.");
             valid = false;
-        } else if (memberPhoto.files[0]) {
-            const file = memberPhoto.files[0];
-            if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
-                if (showErrors) showError(memberPhoto, "Only JPG/PNG ≤2MB allowed.");
-                valid = false;
-            }
         }
         
         return valid;
@@ -461,17 +539,50 @@
                     window.location.reload(); 
                 } else {
                     clearAllErrors();
-                    response.errors.forEach(error => {
+                    if (response.errors && response.errors.length > 0) {
+                        // Check if specific field errors are returned
+                        let hasSpecificError = false;
+                        response.errors.forEach(error => {
+                            if (error.field && document.getElementById(`error-${error.field}`)) {
+                                document.getElementById(`error-${error.field}`).textContent = `* ${error.message}`;
+                                hasSpecificError = true;
+                            } else {
+                                // Fallback for general errors
+                                const errorSpan = document.getElementById('general-errors');
+                                if (errorSpan) {
+                                    errorSpan.textContent = `* ${error.message || error}`;
+                                } else {
+                                    alert(error.message || error);
+                                }
+                            }
+                        });
+
+                        const firstError = document.querySelector(".error-message:not(:empty)");
+                        if (firstError) {
+                             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    } else if (response.errors) {
+                         // Handle case where errors is a string array without field info (original logic)
+                        response.errors.forEach(error => {
+                            const errorSpan = document.getElementById('general-errors');
+                            if (errorSpan) {
+                                errorSpan.textContent = `* ${error}`;
+                            } else {
+                                alert(error);
+                            }
+                        });
+                        const firstError = document.querySelector(".error-message:not(:empty)");
+                        if (firstError) {
+                             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    } else {
+                         // Fallback for unexpected error format
                         const errorSpan = document.getElementById('general-errors');
                         if (errorSpan) {
-                            errorSpan.textContent = `* ${error}`;
+                            errorSpan.textContent = '* An unexpected error occurred on the server.';
                         } else {
-                            alert(error);
+                            alert('An unexpected error occurred on the server.');
                         }
-                    });
-                    const firstError = document.querySelector(".error-message:not(:empty)");
-                    if (firstError) {
-                         firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }
             },
@@ -502,14 +613,28 @@
 
 // Attaching real-time validation to all head form fields
     document.querySelectorAll('#head-fieldset input, #head-fieldset select, #head-fieldset textarea').forEach(input => {
-        input.addEventListener('change', checkFormValidity);
-        input.addEventListener('blur', checkFormValidity);
+        input.addEventListener('change', () => {
+             validateHead(false); // Run validation without showing new errors, allowing valid fields to clear errors
+             checkFormValidity();
+        });
+        input.addEventListener('blur', () => {
+             validateHead(false);
+             checkFormValidity();
+        });
         input.addEventListener('input', () => {
             if (input.type === 'file') {
-                
+                // For file input, calling validateHead(false) handles both error clearing and validity check
+                validateHead(false);
                 checkFormValidity();
             } else {
                 clearError(input);
+                if (input.id === 'head_name' || input.id === 'head_surname') {
+                    // Quick check for name/surname during input
+                    if (/\d/.test(input.value) || /\s/.test(input.value)) {
+                        // Mark as invalid temporarily but don't show full error message yet
+                        checkFormValidity(); 
+                    }
+                }
             }
         });
     });
@@ -556,6 +681,13 @@
                         validateMember(memberBlock, false);
                     } else {
                         clearError(input);
+                        // Quick check for member name/surname during input
+                        const nameRegex = /member_\d+_(name|surname)/;
+                        if (nameRegex.test(input.name)) {
+                            if (/\d/.test(input.value) || /\s/.test(input.value)) {
+                                // Temporary invalid state
+                            }
+                        }
                     }
                 });
             });
@@ -579,19 +711,6 @@
             }
         });
         
-        document.addEventListener('DOMContentLoaded', function() {
-    const headPhotoInput = document.getElementById('head_photo');
-    const headPhotoError = document.getElementById('error-head_photo');
-
-    headPhotoInput.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            headPhotoError.textContent = ''; // Clear the error message
-        } else {
-            headPhotoError.textContent = 'Photo is required for Family Head.';
-        }
-    });
-});
-
 // Initial check on page load in case of saved data
         checkFormValidity();
     });
@@ -625,25 +744,27 @@
 
 
     
-$(document).on('change', 'input[id$="_photo"]', function() {
-    const memberIndex = this.id.match(/member_(\d+)_/)[1];
-    const memberPhotoError = document.getElementById(`error-member_${memberIndex}_photo`);
-    
-    if (this.files.length > 0) {
-        memberPhotoError.textContent = ''; // Clear the error message
-    } else {
-        memberPhotoError.textContent = 'Photo is required for this member.';
-    }
-}); 
-
     window.addMember = function() {
         if (document.getElementById('add-member-btn').disabled) {
-            validateHead(true); 
+            validateHead(true);
+            const firstError = document.querySelector("#head-fieldset .error-message:not(:empty)");
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
 
         memberIndex++;
         const container = document.getElementById("members-container");
+        
+        // Add HR line before the new block if it's not the first member being added after initial load
+        if (document.querySelectorAll(".member-block").length > 0) {
+             const hr = document.createElement("hr");
+             hr.style.margin = "2em 0";
+             hr.style.borderTop = "2px solid #ccc";
+             container.appendChild(hr);
+        }
+
         const newMemberBlock = document.createElement("div");
         newMemberBlock.className = "member-block";
         newMemberBlock.style.border = "1px solid #bdbdbd";
@@ -652,7 +773,6 @@ $(document).on('change', 'input[id$="_photo"]', function() {
         newMemberBlock.style.background = "#f9f9f9";
         newMemberBlock.style.boxShadow = "0 2px 8px #ececec";
         newMemberBlock.innerHTML = `
-            <hr style="margin: 2em 0; border-top: 2px solid #ccc;">
             <div class="member-block-header" style="display: flex; align-items: center; justify-content: space-between; background: #e3e3e3; border-radius: 8px 8px 0 0; padding: 0.5em 1em;">
                 <span class="member-title" style="font-weight: bold; font-size: 1.1em;">Member ${memberIndex}</span>
                 <button type="button" class="close-member-btn" onclick="removeMember(this)" style="background: none; border: none; font-size: 1.5em; color: #b71c1c; cursor: pointer;">×</button>
@@ -727,7 +847,19 @@ $(document).on('change', 'input[id$="_photo"]', function() {
                  <tr>
                     <td colspan="2">
                         <label>Relationship to Head:</label>
-                        <input type="text" name="member_${memberIndex}_relationship" placeholder="Relationship" maxlength="50">
+                        
+                        <select name="member_${memberIndex}_relationship">
+                            <option value="">Select</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Sister">Sister</option>
+                            <option value="Son">Son</option>
+                            <option value="Daughter">Daughter</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Aunt">Aunt</option>
+                            <option value="Other">Other</option>
+                        </select>
                         <span class="error-message"></span>
                     </td>
                 </tr>
@@ -744,6 +876,13 @@ $(document).on('change', 'input[id$="_photo"]', function() {
                     validateMember(newMemberBlock, false);
                 } else {
                     clearError(input);
+                    // Quick check for member name/surname during input
+                    const nameRegex = /member_\d+_(name|surname)/;
+                    if (nameRegex.test(input.name)) {
+                        if (/\d/.test(input.value) || /\s/.test(input.value)) {
+                            // Temporary invalid state
+                        }
+                    }
                 }
             });
         });
@@ -759,7 +898,13 @@ $(document).on('change', 'input[id$="_photo"]', function() {
     };
 
     window.removeMember = function(btn) {
-        $(btn).closest('.member-block').remove();
+        // Find the hr before the member block, if it exists, and remove it.
+        const memberBlock = $(btn).closest('.member-block');
+        const prevElement = memberBlock.prev();
+        if (prevElement.is('hr')) {
+            prevElement.remove();
+        }
+        memberBlock.remove();
         reIndexMembers();
     };
 
@@ -770,6 +915,14 @@ $(document).on('change', 'input[id$="_photo"]', function() {
             memberIndex = index + 1;
             block.querySelector('.member-title').textContent = `Member ${memberIndex}`;
             
+            // Check for and remove the leading HR if this is the first block after re-indexing
+            if (index === 0) {
+                 const prevElement = block.previousElementSibling;
+                 if (prevElement && prevElement.tagName === 'HR' && prevElement.style.borderTop === '2px solid rgb(204, 204, 204)') {
+                     prevElement.remove();
+                 }
+            }
+            
             const inputs = block.querySelectorAll('[name]');
             inputs.forEach(input => {
                 const name = input.name;
@@ -777,16 +930,20 @@ $(document).on('change', 'input[id$="_photo"]', function() {
                 input.name = newName;
                 input.id = newName;
                 
-                const label = block.querySelector(`label[for="${name}"]`);
-                if (label) {
-                    label.setAttribute('for', newName);
-                }
+                // The original file had a different structure for labels, but ensuring minimal change.
+                // const label = block.querySelector(`label[for=\"${name}\"]`);
+                // if (label) {
+                //     label.setAttribute('for', newName);
+                // }
             });
             const weddingRow = block.querySelector('[id^="member_"][id$="_wedding_date_row"]');
             if (weddingRow) {
                 weddingRow.id = `member_${memberIndex}_wedding_date_row`;
             }
         });
+        
+        // Final memberIndex update
+        memberIndex = memberBlocks.length;
     }
 
 

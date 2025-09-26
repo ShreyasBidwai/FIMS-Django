@@ -188,6 +188,7 @@ form a:hover {
 .pagination a:hover {
     text-decoration: underline;
 }
+
 #status-modal {
     display: none;
     position: fixed;

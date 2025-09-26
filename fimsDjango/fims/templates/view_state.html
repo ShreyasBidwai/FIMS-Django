@@ -7,8 +7,9 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f5f5f5;
         color: #333;
-        margin: 0;
+        margin: 0 0 0 0.8rem;
         padding: 0;
+        width: 98%;
     }
 
     h2 {
@@ -25,6 +26,8 @@
         background: #1f2a38;
         color: #fff;
     }
+
+
 
     /* General button style */
     .btn, .status-btn {
@@ -127,7 +130,7 @@
         gap: 1rem;
         align-items: center;
         margin-bottom: 1rem;
-        justify-content: center;
+        justify-content: space-around;
     }
 
     .flex-row {
@@ -149,8 +152,10 @@
         align-items: center;
         padding: 12px 18px;
         border-radius: 10px;
-        margin-bottom: 1.2rem;
+        margin-bottom: 1rem;
+       
     }
+
 
     /* Modal */
     #status-modal {
@@ -161,6 +166,7 @@
         z-index: 9999;
         justify-content: center;
         align-items: center;
+       
     }
 
     #status-modal .modal-content {
@@ -172,6 +178,8 @@
         box-shadow:0 2px 16px rgba(0,0,0,0.18);
         position:relative;
         margin:auto;
+         width: 10%;
+        justify-self: center;
     }
 
     #status-modal .modal-content h3 {
@@ -186,6 +194,68 @@
         border-radius: 5px;
         cursor: pointer;
     }
+
+    #status-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(44, 62, 80, 0.18);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s;
+}
+#status-modal .modal-content {
+    background: linear-gradient(135deg, #f7f9fc 60%, #eef2f7 100%);
+    padding: 2rem 2.5rem;
+    border-radius: 18px;
+    text-align: center;
+    min-width: 260px;
+    box-shadow: 0 8px 32px rgba(41,128,185,0.18);
+    position: relative;
+    margin: auto;
+    border: 1px solid #82cfff;
+    animation: popIn 0.2s;
+}
+#status-modal h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2980b9;
+    margin-bottom: 1.2rem;
+}
+#status-modal button {
+    margin: 0.4rem 0.6rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(41,128,185,0.10);
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+#status-modal #set-active {
+    background-color: #27ae60 ;
+    color: #fff;
+}
+#status-modal #set-inactive {
+   background-color:#f1c40f ;
+    color: #fff;
+}
+#status-modal #set-delete {
+   background-color: #e74c3c;
+    color: #fff;
+}
+#status-modal #cancel-status {
+    background: #fff;
+    color: #2980b9;
+    border: 1px solid #2980b9;
+    margin-top: 0.8rem;
+}
+#status-modal button:hover {
+    transform: scale(1.07);
+    box-shadow: 0 4px 16px rgba(41,128,185,0.18);
+}
 
     @media (max-width: 768px) {
         .flex-row {
@@ -204,18 +274,19 @@
 </style>
 
 <div class="header-bar">
-    <a href="{% url 'dashboard_head' %}" class="btn">&larr; Back</a>
+    <a href="{% url 'dashboard_state' %}" class="btn">&larr; Back</a>
     <h2>State Details</h2>
 </div>
 
 <div class="flex-row-head">
-    <h3>{{ state.name }}</h3>
-    <p><strong>Status:</strong> {{ state.get_status_display }}</p>
-    <a href="{% url 'add_city' %}" class="btn">Add City</a>
-    <form method="get" class="search-form">
+    <h5>State: {{ state.name }}</h5>
+    <h5><strong>Status:</strong> {{ state.get_status_display }}</h5>
+        <form method="get" class="search-form">
         <input type="text" name="search" placeholder="Search city name" value="{{ request.GET.search|default:'' }}">
         <button type="submit" class="btn">Search</button>
     </form>
+    <a href="{% url 'add_city' %}" class="btn">Add City</a>
+
 </div>
 
 <h2>Cities in {{ state.name }}</h2>
