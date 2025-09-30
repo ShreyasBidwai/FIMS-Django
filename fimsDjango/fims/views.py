@@ -816,7 +816,7 @@ def edit_city(request, hashid):
                 object_type='City'
             )
         messages.success(request, 'City updated successfully!')
-        return redirect('dashboard')
+        return redirect('dashboard_city')
     return render(request, 'edit_city.html', {'city': city})
 
 @login_required(login_url='login')

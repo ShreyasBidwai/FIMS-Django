@@ -46,7 +46,6 @@
                     <label for="head_mobile">Mobile No:</label>
                     <input type="text" id="head_mobile" name="head_mobile" placeholder="Mobile No" maxlength="10" value="{{ head.MobileNo|default_if_none:'' }}">
                     <span class="error-message" id="error-head_mobile"></span>
-                    <span class="error-message" id="error-head_mobile_unique" style="color:firebrick;"></span>
                 </td>
             </tr>
             <tr>
@@ -247,7 +246,11 @@
 {% block extra_js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+
     let memberIndex = {{ members|length|default:0 }};
+    // Track touched fields for head
+    const headTouchedFields = {};
+
 
     function showError(element, message) {
         let errorSpan;
@@ -263,7 +266,7 @@
             errorSpan.textContent = `* ${message}`;
         }
     }
-    
+
     function clearError(element) {
         let errorSpan;
         if (element.nextElementSibling && element.nextElementSibling.classList.contains('error-message')) {
@@ -284,9 +287,9 @@
     }
 
 
+
     function validateHead(showErrors = false) {
         let valid = true;
-        
         const headFields = [
             { id: "head_name", msg: "First name is required." },
             { id: "head_surname", msg: "Surname is required." },
@@ -298,114 +301,146 @@
 
         headFields.forEach(field => {
             const input = document.getElementById(field.id);
+            const isTouched = headTouchedFields[field.id];
+            // Only show errors for touched fields or on submit
+            const shouldShow = showErrors || isTouched;
             if (!input.value.trim()) {
-                if (showErrors) showError(input, field.msg);
+                if (shouldShow) showError(input, field.msg);
                 valid = false;
             } else {
                 // Name and Surname Validation
                 if (field.id === "head_name" || field.id === "head_surname") {
                     if (/\d/.test(input.value.trim())) {
-                        if (showErrors) showError(input, "Numbers are not allowed.");
+                        if (shouldShow) showError(input, "Numbers are not allowed.");
                         valid = false;
                     } else if (/\s/.test(input.value.trim())) {
-                        if (showErrors) showError(input, "Spaces are not allowed.");
+                        if (shouldShow) showError(input, "Spaces are not allowed.");
                         valid = false;
+                    } else {
+                        if (shouldShow) clearError(input);
                     }
+                } else {
+                    if (shouldShow) clearError(input);
                 }
-                // Clear error for valid fields (important for inputs that trigger change/blur)
-                if (!showErrors) clearError(input);
             }
         });
 
+
         const birthdateInput = document.getElementById("head_birthdate");
+        const isBirthTouched = headTouchedFields["head_birthdate"];
         if (!birthdateInput.value) {
-            if (showErrors) showError(birthdateInput, "Birthdate is required.");
+            if (showErrors || isBirthTouched) showError(birthdateInput, "Birthdate is required.");
             valid = false;
         } else {
             const birthdate = new Date(birthdateInput.value);
             const age = Math.floor((Date.now() - birthdate.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
             if (age < 21) {
-                if (showErrors) showError(birthdateInput, "Head must be 21+ years.");
+                if (showErrors || isBirthTouched) showError(birthdateInput, "Head must be 21+ years.");
                 valid = false;
             } else {
-                 if (!showErrors) clearError(birthdateInput);
+                if (showErrors || isBirthTouched) clearError(birthdateInput);
             }
         }
 
         const mobileInput = document.getElementById("head_mobile");
+        const isMobileTouched = headTouchedFields["head_mobile"];
+        let mobileErrorMsg = "";
         if (!/^\d{10}$/.test(mobileInput.value.trim())) {
-            if (showErrors) showError(mobileInput, "Enter a valid 10-digit mobile number.");
+            if (showErrors || isMobileTouched) mobileErrorMsg = "Enter a valid 10-digit mobile number.";
             valid = false;
-        } else {
-             if (!showErrors) clearError(mobileInput);
+        }
+        // Append unique error if present
+        const uniqueErr = document.getElementById("error-head_mobile").getAttribute("data-unique-error");
+        if (uniqueErr) {
+            if (mobileErrorMsg) {
+                mobileErrorMsg += "\n" + uniqueErr;
+            } else {
+                mobileErrorMsg = uniqueErr;
+            }
+            valid = false;
+        }
+        if (showErrors || isMobileTouched) {
+            if (mobileErrorMsg) {
+                document.getElementById("error-head_mobile").textContent = "* " + mobileErrorMsg.replace(/\n/g, "\n*");
+            } else {
+                clearError(mobileInput);
+            }
         }
 
         const pincodeInput = document.getElementById("head_pincode");
+        const isPincodeTouched = headTouchedFields["head_pincode"];
         if (!/^\d{6}$/.test(pincodeInput.value.trim())) {
-            if (showErrors) showError(pincodeInput, "Enter a valid 6-digit pincode.");
+            if (showErrors || isPincodeTouched) showError(pincodeInput, "Enter a valid 6-digit pincode.");
             valid = false;
         } else {
-             if (!showErrors) clearError(pincodeInput);
+            if (showErrors || isPincodeTouched) clearError(pincodeInput);
         }
 
+
         const maritalStatus = document.querySelector("input[name='head_marital_status']:checked");
+        const isMaritalTouched = headTouchedFields["head_marital_status"];
         if (!maritalStatus) {
-            if (showErrors) document.getElementById("error-head_marital_status").textContent = "* Select marital status.";
+            if (showErrors || isMaritalTouched) document.getElementById("error-head_marital_status").textContent = "* Select marital status.";
             valid = false;
         } else {
-            if (!showErrors) document.getElementById("error-head_marital_status").textContent = "";
+            if (showErrors || isMaritalTouched) document.getElementById("error-head_marital_status").textContent = "";
             if (maritalStatus.value === "Married") {
                 const weddingDateInput = document.getElementById("wedding_date");
+                const isWeddingTouched = headTouchedFields["wedding_date"];
                 if (!weddingDateInput.value) {
-                    if (showErrors) document.getElementById("error-head_wedding_date").textContent = "* Wedding date required.";
+                    if (showErrors || isWeddingTouched) document.getElementById("error-head_wedding_date").textContent = "* Wedding date required.";
                     valid = false;
                 } else {
-                    if (!showErrors) document.getElementById("error-head_wedding_date").textContent = "";
+                    if (showErrors || isWeddingTouched) document.getElementById("error-head_wedding_date").textContent = "";
                 }
             }
         }
 
         const gender = document.querySelector("input[name='head_gender']:checked");
+        const isGenderTouched = headTouchedFields["head_gender"];
         if (!gender) {
-            if (showErrors) document.getElementById("error-head_gender").textContent = "* Select gender.";
+            if (showErrors || isGenderTouched) document.getElementById("error-head_gender").textContent = "* Select gender.";
             valid = false;
         } else {
-             if (!showErrors) document.getElementById("error-head_gender").textContent = "";
+            if (showErrors || isGenderTouched) document.getElementById("error-head_gender").textContent = "";
         }
+
 
         const hobbiesInputs = document.querySelectorAll("input[name='head_hobbies[]']");
         let hasHobby = Array.from(hobbiesInputs).some(h => h.value.trim());
+        // Only show error if at least one hobby input has been touched
+        const isHobbiesTouched = Array.from(hobbiesInputs).some(h => headTouchedFields[h.name]);
         if (!hasHobby) {
-            if (showErrors) document.getElementById("error-head_hobbies").textContent = "* Enter at least one hobby.";
+            if (showErrors || isHobbiesTouched) document.getElementById("error-head_hobbies").textContent = "* Enter at least one hobby.";
             valid = false;
         } else {
-             if (!showErrors) document.getElementById("error-head_hobbies").textContent = "";
+            if (showErrors || isHobbiesTouched) document.getElementById("error-head_hobbies").textContent = "";
         }
         
+
         const photoInput = document.getElementById("head_photo");
         const photoPreview = document.querySelector('#head_photo + .photo-preview');
+        const isPhotoTouched = headTouchedFields["head_photo"];
         
-        // **FIXED LOGIC START**
         if (photoInput.files[0] || photoPreview) {
             // A file is selected or a file already exists on the server
             if (photoInput.files[0]) {
                 const file = photoInput.files[0];
                 if (!["image/jpeg", "image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
-                    if (showErrors) document.getElementById("error-head_photo").textContent = "* Only JPG/PNG ≤2MB allowed.";
+                    if (showErrors || isPhotoTouched) document.getElementById("error-head_photo").textContent = "* Only JPG/PNG ≤2MB allowed.";
                     valid = false;
                 } else {
-                    if (!showErrors) document.getElementById("error-head_photo").textContent = "";
+                    if (showErrors || isPhotoTouched) document.getElementById("error-head_photo").textContent = "";
                 }
             } else {
-                 if (!showErrors) document.getElementById("error-head_photo").textContent = "";
+                if (showErrors || isPhotoTouched) document.getElementById("error-head_photo").textContent = "";
             }
         } else {
             // No file selected and no previous file exists
-            if (showErrors) document.getElementById("error-head_photo").textContent = "* Photo is required.";
+            if (showErrors || isPhotoTouched) document.getElementById("error-head_photo").textContent = "* Photo is required.";
             valid = false;
         }
-        // **FIXED LOGIC END**
-        
+       
         return valid;
     }
     
@@ -538,13 +573,29 @@
                     alert(response.message);
                     window.location.reload(); 
                 } else {
-                    clearAllErrors();
+                    // Only clear the unique error if not present in server errors
+                    let preserveMobileUnique = false;
                     if (response.errors && response.errors.length > 0) {
-                        // Check if specific field errors are returned
+                        preserveMobileUnique = response.errors.some(error => error.field === 'head_mobile_unique');
+                    }
+                    clearAllErrors();
+                    if (preserveMobileUnique) {
+
+                        const err = response.errors.find(error => error.field === 'head_mobile_unique');
+                        if (err) {
+                            document.getElementById('error-head_mobile').setAttribute('data-unique-error', err.message);
+                            validateHead(false);
+                        }
+                    }
+                    if (response.errors && response.errors.length > 0) {
+
                         let hasSpecificError = false;
                         response.errors.forEach(error => {
                             if (error.field && document.getElementById(`error-${error.field}`)) {
-                                document.getElementById(`error-${error.field}`).textContent = `* ${error.message}`;
+
+                                if (error.field !== 'head_mobile_unique') {
+                                    document.getElementById(`error-${error.field}`).textContent = `* ${error.message}`;
+                                }
                                 hasSpecificError = true;
                             } else {
                                 // Fallback for general errors
@@ -611,34 +662,40 @@
         }
     }
 
-// Attaching real-time validation to all head form fields
+
     document.querySelectorAll('#head-fieldset input, #head-fieldset select, #head-fieldset textarea').forEach(input => {
-        input.addEventListener('change', () => {
-             validateHead(false); // Run validation without showing new errors, allowing valid fields to clear errors
-             checkFormValidity();
-        });
+
         input.addEventListener('blur', () => {
-             validateHead(false);
-             checkFormValidity();
+            headTouchedFields[input.id || input.name] = true;
+            validateHead(false);
+            checkFormValidity();
+        });
+        input.addEventListener('change', () => {
+            headTouchedFields[input.id || input.name] = true;
+            validateHead(false);
+            checkFormValidity();
         });
         input.addEventListener('input', () => {
-            if (input.type === 'file') {
-                // For file input, calling validateHead(false) handles both error clearing and validity check
+        
+            if (input.id === 'head_name' || input.id === 'head_surname') {
+                headTouchedFields[input.id] = true;
+                if (/\d/.test(input.value) || /\s/.test(input.value)) {
+                    validateHead(false);
+                } else {
+                    clearError(input);
+                }
+                checkFormValidity();
+            } else if (input.type === 'file') {
+                headTouchedFields[input.id || input.name] = true;
                 validateHead(false);
                 checkFormValidity();
             } else {
                 clearError(input);
-                if (input.id === 'head_name' || input.id === 'head_surname') {
-                    // Quick check for name/surname during input
-                    if (/\d/.test(input.value) || /\s/.test(input.value)) {
-                        // Mark as invalid temporarily but don't show full error message yet
-                        checkFormValidity(); 
-                    }
-                }
+                checkFormValidity();
             }
         });
     });
-// Attaching the main event listener to the form
+// Main event listener to the form
     document.getElementById("registrationForm").addEventListener("submit", validateForm);
 
     $(document).ready(function() {
@@ -671,7 +728,7 @@
             validateMember(memberBlock, true);
         });
         
-// Adding dynamic validation for existing members on page load
+
         document.querySelectorAll('.member-block').forEach(memberBlock => {
             memberBlock.querySelectorAll('input, select, textarea').forEach(input => {
                 input.addEventListener('change', () => validateMember(memberBlock, false));
@@ -681,11 +738,11 @@
                         validateMember(memberBlock, false);
                     } else {
                         clearError(input);
-                        // Quick check for member name/surname during input
+                        
                         const nameRegex = /member_\d+_(name|surname)/;
                         if (nameRegex.test(input.name)) {
                             if (/\d/.test(input.value) || /\s/.test(input.value)) {
-                                // Temporary invalid state
+                               
                             }
                         }
                     }
@@ -693,25 +750,27 @@
             });
         });
 
-        $('#head_mobile').on('blur', function() {
+ 
+        $('#head_mobile').on('input', function() {
             var mobile = $(this).val().trim();
-            if (mobile.length === 10 && /^\d{10}$/.test(mobile)) {
-                $.get('/fims/check_head_mobile_unique/', { mobile: mobile }, function(data) {
-                    if (data.exists) {
-                        $('#error-head_mobile_unique').text('This mobile number is already registered.');
-                        checkFormValidity();
-                    } else {
-                        $('#error-head_mobile_unique').text('');
-                        checkFormValidity();
-                    }
-                });
-            } else {
-                $('#error-head_mobile_unique').text('');
-                checkFormValidity();
+            // Clear unique error data attribute if empty or invalid
+            if (mobile === "" || !(mobile.length === 10 && /^\d{10}$/.test(mobile))) {
+                $('#error-head_mobile').removeAttr('data-unique-error');
+                validateHead(false);
+                return;
             }
+            // mobile uniquenesss validity
+            $.get('/fims/check_head_mobile_unique/', { mobile: mobile }, function(data) {
+                if (data.exists) {
+                    $('#error-head_mobile').attr('data-unique-error', 'This mobile number is already registered.');
+                } else {
+                    $('#error-head_mobile').removeAttr('data-unique-error');
+                }
+                validateHead(false);
+            });
         });
         
-// Initial check on page load in case of saved data
+
         checkFormValidity();
     });
 
@@ -739,7 +798,7 @@
             }
         });
 
-        checkFormValidity(); // Check validity after adding hobby field
+        checkFormValidity(); 
     };
 
 
@@ -757,7 +816,7 @@
         memberIndex++;
         const container = document.getElementById("members-container");
         
-        // Add HR line before the new block if it's not the first member being added after initial load
+       
         if (document.querySelectorAll(".member-block").length > 0) {
              const hr = document.createElement("hr");
              hr.style.margin = "2em 0";
@@ -876,11 +935,11 @@
                     validateMember(newMemberBlock, false);
                 } else {
                     clearError(input);
-                    // Quick check for member name/surname during input
+                    
                     const nameRegex = /member_\d+_(name|surname)/;
                     if (nameRegex.test(input.name)) {
                         if (/\d/.test(input.value) || /\s/.test(input.value)) {
-                            // Temporary invalid state
+                            
                         }
                     }
                 }
@@ -898,7 +957,7 @@
     };
 
     window.removeMember = function(btn) {
-        // Find the hr before the member block, if it exists, and remove it.
+        
         const memberBlock = $(btn).closest('.member-block');
         const prevElement = memberBlock.prev();
         if (prevElement.is('hr')) {
@@ -915,7 +974,7 @@
             memberIndex = index + 1;
             block.querySelector('.member-title').textContent = `Member ${memberIndex}`;
             
-            // Check for and remove the leading HR if this is the first block after re-indexing
+
             if (index === 0) {
                  const prevElement = block.previousElementSibling;
                  if (prevElement && prevElement.tagName === 'HR' && prevElement.style.borderTop === '2px solid rgb(204, 204, 204)') {
@@ -930,7 +989,7 @@
                 input.name = newName;
                 input.id = newName;
                 
-                // The original file had a different structure for labels, but ensuring minimal change.
+               
                 // const label = block.querySelector(`label[for=\"${name}\"]`);
                 // if (label) {
                 //     label.setAttribute('for', newName);
@@ -942,7 +1001,7 @@
             }
         });
         
-        // Final memberIndex update
+
         memberIndex = memberBlocks.length;
     }
 
