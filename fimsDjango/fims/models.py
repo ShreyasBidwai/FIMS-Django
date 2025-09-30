@@ -5,9 +5,15 @@ from django.core.validators import RegexValidator, ValidationError
 from datetime import date
 from django.contrib.auth.models import User
 import uuid
+from django.utils import timezone
+from django_hashids import HashidsField
+from .utils import encode_id 
+
+
 
 # Family Head Model
 class FamilyHead(models.Model):
+    # HeadID = models.HashidAutoField(primary_key=True)
     HeadID = models.AutoField(primary_key=True)
     Name = models.CharField(max_length=50)
     Surname = models.CharField(max_length=50)
@@ -53,6 +59,8 @@ class FamilyHead(models.Model):
     ]
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
 
+    
+
     def clean(self):
         if self.Birthdate and (date.today() - self.Birthdate).days < 21 * 365:
             raise ValidationError("The head must be at least 21 years old.")
@@ -64,6 +72,11 @@ class FamilyHead(models.Model):
 
     class Meta:
         db_table = 'family_head'
+
+    @property
+    def hashid(self):
+        """Returns the encoded hashid for this object's primary key."""
+        return encode_id(self.HeadID)
 
 # Hobby model
 
@@ -88,6 +101,12 @@ class Hobby(models.Model):
 
     class Meta:
         db_table = 'hobby'
+
+    
+    @property
+    def hashid(self):
+        """Returns the encoded hashid for this object's primary key."""
+        return encode_id(self.id)
 
 
 # Family Member Model
@@ -124,6 +143,7 @@ class FamilyMember(models.Model):
         (9, 'Soft Deleted'),
     ]
     status = models.IntegerField(choices=STATUS_CHOICES, default=1)
+    
 
     def clean(self):
         if self.AddressOverride:
@@ -140,6 +160,12 @@ class FamilyMember(models.Model):
 
     class Meta:
         db_table = 'family_member'
+
+    
+    @property
+    def hashid(self):
+        """Returns the encoded hashid for this object's primary key."""
+        return encode_id(self.id)
 
 
 class Country(models.Model):
@@ -170,6 +196,12 @@ class State(models.Model):
     class Meta:
         db_table = 'state'
 
+    
+    @property
+    def hashid(self):
+        """Returns the encoded hashid for this object's primary key."""
+        return encode_id(self.id)
+
 
 class City(models.Model):
 
@@ -190,6 +222,11 @@ class City(models.Model):
         managed = False
         db_table = 'city'
 
+
+    @property
+    def hashid(self):
+        """Returns the encoded hashid for this object's primary key."""
+        return encode_id(self.id)
 
 
 class PasswordReset(models.Model):
@@ -220,8 +257,15 @@ class AdminLog(models.Model):
     object_type = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f"{self.username} - {self.action} at {self.timestamp}" 
+         local_time = timezone.localtime(self.timestamp)
+
+        # 2. Format the local time for display
+        # We use strftime to ensure it's a plain string, preventing the raw UTC value from leaking
+         formatted_time = local_time.strftime('%Y-%m-%d %H:%M:%S %Z') 
+
+         return f"{self.username} - {self.action} at {formatted_time}"
 
     class Meta:
         db_table = 'admin_log'
         ordering = ['-timestamp']
+

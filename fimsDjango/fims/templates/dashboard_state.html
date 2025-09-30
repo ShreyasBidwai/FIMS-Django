@@ -85,7 +85,7 @@ Dashboard{% endblock %} {% block extra_head %}
             <td>{{ state.name }}</td>
             <td>{{ state.get_status_display }}</td>
             <td class="actions">
-              <a href="{% url 'edit_state' state.id %}" class="edit-btn"
+              <a href="{% url 'edit_state' hashid=state.hashid %}" class="edit-btn"
                 >Edit</a
               >
               <button
@@ -95,7 +95,7 @@ Dashboard{% endblock %} {% block extra_head %}
               >
                 Status
               </button>
-              <a href="{% url 'view_state' state.id %}" class="view-btn"
+              <a href="{% url 'view_state' hashid=state.hashid %}" class="view-btn"
                 >View</a
               >
             </td>
@@ -112,8 +112,7 @@ Dashboard{% endblock %} {% block extra_head %}
         >
         {% endif %}
         <span
-          >Page {{ state_page_obj.number }} of {{
-          state_page_obj.paginator.num_pages }}</span
+          >Page {{ state_page_obj.number }} of {{ state_page_obj.paginator.num_pages }}</span
         >
         {% if state_page_obj.has_next %}
         <a

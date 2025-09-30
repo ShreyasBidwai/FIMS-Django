@@ -304,8 +304,8 @@
             <td>{{ city.name }}</td>
             <td>{{ city.get_status_display }}</td>
             <td>
-                <a href="{% url 'edit_city' city.id %}" class="btn btn-edit">Edit</a>
-                <button class="btn btn-status status-btn" data-type="city" data-id="{{ city.id }}">Status</button>
+                <a href="{% url 'edit_city' hashid=city.hashid %}" class="btn btn-edit">Edit</a>
+                <button class="btn btn-status status-btn" data-type="city" data-id="{{ city.hashid }}">Status</button>
             </td>
         </tr>
         {% empty %}

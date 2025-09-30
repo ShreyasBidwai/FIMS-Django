@@ -56,44 +56,6 @@
                 <th>Actions</th>
             </tr>
         </thead>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <tbody id="head-table-body">
             {% for head in head_page_obj %}
             <tr>
@@ -104,9 +66,9 @@
                 <td>{{ head.MobileNo }}</td>
                 <td>{{ head.get_status_display }}</td>
                 <td class="actions">
-                    <a href="{% url 'update_head' head.HeadID %}" class="edit-btn">Edit</a>
+                    <a href="{% url 'update_head' hashid=head.hashid %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="head" data-id="{{ head.HeadID }}">Status</button>
-                    <a href="{% url 'view_family' head.HeadID %}" class="view-btn">View</a>
+                    <a href="{% url 'view_family' hashid=head.hashid %}" class="view-btn">View</a>
                 </td>
             </tr>
             {% endfor %}
@@ -116,7 +78,7 @@
         {% if head_page_obj.has_previous %}
             <a href="?tab=head&head_page={{ head_page_obj.previous_page_number }}" class="ajax-page-link">Previous</a>
         {% endif %}
-        <span>Page {{ head_page_obj.number }} of {{ head_page_obj.num_pages }}</span>
+        <span>Page {{ head_page_obj.number }} of {{ head_page_obj.paginator.num_pages }}</span>
         {% if head_page_obj.has_next %}
             <a href="?tab=head&head_page={{ head_page_obj.next_page_number }}" class="ajax-page-link">Next</a>
         {% endif %}
@@ -171,7 +133,7 @@
 </style>
 <div id="status-modal">
     <div class="modal-content">
-        <h3>Set status for this entry:</h3>
+        <h3>Set status for {{ HeadID.Name }}:</h3>
         <button id="set-active" style="background:#27ae60;color:#fff;">Active</button>
         <button id="set-inactive">Inactive</button>
         <button id="set-delete" style="background:#e74c3c;color:#fff;">Delete</button>
@@ -261,7 +223,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
 
-    // New code to make cards dynamic
     function updateDashboardCards() {
         fetch('/dashboard-stats-api/')
             .then(res => res.json())
@@ -275,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // This section is what needs to be fixed.
     const searchInput = document.getElementById('search-input');
     const exportSearchInput = document.getElementById('export-search-input');
 
