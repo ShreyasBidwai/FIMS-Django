@@ -1,363 +1,389 @@
-{% extends 'dashboard_base.html' %}
-{% load static %}
-
-{% block title %}Familink Dashboard{% endblock %}
-
-{% block extra_head %}
-    <link rel="stylesheet" href="{% static 'fims/css/dashboard.css' %}">
-{% endblock %}
-
-{% block content %}
-{% if messages %}
-    <script>
-        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
-    </script>
+{% extends 'dashboard_base.html' %} {% load static %} {% block title %}Familink
+Dashboard{% endblock %} {% block extra_head %}
+<link rel="stylesheet" href="{% static 'fims/css/dashboard.css' %}" />
+<style>
+  table {
+    border-collapse: separate; /* Important for border-spacing to work */
+    /* border-spacing: 2rem; Sets 10px spacing horizontally and vertically */
+     border-spacing: 2rem 0; /* Alternative: 5px horizontal, 15px vertical */
+  }
+</style>
+{% endblock %} {% block content %} {% if messages %}
+<script>
+  alert(
+    "{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}"
+  );
+</script>
 {% endif %}
 <div id="dash-container">
-
-<div id="dashboard-head">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-        <h1 style="margin: 0;">Dashboard</h1>
-        <form method="get" action="" style="display: flex; gap: 1rem; align-items: center; margin: 0;">
-            <input type="text" name="search" placeholder="Search by name or mobile number" value="{{ search }}" style="padding: 0.5rem; width: 300px;">
-            <button type="submit">Search</button>
-            <a href="?" style="margin-left: 1rem;">Clear</a>
-        </form>
+  <div id="dashboard-head">
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      "
+    >
+      <h1 style="margin: 0">Dashboard</h1>
+      <form
+        id="main-search-form"
+        method="get"
+        action=""
+        style="display: flex; gap: 1rem; align-items: center; margin: 0"
+      >
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by name or mobile number"
+          value="{{ search }}"
+          style="padding: 0.5rem; width: 300px"
+        />
+        <button type="submit">Search</button>
+        <a href="?" style="margin-left: 1rem">Clear</a>
+      </form>
     </div>
-</div>
-<div id="cards">    
-    <div class="card"><i class="bi bi-pencil-square icon text-warning"></i><p>Families Registered</p><p id="card-families">{{ total_families }}</p></div>
-    <div class="card"><i class="bi bi-people icon text-info"></i><p>Total Family Members</p><p id="card-members">{{ total_members }}</p></div>
-    <div class="card"><i class="bi bi-person-check icon text-success"></i><p>Active members</p><p id="card-active">{{ active_members }}</p></div>
-    <div class="card"><i class="bi bi-exclamation-circle icon text-danger"></i><p>Inactive Members</p><p id="card-inactive">{{ inactive_members }}</p></div>  
-</div>
-<div id="table-state" class="dashboard-table">
+  </div>
+  <div id="cards">
+    <div class="card">
+      <i class="bi bi-pencil-square icon text-warning"></i>
+      <p>Families Registered</p>
+      <p id="card-families">{{ total_families }}</p>
+    </div>
+    <div class="card">
+      <i class="bi bi-people icon text-info"></i>
+      <p>Total Family Members</p>
+      <p id="card-members">{{ total_members }}</p>
+    </div>
+    <div class="card">
+      <i class="bi bi-person-check icon text-success"></i>
+      <p>Active members</p>
+      <p id="card-active">{{ active_members }}</p>
+    </div>
+    <div class="card">
+      <i class="bi bi-exclamation-circle icon text-danger"></i>
+      <p>Inactive Members</p>
+      <p id="card-inactive">{{ inactive_members }}</p>
+    </div>
+  </div>
+  <div id="table-state" class="dashboard-table">
     <div class="sub-table-head">
-        <table>
-            <thead>
-                <tr>
-                    <th>Index</th>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="state-table-body">
-                {% for state in state_page_obj %}
-                <tr>
-                    <td>{{ forloop.counter0|add:state_page_obj.start_index }}</td>
-                    <td>{{ state.name }}</td>
-                    <td>{{ state.get_status_display }}</td>
-                    <td class="actions">
-                        <a href="{% url 'edit_state' state.id %}" class="edit-btn">Edit</a>
-                        <button class="status-btn" data-type="state" data-id="{{ state.id }}">Status</button>
-                        <a href="{% url 'view_state' state.id %}" class="view-btn">View</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="pagination" id="state-pagination">
-            {% if state_page_obj.has_previous %}
-                <a href="?tab=state&state_page={{ state_page_obj.previous_page_number }}&search={{ search }}" class="ajax-page-link">Previous</a>
-            {% endif %}
-            <span>Page {{ state_page_obj.number }} of {{ state_page_obj.paginator.num_pages }}</span>
-            {% if state_page_obj.has_next %}
-                <a href="?tab=state&state_page={{ state_page_obj.next_page_number }}&search={{ search }}" class="ajax-page-link">Next</a>
-            {% endif %}
-        </div>
+      <h2>States</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="state-table-body">
+          {% for state in state_page_obj %}
+          <tr>
+            <td>{{ forloop.counter0|add:state_page_obj.start_index }}</td>
+            <td>{{ state.name }}</td>
+            <td>{{ state.get_status_display }}</td>
+            <td class="actions">
+              <a href="{% url 'edit_state' hashid=state.hashid %}" class="edit-btn"
+                >Edit</a
+              >
+              <button
+                class="status-btn"
+                data-type="state"
+                data-id="{{ state.id }}"
+              >
+                Status
+              </button>
+              <a href="{% url 'view_state' hashid=state.hashid %}" class="view-btn"
+                >View</a
+              >
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination" id="state-pagination">
+        {% if state_page_obj.has_previous %}
+        <a
+          href="?tab=state&state_page={{ state_page_obj.previous_page_number }}&search={{ search }}"
+          class="ajax-page-link"
+          >Previous</a
+        >
+        {% endif %}
+        <span
+          >Page {{ state_page_obj.number }} of {{ state_page_obj.paginator.num_pages }}</span
+        >
+        {% if state_page_obj.has_next %}
+        <a
+          href="?tab=state&state_page={{ state_page_obj.next_page_number }}&search={{ search }}"
+          class="ajax-page-link"
+          >Next</a
+        >
+        {% endif %}
+      </div>
     </div>
     {% if show_all_tables and state_page_obj.paginator.count == 0 %}
-        <div style="text-align:center; color: #888;">No matching State records found.</div>
+    <div style="text-align: center; color: #888">
+      No matching State records found.
+    </div>
     {% endif %}
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<style>
+  </div>
+  {% endblock %} {% block extra_js %}
+  <style>
     #status-modal {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.4);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
     }
     #status-modal .modal-content {
-                background: #fff;
-        padding: 0.7rem 1.2rem 1.1rem 1.2rem;
-        border-radius: 8px;
-        text-align: center;
-        min-width: 170px;
-        max-width: 220px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.16);
-        position: relative;
-        margin: auto;
-        font-size: 1rem;
+      background: #fff;
+      padding: 0.7rem 1.2rem 1.1rem 1.2rem;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 170px;
+      max-width: 220px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16);
+      position: relative;
+      margin: auto;
+      font-size: 1rem;
     }
     #status-modal .modal-content h3 {
-        font-size: 1.08rem;
-        margin-bottom: 0.7rem;
+      font-size: 1.08rem;
+      margin-bottom: 0.7rem;
     }
     #status-modal .modal-content button {
-        margin: 0.2rem 0.2rem 0.2rem 0.2rem;
-        padding: 0.32rem 0.7rem;
-        font-size: 0.98rem;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-        transition: background 0.2s;
+      margin: 0.2rem 0.2rem 0.2rem 0.2rem;
+      padding: 0.32rem 0.7rem;
+      font-size: 0.98rem;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
     }
     #status-modal .modal-content #cancel-status {
-        background: #f5f6fa;
-        color: #222;
-        border: 1px solid #d1d5db;
-    
+      background: #f5f6fa;
+      color: #222;
+      border: 1px solid #d1d5db;
     }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // AJAX Clear button for state dashboard
-    const clearBtn = document.querySelector('form[action=""] a[href="?"]');
-    const searchInput = document.querySelector('form[action=""] input[name="search"]');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let url = clearBtn.getAttribute('href');
-            fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-            .then(res => res.text())
-            .then(html => {
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-                // Replace table and pagination
-                const newTable = temp.querySelector('#table-state');
-                if (newTable) {
-                    document.querySelector('#table-state').innerHTML = newTable.innerHTML;
-                }
-                // Clear the search input field
-                if (searchInput) {
-                    searchInput.value = '';
-                }
-            });
-        });
-    }
-});
-</script>
-     
-</style>
-<div id="status-modal">
+  </style>
+  <div id="status-modal">
     <div class="modal-content">
-        <h3>Set status for this entry:</h3>
-        <button id="set-active" style="background:#27ae60;color:#fff;">Active</button>
-        <button id="set-inactive">Inactive</button>
-        <button id="set-delete" style="background:#e74c3c;color:#fff;">Delete</button>
-        <br><br>
-        <button id="cancel-status">Cancel</button>
+      <h3>Set status for this entry:</h3>
+      <button id="set-active" style="background: #27ae60; color: #fff">
+        Active
+      </button>
+      <button id="set-inactive">Inactive</button>
+      <button id="set-delete" style="background: #e74c3c; color: #fff">
+        Delete
+      </button>
+      <br /><br />
+      <button id="cancel-status">Cancel</button>
     </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let modal = document.getElementById("status-modal");
+      let entryType = null,
+        entryId = null;
 
-    let modal = document.getElementById('status-modal');
-    let entryType = null, entryId = null;
-    document.querySelectorAll('.status-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            entryType = btn.getAttribute('data-type');
-            entryId = btn.getAttribute('data-id');
-            modal.style.display = 'flex';
+      // Function to attach event listeners to status buttons
+      function attachStatusListeners() {
+        document.querySelectorAll(".status-btn").forEach(function (btn) {
+          btn.onclick = function (e) {
+            entryType = btn.getAttribute("data-type");
+            entryId = btn.getAttribute("data-id");
+            modal.style.display = "flex";
+          };
         });
-    });
-    document.getElementById('cancel-status').onclick = function() {
-        modal.style.display = 'none';
-    };
-    document.getElementById('set-active').onclick = function() {
-        if(confirm('Are you sure you want to set status to Active?')) {
-            updateStatus(entryType, entryId, 1);
-            modal.style.display = 'none';
-        }
-    };
-    document.getElementById('set-inactive').onclick = function() {
-        if(confirm('Are you sure you want to set status to Inactive?')) {
-            updateStatus(entryType, entryId, 0);
-            modal.style.display = 'none';
-        }
-    };
-    document.getElementById('set-delete').onclick = function() {
-        if(confirm('Are you sure you want to set status to Soft Deleted?')) {
-            updateStatus(entryType, entryId, 9);
-            modal.style.display = 'none';
-        }
-    };
+      }
 
-    function updateStatus(type, id, status) {
-        fetch('/update-status/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({type: type, id: id, status: status})
-        }).then(res => res.json()).then(data => {
-            if(data.success) {
-                
-                let row;
-                if(type === 'head') {
-                    row = document.querySelector('button.status-btn[data-type="head"][data-id="' + id + '"]').closest('tr');
-                } else if(type === 'member') {
-                    row = document.querySelector('button.status-btn[data-type="member"][data-id="' + id + '"]').closest('tr');
-                } else if(type === 'state') {
-                    row = document.querySelector('button.status-btn[data-type="state"][data-id="' + id + '"]').closest('tr');
-                } else if(type === 'city') {
-                    row = document.querySelector('button.status-btn[data-type="city"][data-id="' + id + '"]').closest('tr');
+      // Modal button actions
+      document.getElementById("cancel-status").onclick = function () {
+        modal.style.display = "none";
+      };
+      document.getElementById("set-active").onclick = function () {
+        if (confirm("Are you sure you want to set status to Active?")) {
+          updateStatus(entryType, entryId, 1);
+          modal.style.display = "none";
+        }
+      };
+      document.getElementById("set-inactive").onclick = function () {
+        if (confirm("Are you sure you want to set status to Inactive?")) {
+          updateStatus(entryType, entryId, 0);
+          modal.style.display = "none";
+        }
+      };
+      document.getElementById("set-delete").onclick = function () {
+        if (confirm("Are you sure you want to set status to Soft Deleted?")) {
+          updateStatus(entryType, entryId, 9);
+          modal.style.display = "none";
+        }
+      };
+
+      // AJAX function to update status
+      function updateStatus(type, id, status) {
+        fetch("/update-status/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ type: type, id: id, status: status }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              let row = document
+                .querySelector(
+                  `button.status-btn[data-type="${type}"][data-id="${id}"]`
+                )
+                .closest("tr");
+              if (row) {
+                let statusCell = row.querySelector("td:nth-child(3)");
+                if (statusCell) {
+                  if (status === 9) {
+                    row.style.display = "none"; // Hide the row for soft delete
+                  } else {
+                    // Update the status text
+                    let statusText = status === 1 ? "Active" : "Inactive";
+                    statusCell.textContent = statusText;
+                  }
                 }
-                if(row) {
-                    if(status === 9) {
-                        row.parentNode.removeChild(row);
-                    } else {
-                        let statusCell = row.querySelector('td:nth-child(6)');
-                        if(statusCell) {
-                            let statusText = status === 1 ? 'Active' : (status === 0 ? 'Inactive' : 'Soft Deleted');
-                            statusCell.textContent = statusText;
-                        }
-                        let btn = row.querySelector('button.status-btn');
-                        if(btn) {
-                            btn.style.background = '#e74c3c';
-                            btn.style.color = '#fff';
-                        }
-                    }
-                }
+              }
+              updateDashboardCards(); // Update card counts after a status change
             } else {
-                alert('Failed to update status');
+              alert("Failed to update status");
             }
-        });
-    }
-    function getCookie(name) {
+          });
+      }
+
+      function getCookie(name) {
         let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
             }
+          }
         }
         return cookieValue;
-    }
+      }
 
-    // New AJAX search function to update all tables
-    const searchForm = document.querySelector('#dashboard-head form');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const url = this.action || window.location.href;
-            const formData = new FormData(this);
-            const params = new URLSearchParams(formData).toString();
-            
-            fetch(url + '?' + params, {
-                headers: {'X-Requested-With': 'XMLHttpRequest'}
-            })
-            .then(res => res.text())
-            .then(html => {
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
+      // AJAX function to update cards
+      function updateDashboardCards() {
+        fetch("/dashboard-stats-api/")
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("card-families").textContent =
+              data.total_families;
+            document.getElementById("card-members").textContent =
+              data.total_members;
+            document.getElementById("card-active").textContent =
+              data.active_members;
+            document.getElementById("card-inactive").textContent =
+              data.inactive_members;
+          })
+          .catch((error) => {
+            console.error("Error fetching dashboard stats:", error);
+          });
+      }
 
-                // Update the Head table (if it exists)
-                const newHeadBody = temp.querySelector('#head-table-body');
-                const newHeadPag = temp.querySelector('#head-pagination');
-                if (newHeadBody && document.getElementById('head-table-body')) {
-                    document.getElementById('head-table-body').innerHTML = newHeadBody.innerHTML;
-                }
-                if (newHeadPag && document.getElementById('head-pagination')) {
-                    document.getElementById('head-pagination').innerHTML = newHeadPag.innerHTML;
-                }
+      // AJAX search function to update all tables
+      const searchForm = document.querySelector("#main-search-form");
+      if (searchForm) {
+        searchForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const params = new URLSearchParams(formData).toString();
+          const url = `?${params}`;
 
-                // Update the Family table (if it exists)
-                const newFamilyBody = temp.querySelector('#family-table-body');
-                const newFamilyPag = temp.querySelector('#family-pagination');
-                if (newFamilyBody && document.getElementById('family-table-body')) {
-                    document.getElementById('family-table-body').innerHTML = newFamilyBody.innerHTML;
-                }
-                if (newFamilyPag && document.getElementById('family-pagination')) {
-                    document.getElementById('family-pagination').innerHTML = newFamilyPag.innerHTML;
-                }
+          fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+            .then((res) => res.text())
+            .then((html) => {
+              const temp = document.createElement("div");
+              temp.innerHTML = html;
 
-                // Update the State table (if it exists)
-                const newStateBody = temp.querySelector('#state-table-body');
-                const newStatePag = temp.querySelector('#state-pagination');
-                if (newStateBody && document.getElementById('state-table-body')) {
-                    document.getElementById('state-table-body').innerHTML = newStateBody.innerHTML;
+              const tables = ["head", "family", "state", "city"];
+              tables.forEach((table) => {
+                const newBody = temp.querySelector(`#${table}-table-body`);
+                const newPag = temp.querySelector(`#${table}-pagination`);
+                if (newBody && document.getElementById(`${table}-table-body`)) {
+                  document.getElementById(`${table}-table-body`).innerHTML =
+                    newBody.innerHTML;
                 }
-                if (newStatePag && document.getElementById('state-pagination')) {
-                    document.getElementById('state-pagination').innerHTML = newStatePag.innerHTML;
+                if (newPag && document.getElementById(`${table}-pagination`)) {
+                  document.getElementById(`${table}-pagination`).innerHTML =
+                    newPag.innerHTML;
                 }
-                
-                // Update the City table (if it exists)
-                const newCityBody = temp.querySelector('#city-table-body');
-                const newCityPag = temp.querySelector('#city-pagination');
-                if (newCityBody && document.getElementById('city-table-body')) {
-                    document.getElementById('city-table-body').innerHTML = newCityBody.innerHTML;
-                }
-                if (newCityPag && document.getElementById('city-pagination')) {
-                    document.getElementById('city-pagination').innerHTML = newCityPag.innerHTML;
-                }
+              });
+
+              history.pushState(null, "", url);
+              attachStatusListeners();
             });
         });
-    }
+      }
 
-    // AJAX pagination with search parameter
-    function ajaxPaginate(table, bodyId, pagId) {
+      // AJAX pagination with search parameter
+      function ajaxPaginate(table, bodyId, pagId) {
         const container = document.getElementById(table);
         if (!container) return;
-        container.addEventListener('click', function(e) {
-            if (e.target.classList.contains('ajax-page-link')) {
-                e.preventDefault();
-                const searchParams = new URLSearchParams(window.location.search);
-                const pageUrl = new URL(e.target.href);
-                if (searchParams.has('search')) {
-                    pageUrl.searchParams.set('search', searchParams.get('search'));
+        container.addEventListener("click", function (e) {
+          if (e.target.classList.contains("ajax-page-link")) {
+            e.preventDefault();
+            const pageUrl = new URL(e.target.href);
+            fetch(pageUrl.href, {
+              headers: { "X-Requested-With": "XMLHttpRequest" },
+            })
+              .then((res) => res.text())
+              .then((html) => {
+                const temp = document.createElement("div");
+                temp.innerHTML = html;
+                const newBody = temp.querySelector("tbody");
+                const newPag = temp.querySelector(".pagination");
+                if (newBody && document.getElementById(bodyId)) {
+                  document.getElementById(bodyId).innerHTML = newBody.innerHTML;
                 }
-
-                fetch(pageUrl.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-                .then(res => res.text())
-                .then(html => {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const newBody = temp.querySelector('tbody');
-                    const newPag = temp.querySelector('.pagination');
-                    if (newBody && document.getElementById(bodyId)) {
-                        document.getElementById(bodyId).innerHTML = newBody.innerHTML;
-                    }
-                    if (newPag && document.getElementById(pagId)) {
-                        document.getElementById(pagId).innerHTML = newPag.innerHTML;
-                        history.pushState(null, '', pageUrl.href); // Update URL in address bar
-                    }
-                });
-            }
+                if (newPag && document.getElementById(pagId)) {
+                  document.getElementById(pagId).innerHTML = newPag.innerHTML;
+                  history.pushState(null, "", pageUrl.href);
+                }
+                attachStatusListeners();
+              });
+          }
         });
-    }
-    
-    // Attach AJAX pagination for each table
-    ajaxPaginate('table-head', 'head-table-body', 'head-pagination');
-    ajaxPaginate('table-family', 'family-table-body', 'family-pagination');
-    ajaxPaginate('table-state', 'state-table-body', 'state-pagination');
-    ajaxPaginate('table-city', 'city-table-body', 'city-pagination');
+      }
 
-    // Periodically update dashboard cards
-    function updateDashboardCards() {
-        fetch('/dashboard-stats-api/')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('card-families').textContent = data.total_families;
-                document.getElementById('card-members').textContent = data.total_members;
-                document.getElementById('card-active').textContent = data.active_members;
-                document.getElementById('card-inactive').textContent = data.inactive_members;
-            });
-    }
-    updateDashboardCards();
-    //setInterval(updateDashboardCards, 5000000); 
-});
-</script>
-{% endblock %}
+      // Call initial functions
+      updateDashboardCards();
+      attachStatusListeners();
+      ajaxPaginate("table-state", "state-table-body", "state-pagination");
+
+      // Handle clear button
+      const clearBtn = document.querySelector('#main-search-form a[href="?"]');
+      if (clearBtn) {
+        clearBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          const searchInput = document.querySelector(
+            '#main-search-form input[name="search"]'
+          );
+          searchInput.value = "";
+          searchForm.submit(); // Submit the form to reload with empty search
+        });
+      }
+    });
+  </script>
+  {% endblock %}
+</div>

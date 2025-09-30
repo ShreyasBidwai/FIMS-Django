@@ -5,6 +5,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'fims/css/dashboard.css' %}">
+    
 {% endblock %}
 
 {% block content %}
@@ -63,7 +64,7 @@
                 <td>{{ city.name }}</td>
                 <td>{{ city.get_status_display }}</td>
                 <td class="actions">
-                    <a href="{% url 'edit_city' city.id %}" class="edit-btn">Edit</a>
+                    <a href="{% url 'edit_city' hashid=city.hashid %}" class="edit-btn">Edit</a>
                     <button class="status-btn" data-type="city" data-id="{{ city.id }}">Status</button>
                 </td>
             </tr>
@@ -98,7 +99,7 @@
         align-items: center;
     }
     #status-modal .modal-content {
-                background: #fff;
+        background: #fff;
         padding: 0.7rem 1.2rem 1.1rem 1.2rem;
         border-radius: 8px;
         text-align: center;
@@ -126,38 +127,7 @@
         background: #f5f6fa;
         color: #222;
         border: 1px solid #d1d5db;
-    
     }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // AJAX Clear button for city dashboard
-    const clearBtn = document.querySelector('#main-search-form a[href*="tab=city"]');
-    const searchInput = document.querySelector('#main-search-form input[name="search"]');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let url = clearBtn.getAttribute('href');
-            fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-            .then(res => res.text())
-            .then(html => {
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
-                // Replace table and pagination
-                const newTable = temp.querySelector('#table-city');
-                if (newTable) {
-                    document.querySelector('#table-city').innerHTML = newTable.innerHTML;
-                }
-                // Clear the search input field
-                if (searchInput) {
-                    searchInput.value = '';
-                }
-            });
-        });
-    }
-});
-</script>
-      
 </style>
 <div id="status-modal">
     <div class="modal-content">
@@ -174,32 +144,31 @@ document.addEventListener('DOMContentLoaded', function() {
     let modal = document.getElementById('status-modal');
     let entryType = null, entryId = null;
 
-    document.querySelectorAll('.status-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            entryType = btn.getAttribute('data-type');
-            entryId = btn.getAttribute('data-id');
-            modal.style.display = 'flex';
+    // Function to attach event listeners to all status buttons
+    function attachStatusListeners() {
+        document.querySelectorAll('.status-btn').forEach(function(btn) {
+            btn.onclick = function() {
+                entryType = btn.getAttribute('data-type');
+                entryId = btn.getAttribute('data-id');
+                modal.style.display = 'flex';
+            };
         });
-    });
+    }
 
-    document.getElementById('cancel-status').onclick = function() {
-        modal.style.display = 'none';
-    };
-
+    // Modal button actions
+    document.getElementById('cancel-status').onclick = function() { modal.style.display = 'none'; };
     document.getElementById('set-active').onclick = function() {
         if(confirm('Are you sure you want to set status to Active?')) {
             updateStatus(entryType, entryId, 1);
             modal.style.display = 'none';
         }
     };
-
     document.getElementById('set-inactive').onclick = function() {
         if(confirm('Are you sure you want to set status to Inactive?')) {
             updateStatus(entryType, entryId, 0);
             modal.style.display = 'none';
         }
     };
-
     document.getElementById('set-delete').onclick = function() {
         if(confirm('Are you sure you want to set status to Soft Deleted?')) {
             updateStatus(entryType, entryId, 9);
@@ -207,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // AJAX function to update status
     function updateStatus(type, id, status) {
         fetch('/update-status/', {
             method: 'POST',
@@ -218,24 +188,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }).then(res => res.json()).then(data => {
             if(data.success) {
                 let row = document.querySelector(`button.status-btn[data-type="${type}"][data-id="${id}"]`).closest('tr');
-                if(row) {
-                    if(status === 9) {
-                        row.parentNode.removeChild(row);
-                    } else {
-                        // For cities, the status is in the 3rd column
-                        let statusCell = row.querySelector('td:nth-child(3)');
-                        if(statusCell) {
-                            let statusText = status === 1 ? 'Active' : (status === 0 ? 'Inactive' : 'Soft Deleted');
+                if (row) {
+                    let statusCell = row.querySelector('td:nth-child(3)');
+                    if (statusCell) {
+                        if (status === 9) {
+                            row.style.display = 'none'; // Hide the row for soft delete
+                        } else {
+                            let statusText = status === 1 ? 'Active' : 'Inactive';
                             statusCell.textContent = statusText;
                         }
                     }
                 }
+                updateDashboardCards(); // Update card counts after status change
             } else {
                 alert('Failed to update status');
             }
         });
     }
 
+    // Function to get CSRF token from cookies
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -251,7 +222,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
 
-    // New combined AJAX handler for search and filters
+    // AJAX function to update cards
+    function updateDashboardCards() {
+        fetch('/dashboard-stats-api/')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('card-families').textContent = data.total_families;
+                document.getElementById('card-members').textContent = data.total_members;
+                document.getElementById('card-active').textContent = data.active_members;
+                document.getElementById('card-inactive').textContent = data.inactive_members;
+            }).catch(error => {
+                console.error('Error fetching dashboard stats:', error);
+            });
+    }
+
+    // Handle form submissions for search and filter
     const mainSearchForm = document.querySelector('#main-search-form');
     const cityFilterForm = document.querySelector('#city-filter-form');
 
@@ -266,7 +251,9 @@ document.addEventListener('DOMContentLoaded', function() {
             combinedParams.append(key, value);
         }
         for (const [key, value] of cityFilterData.entries()) {
-            combinedParams.append(key, value);
+            if(value) { // Only append if a state is selected
+                combinedParams.append(key, value);
+            }
         }
 
         const url = window.location.pathname;
@@ -278,15 +265,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(html => {
             const temp = document.createElement('div');
             temp.innerHTML = html;
-            const newCityBody = temp.querySelector('#city-table-body');
-            const newCityPag = temp.querySelector('#city-pagination');
-            if (newCityBody && document.getElementById('city-table-body')) {
-                document.getElementById('city-table-body').innerHTML = newCityBody.innerHTML;
-            }
-            if (newCityPag && document.getElementById('city-pagination')) {
-                document.getElementById('city-pagination').innerHTML = newCityPag.innerHTML;
+            const newCityTable = temp.querySelector('#table-city');
+            if (newCityTable && document.getElementById('table-city')) {
+                document.getElementById('table-city').innerHTML = newCityTable.innerHTML;
             }
             history.pushState(null, '', url + '?' + combinedParams.toString());
+            attachStatusListeners(); // Re-attach listeners after content is updated
         });
     }
 
@@ -294,9 +278,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mainSearchForm.addEventListener('submit', handleFormSubmission);
     }
     if (cityFilterForm) {
-        cityFilterForm.addEventListener('submit', handleFormSubmission);
+        cityFilterForm.addEventListener('change', handleFormSubmission); // Use change event for select
     }
-    
+
     // AJAX pagination with all parameters
     function ajaxPaginate(table, bodyId, pagId) {
         const container = document.getElementById(table);
@@ -307,9 +291,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const pageUrl = new URL(e.target.href);
                 const combinedParams = new URLSearchParams(window.location.search);
                 
-                // Set the page number from the clicked link, but keep other parameters
+                // Keep existing search/filter parameters, just update the page number
                 combinedParams.set('city_page', pageUrl.searchParams.get('city_page'));
-
                 pageUrl.search = combinedParams.toString();
                 
                 fetch(pageUrl.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
@@ -326,25 +309,28 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById(pagId).innerHTML = newPag.innerHTML;
                         history.pushState(null, '', pageUrl.href);
                     }
+                    attachStatusListeners(); // Re-attach listeners after content is updated
                 });
             }
         });
     }
 
+    // Initial calls
+    updateDashboardCards();
+    attachStatusListeners();
     ajaxPaginate('table-city', 'city-table-body', 'city-pagination');
     
-    // Periodically update dashboard cards
-    function updateDashboardCards() {
-        fetch('/dashboard-stats-api/')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('card-families').textContent = data.total_families;
-                document.getElementById('card-members').textContent = data.total_members;
-                document.getElementById('card-active').textContent = data.active_members;
-                document.getElementById('card-inactive').textContent = data.inactive_members;
-            });
+    // Handle clear button
+    const clearBtn = document.querySelector('#main-search-form a[href*="tab=city"]');
+    const searchInput = document.querySelector('#main-search-form input[name="search"]');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            searchInput.value = '';
+            cityFilterForm.querySelector('select').value = '';
+            handleFormSubmission(e);
+        });
     }
-    updateDashboardCards();
 });
 </script>
 {% endblock %}

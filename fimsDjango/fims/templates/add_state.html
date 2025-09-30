@@ -86,21 +86,24 @@
             padding: 18px 8px 18px 8px;
         }
     }
-    .back-btn{
-                background-color: rgba(31, 42, 56, 0.9);
-
-        color: white;
-        padding: 0.3rem;
-        border-radius: 10px;
+    .back-btn {
+        display: inline-block;
+        margin: 20px;
+        padding: 8px 15px;
+        background-color: #f0f0f0;
+        color: #333;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        text-decoration: none;
     }
-    .back-btn:hover{
-        background-color: rgba(31, 42, 56, 1);
-        color: white;
-        padding: 0.4rem;
-        border-radius: 10px;
+
+    .back-btn:hover {
+         background: linear-gradient(180deg, #1f2a38, #2c3e50);
+        color: #fff;
     }
 </style>
-<a href="{% url 'dashboard' %}" class="back-btn">&larr; Back to Dashboard</a>
+<a href="{% url 'dashboard_state' %}" class="back-btn">&larr; Back to Dashboard</a>
 <div class="form-container">
     <h2>Add State</h2>
 

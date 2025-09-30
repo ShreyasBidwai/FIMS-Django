@@ -1,11 +1,10 @@
-/* Increase border size for all tables */
+
 table, .head-table {
     border: 1.5px solid #1f2a38 !important;
 }
 table th, table td, .head-table th, .head-table td {
     border-bottom: 1px solid #1f2a38 !important;
 }
-/* General page styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f9f9f9;
@@ -26,7 +25,7 @@ a:hover {
 /* Back button */
 .back-btn {
     display: inline-block;
-    margin: 20px;
+    /* margin: 20px; */
     padding: 8px 15px;
     background-color: #f0f0f0;
     color: #333;
@@ -38,9 +37,10 @@ a:hover {
 .back-btn:hover {
     background: linear-gradient(180deg, #1f2a38, #2c3e50);
     color:white;
+    text-decoration: none;
 }
 
-/* Head Table */
+
 .head-table {
     background-color: #fff;
     margin: 20px auto;
@@ -78,7 +78,7 @@ a:hover {
     border: 2px solid #007bff;
 }
 
-/* Export buttons */
+
 .export-buttons {
     margin-top: 15px;
     display: flex;
@@ -99,14 +99,17 @@ a:hover {
 }
 
 .btn-yellow:hover{
-    background-color: rgba(255, 255, 0, 0.74);
+    background-color: #d4ac0d;
+    text-decoration: none;
 }
 
 .btn-green {
     background-color: #28a745;
+    
 }
 
 .btn-green:hover {
+    text-decoration: none;
     background-color: #218838;
 }
 
@@ -116,6 +119,7 @@ a:hover {
 
 .btn-blue:hover {
     background-color: #0056b3;
+    text-decoration: none;
 }
 
 /* Family members */
@@ -180,7 +184,7 @@ strong {
     color: #555;
 }
 
-/* Export and back button alignment */
+
 .export-back-row {
     display: flex;
     align-items: center;
@@ -194,7 +198,7 @@ strong {
     text-align: center;
 }
 
-/* Responsive tweaks */
+
 @media (max-width: 600px) {
     .head-row, .member-row {
         flex-direction: column;

@@ -8,11 +8,12 @@
 {% block content %}
 
 <div class="export-back-row">
-    <a href="{% url 'dashboard' %}" class="back-btn" style="margin-right:auto;">&larr; Back to Dashboard</a>
+    
     <div class="export-buttons" style="justify-content:flex-start;">
-        <a href="{% url 'update_head' head.HeadID %}" class="btn btn-blue">Edit Details</a>
-            <a href="{% url 'pdf_view' %}?id={{ head.HeadID }}" class="btn btn-yellow">Export PDF</a>
-            <a href="{% url 'excel_view' %}?id={{ head.HeadID }}" class="btn btn-green">Export Excel</a>
+        <a href="{% url 'dashboard_head' %}" class="back-btn" style="margin-right:auto;">&larr; Back to Dashboard</a>
+        <a href="{% url 'update_head' hashid=head.hashid %}" class="btn btn-blue">Edit Details</a>
+            <a href="{% url 'pdf_view' %}?id={{ head.hashid }}" class="btn btn-yellow">Export PDF</a>
+            <a href="{% url 'excel_view' %}?id={{ head.hashid }}" class="btn btn-green">Export Excel</a>
     </div>
 </div>
 <br><br>

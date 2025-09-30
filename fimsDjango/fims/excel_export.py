@@ -9,6 +9,9 @@ from .models import FamilyHead, FamilyMember
 
 def excel_view(request):
     head_id = request.GET.get('id')
+    if head_id:
+        from .utils import decode_id
+        head_id = decode_id(head_id)
     if not head_id:
         # Return an empty Excel file with a message
         wb = Workbook()
