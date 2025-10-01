@@ -69,6 +69,17 @@
       font-size: 1rem;
       color: #bdc3c7;
       font-weight: 400;
+      padding: 0.5rem;
+      height: auto;
+      width: auto;
+      border-radius: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      text-align: center;
+    }
+
+    #sidebar .greeting i{
+      margin-right: 0.5rem;
+      text-align: center;
     }
 
     .divider {
@@ -223,7 +234,7 @@
       <img src="{% static 'fims/images/family.png' %}" alt="Logo">
       Familink
     </div>
-    <div class="greeting">Hello {{ username }}</div>
+    <div class="greeting"><i class="bi bi-person-circle"></i>Hello {{ username }}</div>
 
     <hr class="divider">
 

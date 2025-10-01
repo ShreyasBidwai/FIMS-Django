@@ -109,6 +109,11 @@ tbody tr:hover {
     text-decoration: none;
     transition: background 0.2s ease;
 }
+
+img{
+    border-radius: 50%;
+}
+
 .edit-btn {
     background: #3498db;
     color: #fff;
