@@ -1,0 +1,216 @@
+
+table, .head-table {
+    border: 1.5px solid #1f2a38 !important;
+}
+table th, table td, .head-table th, .head-table td {
+    border-bottom: 1px solid #1f2a38 !important;
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Back button */
+.back-btn {
+    display: inline-block;
+    /* margin: 20px; */
+    padding: 8px 15px;
+    background-color: #f0f0f0;
+    color: #333;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+.back-btn:hover {
+    background: linear-gradient(180deg, #1f2a38, #2c3e50);
+    color:white;
+    text-decoration: none;
+}
+
+
+.head-table {
+    background-color: #fff;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-width: 900px;
+}
+#head-details{
+    text-align: center;
+}
+
+.head-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.head-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.head-photo-container {
+    flex: 0 0 150px;
+    text-align: right;
+}
+
+.head-photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #007bff;
+}
+
+
+.export-buttons {
+    margin-top: 15px;
+    display: flex;
+    gap: 1.2rem;
+}
+
+.export-buttons .btn {
+    display: inline-block;
+    padding: 8px 18px;
+    margin-right: 10px;
+    border-radius: 5px;
+    font-weight: 500;
+    color: #fff;
+    transition: background 0.3s ease;
+}
+.btn-yellow{
+    background-color: #f1c40f;
+}
+
+.btn-yellow:hover{
+    background-color: #d4ac0d;
+    text-decoration: none;
+}
+
+.btn-green {
+    background-color: #28a745;
+    
+}
+
+.btn-green:hover {
+    text-decoration: none;
+    background-color: #218838;
+}
+
+.btn-blue {
+    background-color: #007bff;
+}
+
+.btn-blue:hover {
+    background-color: #0056b3;
+    text-decoration: none;
+}
+
+/* Family members */
+.family-title {
+    text-align: center;
+    margin: 40px 0 20px;
+    font-size: 28px;
+    color: #444;
+}
+
+.family-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto 40px;
+}
+
+.member-table {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.member-table:hover {
+    transform: translateY(-5px);
+}
+
+.member-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.member-info {
+    flex: 1;
+    min-width: 150px;
+}
+
+.member-photo-container {
+    flex: 0 0 100px;
+    text-align: right;
+}
+
+.member-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #007bff;
+}
+
+/* Text adjustments */
+p {
+    margin: 5px 0;
+}
+
+strong {
+    color: #555;
+}
+
+
+.export-back-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: auto;
+    margin: 0.5rem auto 0.5rem;
+    gap: 1.2rem;
+}
+
+.family-title tr{
+    text-align: center;
+}
+
+
+@media (max-width: 600px) {
+    .head-row, .member-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .head-photo-container, .member-photo-container {
+        text-align: left;
+        margin-top: 10px;
+    }
+
+    .export-buttons {
+        text-align: center;
+    }
+}
