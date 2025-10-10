@@ -59,7 +59,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'fims'
+    'fims',
+    'sweetify'
 ]
 
 MIDDLEWARE = [
@@ -154,3 +155,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Static root for collectstatic and static file serving
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# possible options: 'sweetalert', 'sweetalert2' - default is 'sweetalert2'
+SWEETIFY_SWEETALERT_LIBRARY = 'sweetalert2'

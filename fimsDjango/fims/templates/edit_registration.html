@@ -128,14 +128,21 @@
                 <td colspan="2">
                     <label>Hobbies:</label>
                     <div id="hobbies-section" class="hobbies-section">
-                        <button type="button" class="secondary hobby-btn" onclick="addHobby('head', this)">+ Add Hobby</button>
+                        
                         {% if head.head_hobbies.all %}
                             {% for hobby in head.head_hobbies.all %}
-                                <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                <div class="hobby-row">
+                                    <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                    <button type="button" class="tertiary discard-hobby-btn" onclick="removeHobby(this)">❌</button>
+                                </div>
                             {% endfor %}
                         {% else %}
-                            <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                            <div class="hobby-row">
+                                <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                                <button type="button" class="tertiary discard-hobby-btn" onclick="removeHobby(this)">❌</button>
+                            </div>
                         {% endif %}
+                        <button type="button" class="secondary hobby-btn" onclick="addHobby('head', this)">+ Add Hobby</button>
                     </div>
                     <span class="error-message" id="error-head_hobbies"></span>
                 </td>
@@ -592,13 +599,39 @@
         } else {
             section = btn.closest('.hobbies-section');
         }
+        const index = btn.closest('.member-block') ? btn.closest('.member-block').querySelector('input[name*="_name"]').name.match(/member_(\d+)_name/)[1] : null;
+
+        const hobbySelector = type === 'head' ? "input[name='head_hobbies[]']" : `input[name='member_${index}_hobbies[]']`;
+        const firstHobby = section.querySelector(hobbySelector);
+        if (firstHobby && firstHobby.value.trim() === '') {
+            const message = 'Please enter the first hobby before adding another.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'warning', title: 'Fill first hobby', text: message, showConfirmButton: true });
+            } else {
+                alert(message);
+            }
+            firstHobby.focus();
+            return;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'hobby-row';
+
         const input = document.createElement("input");
         input.type = "text";
-        const index = btn.closest('.member-block') ? btn.closest('.member-block').querySelector('input[name*="_name"]').name.match(/member_(\d+)_name/)[1] : null;
         input.name = type === 'head' ? 'head_hobbies[]' : `member_${index}_hobbies[]`;
         input.placeholder = "Enter a hobby";
         input.classList.add("hobby-input");
-        section.insertBefore(input, btn);
+
+        const discard = document.createElement('button');
+        discard.type = 'button';
+        discard.className = 'tertiary discard-hobby-btn';
+        discard.textContent = '❌';
+        discard.addEventListener('click', function() { removeHobby(this); });
+
+        row.appendChild(input);
+        row.appendChild(discard);
+        section.insertBefore(row, btn);
 
         input.addEventListener('input', () => {
             if (type === 'head') {
@@ -610,6 +643,14 @@
         });
 
         checkFormValidity(); // Check validity after adding hobby field
+    };
+
+    window.removeHobby = function(btn) {
+        const row = btn.closest('.hobby-row');
+        if (row) {
+            row.remove();
+            try { checkFormValidity(); } catch(e) {}
+        }
     };
     
     window.addMember = function() {

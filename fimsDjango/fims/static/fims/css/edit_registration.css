@@ -160,6 +160,7 @@ textarea:focus {
     display: flex;
     align-items: center;
     gap: 12px;
+    
 }
 
 .hobby-input {
@@ -257,4 +258,10 @@ button.secondary:hover {
 .form-actions {
     text-align: center;
     margin-top: 20px;
+}
+
+
+.hobby-row{
+    display: flex;
+    flex-direction: row;
 }

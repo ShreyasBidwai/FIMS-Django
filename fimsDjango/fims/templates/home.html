@@ -1,71 +1,73 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Familink</title>
-    <link rel="stylesheet" href="{% static 'fims/css/home.css' %}">
-    <link rel="icon" href="{% static 'fims/images/family.png' %}" type="image/png">
-</head>
 
-<body>
+    <!-- Styles -->
+    <link rel="stylesheet" href="{% static 'fims/css/home_copy.css' %}" />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="{% static 'fims/images/family.png' %}"
+      type="image/png"
+    />
+  </head>
+
+  <body>
+    
     {% if messages %}
     <script>
-        alert("{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}");
+      alert(
+        "{% for message in messages %}{{ message|escapejs }}{% if not forloop.last %}\n{% endif %}{% endfor %}"
+      );
     </script>
     {% endif %}
-     <nav id="nav-bar">
-        
-        <div style="display: flex; align-items: center;">
-            <div id="logo">
-                <img src="{% static 'fims/images/family.png' %}" alt="Familink Logo" style="height: 1.2em; width: auto; vertical-align: middle; margin-right: 0.5em;">Familink
-            </div>
-        </div>
-        
-        <div class="menu-toggle" id="menu-toggle">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-        </div>
-        <ul id="nav-links">
-            <li><a href="{% url 'stats' %}">Quick Stats</a></li>
-           
-            <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
-             <li><a href="{% url 'login_view' %}">Login</a></li>
-        </ul>
+
+    <!-- Navbar -->
+    <nav id="nav-bar">
+      <div id="logo">
+        <img
+          src="{% static 'fims/images/family.png' %}"
+          alt="Familink Logo"
+          class="logo-img"
+        />
+        <span>Familink</span>
+      </div>
+      <ul>
+        <li><a href="{% url 'stats' %}">Quick Stats</a></li>
+        <li><a href="{% url 'admin:index' %}">Django-admin</a></li>
+        <li><a href="{% url 'login_view' %}">Login</a></li>
+      </ul>
     </nav>
+
+    <!-- Hero Section -->
     <section id="home">
-        <div id="container-body">
-            <div id="logo">
-            <h2>Family Information Management System</h2>
-            {% comment %} <p>Simple, safe, and secure family connections.</p> {% endcomment %}
+      <div id="container-flex" class="hero-flex">
+        <div id="container-body" class="hero-left">
+          <h2 id="head-name" class="hero-title">Welcome to <span style="color:#1abc9c;  ">Familink</span></h2>
+          <p class="hero-subtitle">Your trusted Family Information Management System</p>
+          <div id="cnt-name" class="hero-desc">
+            <p>
+              Effortlessly manage, connect, and celebrate your family. <br>
+              Start by registering your family today.
+            </p>
+          </div>
+          <div id="cnt-button" class="hero-btn-row">
+            <a href="{% url 'regis' %}" class="btn hero-btn">Register</a>
+          </div>
         </div>
-        <div id="container">
-            <div id="cnt-name">
-                <p>Welcome to Familink, your trusted Family Information Management System. <br>Start by registering your family today.</p>
-            </div>
-            <div id="cnt-button">
-                <a href="{% url 'regis' %}" class="btn">Register</a>
-            </div>
+        <div id="container-body-01" class="hero-right">
+          <img
+            src="{% static 'fims/images/home_family.png' %}"
+            alt="Family illustration"
+            class="hero-img"
+          />
         </div>
-        </div>
+      </div>
     </section>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.getElementById('menu-toggle');
-            const navLinks = document.getElementById('nav-links');
-
-            menuToggle.addEventListener('click', function() {
-                // Toggle the 'active' class on the button (for animation)
-                menuToggle.classList.toggle('active');
-                // Toggle the 'active' class on the <ul> (to show/hide menu)
-                navLinks.classList.toggle('active');
-            });
-        });
-    </script>
-    </body>
-
+  </body>
 </html>

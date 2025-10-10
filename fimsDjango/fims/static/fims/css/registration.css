@@ -255,3 +255,8 @@ button.secondary:hover {
     text-align: center;
     margin-top: 20px;
 }
+
+.hobby-row{
+    display: flex;
+    flex-direction: row;
+}

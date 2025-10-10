@@ -5,7 +5,6 @@ from openpyxl import Workbook
 from openpyxl.styles import Font
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_GET, require_http_methods
-from .models import FamilyHead, FamilyMember, State, City, Country, Hobby, AdminLog, PasswordReset
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
@@ -21,7 +20,6 @@ from django.utils import timezone
 from django.urls import reverse
 import datetime
 from datetime import date
-from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from .utils import decode_id
 from .models import *
@@ -154,7 +152,6 @@ def check_state_name_unique(request):
     exists = qs.exists()
     return JsonResponse({'exists': exists})
 
-# AJAX endpoint to check if FamilyHead mobile number is unique
 @require_GET
 def check_head_mobile_unique(request):
     mobile = request.GET.get('mobile')
@@ -204,7 +201,6 @@ def pdf_view(request):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Head Photo
     if head.Photo and hasattr(head.Photo, 'path') and os.path.exists(head.Photo.path):
         try:
             img = Image(head.Photo.path, width=120, height=150)
@@ -214,7 +210,7 @@ def pdf_view(request):
         except Exception:
             pass
 
-    # Get state and city names if possible
+
     state_name = head.State
     city_name = head.City
     try:
@@ -318,7 +314,11 @@ def view_state(request, hashid):
     cities = state.cities.exclude(status=9)
     if search:
         cities = cities.filter(name__icontains=search)
-    return render(request, 'view_state.html', {'state': state, 'cities': cities})
+    return render(request, 'view_state.html', {
+        'state': state,
+        'cities': cities,
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 @login_required(login_url='login')
 def view_family(request, hashid):
@@ -340,7 +340,13 @@ def view_family(request, hashid):
             city_name = city_obj.name
     except Exception:
         pass
-    return render(request, 'view_family.html', {'head': head, 'members': members, 'state_name': state_name, 'city_name': city_name})
+    return render(request, 'view_family.html', {
+        'head': head,
+        'members': members,
+        'state_name': state_name,
+        'city_name': city_name,
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 @login_required(login_url='login')
 @require_http_methods(["GET", "POST"])
@@ -365,7 +371,10 @@ def add_state(request):
                 return redirect('dashboard')
             except Exception as e:
                 error = str(e)
-    return render(request, 'add_state.html', {'error': error})
+        return render(request, 'add_state.html', {
+        'error': error,
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 from django.views.decorators.http import require_http_methods
 
@@ -394,7 +403,11 @@ def add_city(request):
                 error = str(e)
     
     
-    return render(request, 'add_city.html', {'states': states, 'error': error})
+    return render(request, 'add_city.html', {
+        'states': states,
+        'error': error,
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 
 
@@ -672,7 +685,7 @@ def update_head(request, hashid):
         if error_messages:
             return JsonResponse({'success': False, 'errors': error_messages})
         
-        # If no validation errors, proceed with the database transaction
+
         try:
             with transaction.atomic():
                 # Update and save Family Head
@@ -733,7 +746,7 @@ def update_head(request, hashid):
                             object_type='FamilyMember'
                         )
 
-                # Add new members
+                
                 new_idx = members.count() + 1
                 while request.POST.get(f'member_{new_idx}_name'):
                     new_member = FamilyMember(
@@ -769,7 +782,12 @@ def update_head(request, hashid):
         except IntegrityError:
             return JsonResponse({'success': False, 'errors': ['A database error occurred. Please try again later.']})
 
-    return render(request, 'edit_registration.html', {'head': instance, 'states': states, 'members': FamilyMember.objects.filter(HeadID=instance)})
+    return render(request, 'edit_registration.html', {
+        'head': instance,
+        'states': states,
+        'members': FamilyMember.objects.filter(HeadID=instance),
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 
 @login_required(login_url='login')
@@ -783,7 +801,7 @@ def edit_state(request, hashid):
             return render(request, 'edit_state.html', {'state': state})
         state.name = new_name
         state.save()
-        # Log update action for State
+        
         if request.user.is_authenticated:
             AdminLog.objects.create(
                 user=request.user,
@@ -795,8 +813,10 @@ def edit_state(request, hashid):
             )
         messages.success(request, 'State updated successfully!')
         return redirect('dashboard_state')
-    return render(request, 'edit_state.html', {'state': state})
-
+    return render(request, 'edit_state.html', {
+        'state': state,
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 @login_required(login_url='login')
 def edit_city(request, hashid):
@@ -817,7 +837,10 @@ def edit_city(request, hashid):
             )
         messages.success(request, 'City updated successfully!')
         return redirect('dashboard_city')
-    return render(request, 'edit_city.html', {'city': city})
+    return render(request, 'edit_city.html', {
+        'city': city,
+        'username': request.user.username if request.user.is_authenticated else ''
+    })
 
 @login_required(login_url='login')
 @csrf_exempt
@@ -932,7 +955,7 @@ def dashboard_stats_api(request):
     })
 
 def home(request):
-    return render(request, 'home_copy.html')
+    return render(request, 'home.html')
 
 
 # def regis(request):
@@ -1067,7 +1090,7 @@ def login_view(request):
 
         if user is not None and user.is_superuser:
             login(request, user)
-            # Log login action
+            
             AdminLog.objects.create(
                 user=user,
                 username=user.username,
@@ -1079,7 +1102,7 @@ def login_view(request):
             messages.success(request, 'Login successful!')
             return redirect('dashboard_head')
         else:
-            # Pass error_message for client-side display
+            
             return render(request, 'login.html', {'error_message': 'Invalid credentials or not a superuser', 'username': username})
 
     return render(request, 'login.html')
@@ -1120,7 +1143,7 @@ def regis(request):
     if request.method == 'POST':
         error_messages = []
         
-        # --- Head Validation ---
+        
         head_name = request.POST.get('head_name', '').strip()
         if not head_name:
             error_messages.append('First name is required for Family Head.')
@@ -1184,11 +1207,10 @@ def regis(request):
         if not any(hobby.strip() for hobby in head_hobbies):
             error_messages.append('At least one hobby is required for Family Head.')
 
-        # Family Head - check unique mobile
         if FamilyHead.objects.filter(MobileNo=head_mobile).exists():
             error_messages.append('This mobile number is already registered.')
         
-        # --- Member Validation ---
+        # Member Validation
         member_index = 1
         while True:
             name = request.POST.get(f'member_{member_index}_name')
@@ -1226,7 +1248,7 @@ def regis(request):
         if error_messages:
             return JsonResponse({'success': False, 'errors': error_messages})
         
-        # Data is valid, now convert and save
+       
         try:
             head_state = get_object_or_404(State, id=head_state_id)
             head_birthdate_obj = None
@@ -1240,7 +1262,7 @@ def regis(request):
                     head_wedding_date_obj = datetime.datetime.strptime(head_wedding_date_str, '%Y-%m-%d').date()
 
             with transaction.atomic():
-                # Create and save Family Head
+                
                 head = FamilyHead(
                     Name=head_name,
                     Surname=head_surname,
@@ -1248,7 +1270,7 @@ def regis(request):
                     Birthdate=head_birthdate_obj,
                     MobileNo=head_mobile,
                     Address=head_address,
-                    State=head_state.name, # Save the state name, not the ID
+                    State=head_state.name, 
                     City=head_city,
                     Pincode=head_pincode,
                     MaritalStatus=head_marital_status,
@@ -1348,17 +1370,16 @@ def dashboard_head(request):
     heads = FamilyHead.objects.exclude(status=9).order_by('-HeadID')
     families = FamilyMember.objects.exclude(status=9).order_by('-MemberID')
     
-    # Assuming State and City also need to be ordered latest first
+
     states = State.objects.exclude(status=9).order_by('-id') if hasattr(State, 'status') else State.objects.all().order_by('-id')
-    all_states = State.objects.exclude(status=9).order_by('name') # Usually, the filter list of states is ordered alphabetically
-    # ------------------------------------------------------------------------------------
+    all_states = State.objects.exclude(status=9).order_by('name') 
+   
 
     if state_filter:
         filtered_cities = City.objects.exclude(status=9).filter(state_id=state_filter).order_by('-id')
     else:
         filtered_cities = City.objects.exclude(status=9).order_by('-id')
 
-    # Enable search filtering
     if search:
         heads = heads.filter(
             Q(Name__icontains=search) |
@@ -1386,8 +1407,8 @@ def dashboard_head(request):
     inactive_members = FamilyMember.objects.filter(status=0).exclude(status=9).count() + FamilyHead.objects.filter(status=0).exclude(status=9).count()
     deleted = FamilyMember.objects.filter(status=9).count() + FamilyHead.objects.filter(status=9).count()
 
-    # The line where you had the error is now corrected by ordering the QuerySet beforehand
-    head_paginator = Paginator(heads, 10) # 'heads' is already ordered
+    
+    head_paginator = Paginator(heads, 10) 
     family_paginator = Paginator(families, 10)
     state_paginator = Paginator(states, 10)
     city_paginator = Paginator(filtered_cities, 10)
@@ -1429,7 +1450,7 @@ def dashboard_family(request):
 
     show_all_tables = False
     if search:
-        # Correct filtering for each table based on its model's fields
+       
         heads = heads.filter(
             Q(Name__icontains=search) |
             Q(Surname__icontains=search) |
@@ -1490,7 +1511,7 @@ def dashboard_family(request):
 
 @login_required(login_url='login')
 def dashboard_state(request):
-    # Define variables and initialize querysets at the beginning
+    
     search = request.GET.get('search', '').strip()
     state_filter = request.GET.get('state_filter', '')
 
@@ -1586,7 +1607,7 @@ from django.contrib.auth.decorators import login_required
 
 @login_required(login_url='login')
 def dashboard_city(request):
-    # Define variables and initialize querysets at the beginning
+    
     search = request.GET.get('search', '').strip()
     state_filter = request.GET.get('state_filter', '')
 
@@ -1721,7 +1742,7 @@ def PasswordResetSent(request, reset_id):
     if PasswordReset.objects.filter(reset_id=reset_id).exists():
         return render(request, 'password_reset_sent.html')
     else:
-        # redirect to forgot password page if code does not exist
+        
         messages.error(request, 'Invalid reset id')
         return redirect('forgot-password')
 

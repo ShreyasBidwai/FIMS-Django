@@ -14,6 +14,7 @@
         display: flex;
         justify-content: center;
         align-items: center ;
+        
     }
     .form-container {
         background: #fff;
@@ -25,6 +26,8 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        
+    
     }
     .form-container h2 {
         margin-bottom: 18px;
@@ -103,7 +106,7 @@
         color: #fff;
     }
 </style>
-<a href="{% url 'dashboard_state' %}" class="back-btn">&larr; Back to Dashboard</a>
+<span><a href="{% url 'dashboard_state' %}" class="back-btn">&larr; Back to Dashboard</a></span>
 <div class="form-container">
     <h2>Add State</h2>
 
@@ -116,7 +119,7 @@
         </div>
         <button type="submit" class="primary">Add State</button>
     </form>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></style>
     <script>
     function checkStateUnique(name, callback) {
         $.get('/fims/check_state_name_unique/', {name: name, country_id: 101}, function(data) {

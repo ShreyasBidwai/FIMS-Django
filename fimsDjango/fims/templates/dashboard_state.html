@@ -35,7 +35,7 @@ Dashboard{% endblock %} {% block extra_head %}
         <input
           type="text"
           name="search"
-          placeholder="Search by name"
+          placeholder="Search by state name..."
           value="{{ search }}"
           style="padding: 0.5rem; width: 300px"
         />
@@ -67,8 +67,9 @@ Dashboard{% endblock %} {% block extra_head %}
     </div>
   </div>
   <div id="table-state" class="dashboard-table">
-    <div class="sub-table-head">
-      <h2>States</h2>
+    <div class="sub-table-head" style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0">States</h2>
+      <a href="{% url 'add_state' %}" class="add-btn">Add State</a>
       <table>
         <thead>
           <tr>

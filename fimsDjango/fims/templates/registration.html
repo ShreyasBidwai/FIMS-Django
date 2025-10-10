@@ -13,7 +13,7 @@
     <li class="note">Note:</li>
     <li class="note">Head of the Family should be registered</li>
     <li class="note">Family Head Should be 21 years or older</li>
-    <li class="note">Family Members can be added at the end of the form</li>
+    <li class="note">Family Members can be added at the end of the form once the head registration is completed</li>
 </ul>
 
 <form method="post" enctype="multipart/form-data" id="registrationForm">
@@ -130,10 +130,17 @@
                         
                         {% if head.head_hobbies.all %}
                             {% for hobby in head.head_hobbies.all %}
-                                <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                <div class="hobby-row">
+                                    <input type="text" class="hobby-input" name="head_hobbies[]" value="{{ hobby.Hobby }}" placeholder="Enter a hobby">
+                                    <button type="button" class="tertiary discard-hobby-btn" onclick="removeHobby(this)">❌</button>
+                                </div>
                             {% endfor %}
                         {% else %}
-                            <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                            <div class="hobby-row">
+                                
+                                <input type="text" class="hobby-input" name="head_hobbies[]" placeholder="Enter a hobby">
+                                <button type="button" class="tertiary discard-hobby-btn" onclick="removeHobby(this)">❌</button>
+                            </div>
                         {% endif %}
                         <button type="button" class="secondary hobby-btn" onclick="addHobby('head', this)">+ Add Hobby</button>
                     </div>
@@ -697,6 +704,7 @@
     });
 // Main event listener to the form
     document.getElementById("registrationForm").addEventListener("submit", validateForm);
+    document.getElementById("registrationForm").addEventListener("add-member-btn", validateForm);
 
     $(document).ready(function() {
         $("#head_state").change(function() {
@@ -781,13 +789,49 @@
         } else {
             section = btn.closest('.hobbies-section');
         }
+        // Determine index for member hobby names when adding inside a member block
+        const index = btn.closest('.member-block') ? btn.closest('.member-block').querySelector('input[name*="_name"]').name.match(/member_(\d+)_name/)[1] : null;
+
+        // Choose selector for the first hobby input in this section
+        const hobbySelector = type === 'head' ? "input[name='head_hobbies[]']" : `input[name='member_${index}_hobbies[]']`;
+        const firstHobby = section.querySelector(hobbySelector);
+
+        // If the first hobby input exists but is empty, show a popup and don't add another
+        if (firstHobby && firstHobby.value.trim() === '') {
+            const message = 'Please enter the first hobby before adding another.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fill first hobby',
+                    text: message,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#3085d6'
+                });
+            } else {
+                alert(message);
+            }
+            firstHobby.focus();
+            return;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'hobby-row';
+
         const input = document.createElement("input");
         input.type = "text";
-        const index = btn.closest('.member-block') ? btn.closest('.member-block').querySelector('input[name*="_name"]').name.match(/member_(\d+)_name/)[1] : null;
         input.name = type === 'head' ? 'head_hobbies[]' : `member_${index}_hobbies[]`;
         input.placeholder = "Enter a hobby";
         input.classList.add("hobby-input");
-        section.insertBefore(input, btn);
+
+        const discard = document.createElement('button');
+        discard.type = 'button';
+        discard.className = 'tertiary discard-hobby-btn';
+        discard.textContent = '❌';
+        discard.addEventListener('click', function() { removeHobby(this); });
+
+        row.appendChild(input);
+        row.appendChild(discard);
+        section.insertBefore(row, btn);
 
         input.addEventListener('input', () => {
             if (type === 'head') {
@@ -798,7 +842,16 @@
             }
         });
 
-        checkFormValidity(); 
+        checkFormValidity();
+    };
+
+    window.removeHobby = function(btn) {
+        const row = btn.closest('.hobby-row');
+        if (row) {
+            row.remove();
+            // After removal, re-run validations
+            try { checkFormValidity(); } catch(e) {}
+        }
     };
 
 
@@ -807,9 +860,41 @@
         if (document.getElementById('add-member-btn').disabled) {
             validateHead(true);
             const firstError = document.querySelector("#head-fieldset .error-message:not(:empty)");
+            const message = 'Please complete the head information before adding a member.';
+             if (typeof Swal !== 'undefined') 
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fill head info',
+                    text: message,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#3085d6'
+                });
+            // Scroll to and focus the first error field if available
             if (firstError) {
                 firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // try to focus an adjacent input/select/textarea
+                let target = firstError.previousElementSibling;
+                if (!target || !(/input|select|textarea/i).test(target.tagName)) {
+                    const parent = firstError.parentElement;
+                    if (parent) target = parent.querySelector('input, select, textarea');
+                }
+                if (target) {
+                    try { target.focus(); } catch(e) {}
+                }
             }
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Fill head info',
+                    text: message,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#3085d6'
+                });
+            } else {
+                alert(message);
+            }
+
             return;
         }
 
